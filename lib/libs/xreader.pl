@@ -4,19 +4,13 @@
 # eXcellent Reader
 #####################################################################
 
-# Copyright (c) 2001, Julian Lishev, Sofia 2001
-# All rights reserved.
-# This code is free software; you can redistribute
-# it and/or modify it under the same terms 
-# as Perl itself.
-
-#####################################################################
 
 my $x_sep_begin1 = '\<\©N\®';
 my $x_sep_begin2 = '\®(\d{1})\®(.*?)\®\©\>';
 my $x_sep_begin;
 my $x_sep_end = '\<\˜\©\˜\>';
 my $x_var = '\<\§VAR\§\>';
+my $x_named_var = '\{\%\%(\$[^\%\<\>\n]+)\%\%\}';
 my $x_sqlvar = '\<S\©LVAR\:(\d{1,})\:S\©L\>';
 my $x_SQL_begin = '\<S\©L\:(\d{1,})\:\"(.*?)\"\:(\d{1,})\:(\d{1,})\:(\d{1,})\:(\d{1,})\:S\©L\>';
 my $x_template_spl_b = '(\<\!\-\-\:XPART\:';
@@ -83,7 +77,7 @@ sub xreader
   {
    open(XFILE,$xreader_path.$filename) or return(0);
    binmode(XFILE);
-   read(XFILE,$data,(-s $xreader_path.$filename));
+   read(XFILE,$data,(-s XFILE));
    close (XFILE);
    $data =~ s/\r\n/\n/gs;
    $sys_xreader_file = $filename;
@@ -128,7 +122,7 @@ sub _xreader
     %sys_xreader_queries = ();
     open(XFILE,$xreader_path.$xprt_n) or return(0);
     binmode(XFILE);
-    read(XFILE,$xpart,(-s $xreader_path.$xprt_n));
+    read(XFILE,$xpart,(-s XFILE));
     close (XFILE); 
    }
  return(_mem_xreader($xpart,@vals));
@@ -176,6 +170,17 @@ sub _mem_xreader
      }
    $xpart =~ s/$x_template_split//sig;
   }
+
+ my $bkp_xpart = $xpart;
+ $xpart =~ s#$x_named_var#do{
+   my $x_e_var = $1;
+   my $x_var_res;
+   my $x_eval_var = '$x_var_res = '.$x_e_var.';';
+   eval $x_eval_var;
+   if($@ ne '') {$x_var_res = '';}
+   $bkp_xpart =~ s/$x_named_var/$x_var_res/si;
+ };#sgie;
+ $xpart = $bkp_xpart;
 
  my @newar = split(/$x_var/si,$xpart);
  $xpart = '';
@@ -333,7 +338,7 @@ sub xshopreader
  if($fname ne '')
    {
     open (SHOPT,$fname) or return(-2);
-    read(SHOPT,$data,(-s $fname));
+    read(SHOPT,$data,(-s SHOPT));
     close (SHOPT);
    }
  # Please do not use "#" in follow block!

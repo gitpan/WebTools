@@ -2,7 +2,7 @@
 # Please change shebang if need!
 #####################################################################
 
-# Copyright (c) 2001, Julian Lishev, Sofia 2001
+# Copyright (c) 2001, Julian Lishev, Sofia 2002
 # All rights reserved.
 # This code is free software; you can redistribute
 # it and/or modify it under the same terms 

@@ -30,7 +30,7 @@ my $install_only_pass = '';
 
 ##########################################################
 
-# Copyright (c) 2001, Julian Lishev, Sofia 2001
+# Copyright (c) 2001, Julian Lishev, Sofia 2002
 # All rights reserved.
 # This code is free software; you can redistribute
 # it and/or modify it under the same terms 
@@ -553,8 +553,8 @@ sub LogInPage
  <form METHOD='POST' ACTION='$scriptname'>
  <input name='action' value='' type='hidden'>
  <table>
- <tr><td width='100'>$f_b<B>User:</B>$f_e</td><td><input name='user_admin' value='' type='text'></td></tr>
- <tr><td width='100'>$f_b<B>Password:</B>$f_e</td><td><input name='pass_admin' value='' type='password'></td></tr>
+ <tr><td width='100'>$f_b<B>User:</B>$f_e</td><td><input name='user_admin' value='' type='text' onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
+ <tr><td width='100'>$f_b<B>Password:</B>$f_e</td><td><input name='pass_admin' value='' type='password' onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
  <tr><td width='100'></td><td><input value='Enter' type='submit'></td></tr>
  </table>
  </form>
@@ -684,18 +684,18 @@ my $var_printing_mode_S = getSelect('var_printing_mode',$var_printing_mode,'buff
  <input name='pass_admin' value='$pass_admin' type='hidden'>
  <table>
  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Name of project:</B>$f_e</td>
-  <td><input name='projectname' value='$projectname' type='text' size="20"></td></tr>
+  <td><input name='projectname' value='$projectname' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
  <TR><TD><BR></TD><TD><BR></TD></TR>
  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Type of SQL server:</B>$f_e</td>
   <td>$f_b$db_support_S$f_e</td></tr>
  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Host of SQL server:</B>$f_e</td>
-  <td><input name='sql_host' value='$sql_host' type='text' size="20"></td></tr>
+  <td><input name='sql_host' value='$sql_host' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Port of SQL server:</B>$f_e</td>
-  <td><input name='sql_port' value='$sql_port' type='text' size="20"></td></tr>
+  <td><input name='sql_port' value='$sql_port' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>User of SQL server:</B>$f_e</td>
-  <td><input name='sql_user' value='$sql_user' type='text' size="20"></td></tr>
+  <td><input name='sql_user' value='$sql_user' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Respective password:</B>$f_e</td>
-  <td><input name='sql_pass' value='$sql_pass' type='text' size="20"></td></tr>
+  <td><input name='sql_pass' value='$sql_pass' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Default database name:</B>$f_e</td>
   <td>$f_b<B>'$projectname\db'</B> (project name plus 'db' at the end)$f_e</td></tr>
@@ -710,33 +710,33 @@ my $var_printing_mode_S = getSelect('var_printing_mode',$var_printing_mode,'buff
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>WebTools(your site) is down:</B>$f_e</td>
   <td>$f_b$site_is_down_S (Set this field to '<B>on</B>' if you want to 'stop' your site /scripts side/)$f_e</td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Count of attempts:</B>$f_e</td>
-  <td><input name='wait_attempt' value='$wait_attempt' type='text' size="20"></td></tr>  
+  <td><input name='wait_attempt' value='$wait_attempt' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>  
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Time between two attempts:</B>$f_e</td>
-  <td><input name='wait_for_open' value='$wait_for_open' type='text' size="20"> $f_b (in seconds) $f_e</td></tr>
+  <td><input name='wait_for_open' value='$wait_for_open' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"> $f_b (in seconds) $f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Period of session time:</B>$f_e</td>
-  <td><input name='sess_time' value='$sess_time' type='text' size="7">$f_b $sys_conf_d_S$f_e</td></tr>
+  <td><input name='sess_time' value='$sess_time' type='text' size="7" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();">$f_b $sys_conf_d_S$f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
  
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Length of session ID:</B>$f_e</td>
-  <td><input name='rand_sid_length' value='$rand_sid_length' type='text' size="20"> $f_b (in chars) $f_e</td></tr>
+  <td><input name='rand_sid_length' value='$rand_sid_length' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"> $f_b (in chars) $f_e</td></tr>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Type of cookie expiration:</B>$f_e</td>
   <td>$f_b$sess_cookie_S (Set '<B>sesstime</B>' if you want cookie to expire with 'session time' or set '<B>0</B>' if you want cookie to expire when user close browser)$f_e</td></tr>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Session ID label:</B>$f_e</td>
-  <td><input name='l_sid' value='$l_sid' type='text' size="20"></td></tr>
+  <td><input name='l_sid' value='$l_sid' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Disallow multipart data:</B>$f_e</td>
   <td>$f_b$cgi_lib_forbid_mulipart_S$f_e</td></tr>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Maximum data through POST:</B>$f_e</td>
-  <td><input name='cgi_lib_maxdata' value='$cgi_lib_maxdata' type='text' size="20"> $f_b(in bytes)$f_e</td></tr>
+  <td><input name='cgi_lib_maxdata' value='$cgi_lib_maxdata' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"> $f_b(in bytes)$f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Timeout of CGI scripts:</B>$f_e</td>
-  <td><input name='cgi_script_timeout' value='$cgi_script_timeout' type='text' size="20"> $f_b(in seconds)$f_e</td></tr>
+  <td><input name='cgi_script_timeout' value='$cgi_script_timeout' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"> $f_b(in seconds)$f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Restrict sessions by IP:</B>$f_e</td>
@@ -754,11 +754,11 @@ my $var_printing_mode_S = getSelect('var_printing_mode',$var_printing_mode,'buff
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Full path of sendmail program:</B>$f_e</td>
-  <td><input name='sendmail' value='$sendmail' type='text' size="20"></td></tr>
+  <td><input name='sendmail' value='$sendmail' type='text' size="20" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Mix charset for session ID generation:</B>$f_e</td>
-  <td><input name='charset' value='$charset' type='text' size="80"> $f_b(just mix well this chars)$f_e</td></tr>
+  <td><input name='charset' value='$charset' type='text' size="80" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"> $f_b(just mix well this chars)$f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Priority of global variables:</B>$f_e</td>
@@ -768,7 +768,7 @@ my $var_printing_mode_S = getSelect('var_printing_mode',$var_printing_mode,'buff
   <td>$f_b$sess_force_flat_S (If you choice '<B>on</B>' then all sessions will be saved in flat files in your 'tmp' directory other else sessions will be saved in your defult database!)$f_e</td></tr>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Default support mail:</B>$f_e</td>
-  <td><input name='support_email' value='$support_email' type='text' size="25"> $f_b(If errors in your scripts appear then this mail will be printed in browser)$f_e</td></tr>
+  <td><input name='support_email' value='$support_email' type='text' size="25" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"> $f_b(If errors in your scripts appear then this mail will be printed in browser)$f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set print mode:</B>$f_e</td>
@@ -776,23 +776,23 @@ my $var_printing_mode_S = getSelect('var_printing_mode',$var_printing_mode,'buff
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set TEMP directory:</B>$f_e</td>
-  <td><input name='tmp' value='$tmp' type='text' size="25"> $f_b(At this directory you must have write/read access)$f_e</td></tr>
+  <td><input name='tmp' value='$tmp' type='text' size="25" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"> $f_b(At this directory you must have write/read access)$f_e</td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set Drivers directory:</B>$f_e</td>
-  <td><input name='driver_path' value='$driver_path' type='text' size="25"></td></tr>
+  <td><input name='driver_path' value='$driver_path' type='text' size="25" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set Library directory:</B>$f_e</td>
-  <td><input name='library_path' value='$library_path' type='text' size="25"></td></tr>
+  <td><input name='library_path' value='$library_path' type='text' size="25" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set Database directory:</B>$f_e</td>
-  <td><input name='db_path' value='$db_path' type='text' size="25"> $f_b(At this directory you must have write/read access)$f_e</td></tr>
+  <td><input name='db_path' value='$db_path' type='text' size="25" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"> $f_b(At this directory you must have write/read access)$f_e</td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set Mail directory:</B>$f_e</td>
-  <td><input name='mailsender_path' value='$mailsender_path' type='text' size="25"> $f_b(At this directory you must have write/read access)$f_e</td></tr>
+  <td><input name='mailsender_path' value='$mailsender_path' type='text' size="25" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"> $f_b(At this directory you must have write/read access)$f_e</td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set Template directory:</B>$f_e</td>
-  <td><input name='xreader_path' value='$xreader_path' type='text' size="25"></td></tr>
+  <td><input name='xreader_path' value='$xreader_path' type='text' size="25" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set WHTML(scripts) directory:</B>$f_e</td>
-  <td><input name='perl_html_dir' value='$perl_html_dir' type='text' size="25"></td></tr>
+  <td><input name='perl_html_dir' value='$perl_html_dir' type='text' size="25" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set full path of HTDOCS directory:</B>$f_e</td>
-  <td><input name='apacheshtdocs' value='$apacheshtdocs' type='text' size="25"></td></tr>
+  <td><input name='apacheshtdocs' value='$apacheshtdocs' type='text' size="25" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set WEB based html home directory:</B>$f_e</td>
-  <td><input name='http_home_path' value='$http_home_path' type='text' size="25"> $f_b('<B>/</B>' means HTDOCS (root) directory of your web server. For example '<B>/web/</B>' means 'http://www.yourserver.com/web/')$f_e</td></tr>
+  <td><input name='http_home_path' value='$http_home_path' type='text' size="25" onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"> $f_b('<B>/</B>' means HTDOCS (root) directory of your web server. For example '<B>/web/</B>' means 'http://www.yourserver.com/web/')$f_e</td></tr>
   
   
   <TR><TD><BR></TD><TD><BR></TD></TR>
@@ -1151,7 +1151,7 @@ END_OF_HTML
  <input name='user_admin' value='$user_admin' type='hidden'>
  <input name='pass_admin' value='$pass_admin' type='hidden'>
  Enter password for default 'admin' user (for users support):<BR><BR>
- Password: <input name='apass' value='' type='password'><BR><BR>
+ Password: <input name='apass' value='' type='password' onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"><BR><BR>
  <input value='Create' type='submit'>
  </form>
  <BR>
@@ -1314,7 +1314,7 @@ END_OF_HTML
  <input name='user_admin' value='$user_admin' type='hidden'>
  <input name='pass_admin' value='$pass_admin' type='hidden'>
  Enter password for default 'admin' user (for users support):<BR><BR>
- Password: <input name='apass' value='' type='password'><BR><BR>
+ Password: <input name='apass' value='' type='password' onFocus="javascript: this.select();" onMouseOver="javascript: this.focus();"><BR><BR>
  <input value='Create' type='submit'>
  </form>
  <BR>

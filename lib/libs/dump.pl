@@ -1,7 +1,5 @@
 ###############################################
 # Dump library by Julian Lishev
-# All rights reserved by www.proscriptum.com
-# Used idea of Krasimir Krustev
 ###############################################
 $sys_print_dump_buffer = '';
 

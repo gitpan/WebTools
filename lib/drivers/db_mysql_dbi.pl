@@ -24,7 +24,12 @@ if($@ ne '')
   exit;
  }
 
-$Mysql::QUIET = $mysqlbequiet;
+$DBD::mysql = $mysqlbequiet;
+
+# Prevent warnings in web browser from external programs and drivers
+# Send warnings to "null" device. Works great on: Unix/Linux/WinXP
+
+open (STDERR,'>>/dev/null');
 
 $webtools::sys__subs__->{'DB_OnExit'} = \&mysql_DB_OnExit;
 $webtools::sys__subs__->{'hideerror'} = \&mysql_hideerror;
@@ -55,8 +60,11 @@ $webtools::sys__subs__->{'SignInUser'} = \&mysql_SignInUser;
 sub mysql_DB_OnExit
    {
     my ($system_database_handle) = @_;
-    $system_database_handle->disconnect();
-    undef($system_database_handle);
+    if($system_database_handle)
+     {
+      $system_database_handle->disconnect();
+      undef($system_database_handle);
+     }
     return(1);
    }
 sub mysql_hideerror

@@ -1,7 +1,6 @@
 #######################################################
 # Perl`s Download Library
 #######################################################
-# Written by Julian Lishev - Sofia 2001
 # Ver 4.0
 #######################################################
 use strict;      # Perl was here...
@@ -163,7 +162,7 @@ sub downloader_SendFile
  eval '$stdouthandle::sys_stdouthandle_header = 1;';
   
  print "MIME-Type: 1.0\n";
- print "X-Powered-By: WebTools/1.23\n";
+ print "X-Powered-By: WebTools/1.26\n";
  print "Content-Disposition: filename=\"$name\"\n";
  print "Content-Transfer-Encoding: binary\n";
  print "Content-Type: ".$type.";name=\"$name\"\n\n";
@@ -222,7 +221,7 @@ sub downloader_SendMemFile
  eval '$stdouthandle::sys_stdouthandle_header = 1;';
   
  print "MIME-Type: 1.0\n";
- print "X-Powered-By: WebTools/1.23\n";
+ print "X-Powered-By: WebTools/1.26\n";
  print "Content-Disposition: filename=\"$name\"\n";
  print "Content-Transfer-Encoding: binary\n";
  print "Content-Type: ".$type.";name=\"$name\"\n\n";

@@ -5,7 +5,7 @@ package stdouthandle;
 # other else you may rase an error!!!
 #####################################################################
 
-# Copyright (c) 2001, Julian Lishev, Sofia 2001
+# Copyright (c) 2001, Julian Lishev, Sofia 2002
 # All rights reserved.
 # This code is free software; you can redistribute
 # it and/or modify it under the same terms 
@@ -14,12 +14,12 @@ package stdouthandle;
 #####################################################################
 
 require Exporter;
-use Fcntl;
+use Fcntl qw(:seek);
 use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(reset clear $sys_stdouthandle_print_text $sys_stdouthandle_content_ok 
              $sys_stdouthandle_header $sys_stdouthandle_header_up_to_now);
-$VERSION = "1.25";
+$VERSION = "1.26";
 
 $sys_stdouthandle_print_text = 0;
 $sys_stdouthandle_header = 0;
@@ -58,7 +58,7 @@ sub WRITE
        {
        	CORE::print "Content-type: text/html\n";
        }
-      CORE::print "X-Powered-By: WebTools/1.25\n\n";
+      CORE::print "X-Powered-By: WebTools/1.26\n\n";
       $sys_stdouthandle_content_ok = 1;
       $sys_stdouthandle_header = 1;
      }
@@ -90,7 +90,7 @@ sub PRINT
        {
        	CORE::print "Content-type: text/html\n";
        }
-      CORE::print "X-Powered-By: WebTools/1.25\n\n";
+      CORE::print "X-Powered-By: WebTools/1.26\n\n";
       $sys_stdouthandle_content_ok = 1;
       $sys_stdouthandle_header = 1;
      }
@@ -122,7 +122,7 @@ sub PRINTF
        {
        	CORE::print "Content-type: text/html\n";
        }
-      CORE::print "X-Powered-By: WebTools/1.25\n\n";
+      CORE::print "X-Powered-By: WebTools/1.26\n\n";
       $sys_stdouthandle_content_ok = 1;
       $sys_stdouthandle_header = 1;
      }

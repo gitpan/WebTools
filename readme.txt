@@ -1,4 +1,4 @@
-README Web Tools version 1.25
+README Web Tools version 1.26
 This package is written in Perl and its main purpose is: to help all Web developers. 
 It bring in self many features of modern Web developing:
   -  Grabs best of Php but in Perl syntax.

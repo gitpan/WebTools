@@ -118,6 +118,25 @@ with it!</b></font></p>
         be substituted with respective value.<br>
         How you can use and substitute these variable you can see after few seconds.<br>
         <br>
+        Before this I would like to introduce &quot;named&quot; template variable 
+        or more correct &quot;named perl&quot; variables. Here is their syntax:<br>
+        <br>
+        <font color="#0000CC">{%%$Perl_VAR%%}</font> <br>
+        <br>
+        So this template will be substituted with respective variable (scalars 
+        only!)<br>
+        <br>
+        Example:<br>
+        <br>
+        &nbsp;&nbsp;<font color="#990000"> My name is {%%$name%%}, and I am {%%$years{'me'}%%}'s 
+        old!</font><br>
+        <br>
+        where:<br>
+        <br>
+        &nbsp;&nbsp; <font color="#990000">$name = 'Your name';&nbsp; %years = 
+        ('me' =&gt; 'your age');</font><br>
+        <br>
+        <br>
         <br>
         <font size="3" color="#CC0000">*</font><font color="#CC0000">&nbsp;&nbsp;<font size="3">&quot;Call 
         of Perl subprogram&quot;</font></font><br>
@@ -131,7 +150,6 @@ with it!</b></font></p>
         <font color="#0000CC">%%<font color="#006633">PerlSub</font><font color="#FF0000">:</font><font color="#006633">some_sub(<font color="#990000">some_parameters</font>)</font>%%</font><br>
         <br>
         Example:<br>
-        <br>
         <br>
         <font color="#990000">This is SQL template %%SQL:1:&quot;select</font><font color="#000033"> 
         <font color="#006633">%%perlsub:mysample()%%</font>&nbsp;<font color="#990000">from 

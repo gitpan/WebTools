@@ -29,6 +29,7 @@ sub html_parse
      $html = html_parse_frame($k,$inp{$k},$html);
      $html = html_parse_link($k,$inp{$k},$html);
      $html = html_parse_meta($k,$inp{$k},$html);
+     $html = html_parse_img($k,$inp{$k},$html);
     }
    $result .= $html;
   }
@@ -64,6 +65,7 @@ sub html_parse_form
        $v = html_parse_frame($key,$inp{$key},$v);
        $v = html_parse_link($key,$inp{$key},$v);
        $v = html_parse_meta($key,$inp{$key},$v);
+       $v = html_parse_img($key,$inp{$key},$v);
       }
      substr($data,index($data,$k),length($k),$v);
  };#sie;

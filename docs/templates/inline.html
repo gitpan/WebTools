@@ -43,6 +43,16 @@ Templates:<font color="#0000CC"> Page 2</font></font></b></font> </p>
         inline functions &lt;/<font color="#006633">&copy;</font>INPERL<font color="#006633">&copy;</font>--&gt; 
         <br>
         </font><br>
+        <font color="#FF0066">&nbsp;&nbsp;If you want use alternative style of 
+        INILINE/INPERL:<br>
+        </font><br>
+        &nbsp;&nbsp;<font color="#0000CC">%%%INLINE%%% inline functions %%%/INLINE%%%</font><br>
+        <br>
+        &nbsp;&nbsp;OR <br>
+        <br>
+        <font size="2" face="Verdana, Arial, Helvetica, sans-serif"><b><font color="#0000CC">&nbsp;&nbsp;%%%INPERL%%% 
+        inline functions %%%/INPERL%%%</font></b></font><font color="#0000CC"><br>
+        </font><br>
         <br>
         &nbsp;&lt;!--&copy;INLINE&copy;&gt;&lt;/&copy;INLINE&copy;--&gt; is used 
         to excape HTML (and repectively PERL code), so code between these &quot;tags&quot; 
@@ -93,9 +103,14 @@ Templates:<font color="#0000CC"> Page 2</font></font></b></font> </p>
         <br>
         <font color="#993366"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;&nbsp;&lt;!--<font color="#0000FF">&copy;</font>INCLUDE<font color="#0000FF">&copy;</font>file.ext<font color="#0000FF">&copy;</font>--&gt;</font></b></font><br>
         <br>
-        or alternative syntax:<br>
+        or alternative syntaxes:<br>
         <br>
         <font color="#993366"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;&nbsp;&lt;!--<font color="#0000FF">%</font>INCLUDE<font color="#0000FF">%</font>file.ext<font color="#0000FF">%</font>--&gt;</font></b></font><br>
+        <br>
+        OR<br>
+        <br>
+        <font color="#993366"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;&nbsp;<font color="#0000FF">%%%</font>INCLUDE<font color="#0000FF">%</font>file.ext<font color="#0000FF">%%%</font></font></b></font> 
+        <br>
         <br>
         Note that you should not use INLINE/INPERL tag for that function!!! (For 
         more info see example below)<br>

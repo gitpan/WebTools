@@ -1003,7 +1003,9 @@ sub mail_data
         {
          #-------------------------------------------------------------------------
          $html .= $a_next_boundary;
-         $html .= $charset.'; name="document.txt"';
+         my $txt_charset = $charset;
+         $txt_charset =~ s/text\/html/text\/plain/si;
+         $html .= $txt_charset.'; name="document.txt"';
          $html .= $crlf;
          $html .= 'Content-Transfer-Encoding: quoted-printable';
          $html .= $crlf;
@@ -1020,7 +1022,9 @@ sub mail_data
        {
         #-------------------------------------------------------------------------
         $html .= $a_next_boundary;
-        $html .= $charset.'; name="document.txt"';
+        my $txt_charset = $charset;
+        $txt_charset =~ s/text\/html/text\/plain/si;
+        $html .= $txt_charset.'; name="document.txt"';
         $html .= $crlf;
         $html .= 'Content-Transfer-Encoding: quoted-printable';
         $html .= $crlf;
@@ -1118,7 +1122,9 @@ sub mail_data
         {
          #-------------------------------------------------------------------------
          $html .= $a_next_boundary;
-         $html .= $charset;
+         my $txt_charset = $charset;
+         $txt_charset =~ s/text\/html/text\/plain/si;
+         $html .= $txt_charset;
          $html .= $crlf;
          $html .= 'Content-Transfer-Encoding: quoted-printable';
          $html .= $crlf;
@@ -1135,7 +1141,9 @@ sub mail_data
        {
         #-------------------------------------------------------------------------
         $html .= $a_next_boundary;
-        $html .= $charset.'; name="document.txt"';
+        my $txt_charset = $charset;
+        $txt_charset =~ s/text\/html/text\/plain/si;
+        $html .= $txt_charset;
         $html .= $crlf;
         $html .= 'Content-Transfer-Encoding: quoted-printable';
         $html .= $crlf;

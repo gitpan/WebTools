@@ -1,26 +1,7 @@
 ##############################################################
 # Util library
 ##############################################################
-# Modified by Julian Lishev 2001
-#####################################################################
 
-# Copyright (c) 2001, Julian Lishev, Sofia 2001
-# All rights reserved.
-# This code is free software; you can redistribute
-# it and/or modify it under the same terms 
-# as Perl itself.
-
-#####################################################################
-##############################################################
-# Original author:
-# This library (CGI::Util) was originaly written by:
-# Copyright 1995-1997, Lincoln D. Stein. 
-# All rights reserved. It may be used and modified freely,
-# but I do request that this copyright notice remain attached
-# to the file. You may modify this module as you wish, but if
-# you redistribute a modified version, please attach a note 
-# listing the modifications you have made.
-##############################################################
 
 $utl_escape_factor = "\t" ne "\011";
 $webtools::loaded_functions = $webtools::loaded_functions | 128;
@@ -121,6 +102,66 @@ sub expire_calc {
         return $time;
     }
     return (time+$offset);
+}
+
+
+sub eval_webtools_code
+{
+ my $sys_code = shift;
+ my $sys_name = shift;
+ 
+ if ($sys_name eq '') { $sys_name = 'Run Time Eval Code';}
+ 
+ $sys_code =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>(\r\n|\n)?/$2/gsio;
+ $sys_code =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>(\r\n|\n)?//gsio;
+ $sys_code = pre_process_templates($sys_code);  # Process all build-in templates
+ my @sys_part = ();
+ my @sys_html = split(/\<\?perl/is,$sys_code);
+ my $sys_a;
+ my $sys_error_locator_N002 = 1;
+ my $sys_all_code__one = "\n";
+ foreach $sys_l (@sys_html)
+  {
+   $sys_l =~ s/(.*)\?\>(\r\n|\n)?//is;
+   push(@sys_part,$sys_l);
+  }
+ my @code_N002 = ();
+ $sys_code =~ s/\<\?perl *(.*?)\?\>/do{
+  $sys_a = $1;
+  if ($sys_a ne '') { push(@code_N002,$sys_a); }
+ };/isge;
+ my $i_N001 = 0;
+ foreach $sys_l (@sys_part)
+  {
+    chomp($sys_l);
+    if($sys_l ne '')
+      {
+       $sys_l =~ s/\|/\\\|/sgo;
+       my $sys_cpy_l_N001 = $sys_l;
+       $sys_cpy_l_N001 =~ s!\\\\\|!do{
+           $sys_l =~ s%\\\\\|%\\\\\\\\\\\|%so;
+         };!sgeo;
+       $sys_all_code__one .= 'if ($var_printing_mode eq "buffered"){$print_flush_buffer .= q|'.$sys_l.'|;} else {print q|'.$sys_l.'|;}'."\n";
+      }
+    my $cd_N001 = $code_N002[$i_N001++];
+    $sys_all_code__one .= $cd_N001;
+  }
+ $sys_all_code__one .= "\n".'$sys_error_locator_N002 = 0;';
+ eval $sys_all_code__one;
+ my $cd = $@;
+ my $codeerr = $cd;
+ if($sys_error_locator_N002)
+   {
+    Header(type => 'content');
+    $print_flush_buffer = '';
+    flush_print();
+    print "<br><font color='red'><h3>Perl Subsystem: Syntax error in code(<font color='blue'>$sys_name</font>)!</h3>";
+    $codeerr =~ s/\r\n/\n/sg;
+    $codeerr =~ s/\n/<BR>/sgi;
+    my $res = $debugging eq 'on' ? "<br>$codeerr</font>" : "";
+    print $res;
+    exit;
+   }
 }
 
 1;

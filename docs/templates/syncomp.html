@@ -27,6 +27,17 @@ Templates:<font color="#0000CC"> Page 2.1</font></font></b></font></p>
         &nbsp;&nbsp;<font color="#0000CC">&lt;!--<font color="#006633">&copy;</font>INPERL<font color="#006633">&copy;</font>&gt; 
         inline functions &lt;/<font color="#006633">&copy;</font>INPERL<font color="#006633">&copy;</font>--&gt; 
         <br>
+        <br>
+        </font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><b><font color="#FF0066">&nbsp;If 
+        you want use alternative style of INILINE/INPERL:<br>
+        </font><br>
+        &nbsp;&nbsp;<font color="#0000CC">%%%INLINE%%% inline functions %%%/INLINE%%%</font><br>
+        <br>
+        &nbsp;&nbsp;OR <br>
+        <br>
+        <font size="2" face="Verdana, Arial, Helvetica, sans-serif"><b><font color="#0000CC">&nbsp;&nbsp;%%%INPERL%%% 
+        inline functions %%%/INPERL%%%</font></b></font><font color="#0000CC"><br>
+        </font></b></font><font color="#0000CC"> <br>
         </font><br>
         &nbsp; &lt;!--&copy;INLINE&copy;&gt;&lt;/&copy;INLINE&copy;--&gt; is used 
         to excape HTML (and repectively PERL code), so code between these &quot;tags&quot; 
@@ -268,12 +279,17 @@ Templates:<font color="#0000CC"> Page 2.1</font></font></b></font></p>
         a look at this easy to use feature!<BR>
         Inlude syntax:<BR>
         <BR>
-        </font><FONT COLOR="#993366"><B><FONT SIZE="2" FACE="Verdana, Arial, Helvetica, sans-serif" COLOR="#0000CC">&lt;!--<FONT COLOR="#006633">&copy;</FONT>INCLUDE<FONT COLOR="#006633">&copy;</FONT>file_to_be_included.ext<FONT COLOR="#006633">&copy;</FONT>--&gt;</FONT></B></FONT><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><BR>
+        </font><FONT COLOR="#993366"><B><FONT SIZE="2" FACE="Verdana, Arial, Helvetica, sans-serif" COLOR="#0000CC">&nbsp;&nbsp;&lt;!--<FONT COLOR="#006633">&copy;</FONT>INCLUDE<FONT COLOR="#006633">&copy;</FONT>file_to_be_included.ext<FONT COLOR="#006633">&copy;</FONT>--&gt;</FONT></B></FONT><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><BR>
         <br>
-        and alternative syntax:<br>
+        and alternative syntaxes:<br>
         <br>
-        <b><font color="#993366"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#0000CC">&lt;!--</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><font color="#006633">%</font><font color="#0000CC">INCLUDE</font><font color="#006633">%</font><font color="#0000CC">file.ext</font><font color="#006633">%</font><font color="#0000CC">--&gt;</font></font></b></font></b> 
+        <b><font color="#993366"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#0000CC">&nbsp;&nbsp;&lt;!--</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><font color="#006633">%</font><font color="#0000CC">INCLUDE</font><font color="#006633">%</font><font color="#0000CC">file.ext</font><font color="#006633">%</font><font color="#0000CC">--&gt;</font></font></b></font></b> 
         <br>
+        <b><br>
+        OR<br>
+        <br>
+        <font color="#993366"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;&nbsp;<font color="#006633">%%%</font><font color="#0000CC">INCLUDE</font><font color="#006633">%</font><font color="#0000CC">file.ext</font><font color="#006633">%%%</font></font></b></font> 
+        </b> <br>
         <BR>
         This tag you can place wherever you want (no matter whether you are in 
         perl code (&lt;?perl ?&gt;) or you are in HTML). However if you want to 

@@ -1,5 +1,5 @@
 ###################################################################
-# Configuration file for "Web Tools" ver 1.25
+# Configuration file for "Web Tools" ver 1.26
 # Please edit here, don’t do that in Perl scripts!
 # For Web based configurator script see install.cgi
 ###################################################################
@@ -56,7 +56,7 @@ $webtools::debug_mail = 'on';                   # Show whether real mail must by
 $webtools::sendmail = '/usr/sbin/sendmail';     # sendmail path
 
 #[Other]
-$webtools::charset = 'TYn5b0xzlQu7SVBh3sHJKL8mUIvcOPZ2aWytCMAwq1prEe4oiDFG6R9kjdgfNX';
+$webtools::charset = '3sHAw6Yn5b0xzJKL8mUIvcOPZ2aWytCMlQu7SVBhR9kjdgfq1prEe4oiDFGTNX';
                                            # Please mix well this chars
 					   # to get higher security of your session ID :-)
 
@@ -211,7 +211,7 @@ sub Get_CGI_Directory
   my $path =  $ENV{'SCRIPT_NAME'};
   if($path =~ m/^(.*?)\/process\.cgi/is)
    {
-    return($path.'/');
+    return($1.'/');
    }
   return('');
  }

@@ -3,7 +3,7 @@
 #######################################################
 #####################################################################
 
-# Copyright (c) 2001, Julian Lishev, Sofia 2001
+# Copyright (c) 2001, Julian Lishev, Sofia 2002
 # All rights reserved.
 # This code is free software; you can redistribute
 # it and/or modify it under the same terms 
@@ -40,7 +40,7 @@
 sub SetCookieExpDate
 {
     my $expd = shift(@_);
-    require 'utl.pl';
+    require $library_path.'utl.pl';
     my $expire = expires($expd,'cookie');
     $cookie_exp_date_cgi = $expire;
     return 1;

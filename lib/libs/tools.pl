@@ -2,16 +2,8 @@
 # Miscellaneous Tools:
 # "tools.pl"
 ################################
-#####################################################################
 
-# Copyright (c) 2001, Julian Lishev, Sofia 2001
-# All rights reserved.
-# This code is free software; you can redistribute
-# it and/or modify it under the same terms 
-# as Perl itself.
-
-#####################################################################
-if(!($webtools::loaded_functions & 8)) {require "./libs/xreader.pl";}
+if(!($webtools::loaded_functions & 8)) {require $library_path."xreader.pl";}
 $webtools::loaded_functions = $webtools::loaded_functions | 32;
 # $bool = CheckLength($int_var, $min_val, $max_val);
 sub CheckLength
@@ -113,7 +105,7 @@ sub CheckData
    }
  if($type eq 'base')
    {
-    if($var =~ m/^[A-Za-zР-пр-џ0-9\(\)\-\;\ \_\,\+\*\[\]\{\}\'\"\;\:\%\@\!\#\~\.\,\`\\\/]+$/is) { return(1); }
+    if($var =~ m/^[A-Za-zР-пр-џ0-9\$\(\)\-\;\ \_\,\+\*\[\]\{\}\'\"\;\:\%\@\!\#\~\.\,\`\\\/]+$/is) { return(1); }
     return(0);
    }
 }

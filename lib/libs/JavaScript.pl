@@ -2,12 +2,6 @@
 # JavaScript routines
 ###################################################
 
-# Copyright (c) 2001, Julian Lishev, Sofia 2001
-# All rights reserved.
-# This code is free software; you can redistribute
-# it and/or modify it under the same terms 
-# as Perl itself.
-
 ### Function N: 1 ########################################################
 # Parameters: $form_name - Name of submitting FORM.
 #             $action_field - Form FIELD that bring 'action' to CGI script
@@ -24,12 +18,6 @@ sub JS_submiting_functions
 <script language="JavaScript">
 ////////////////////////////////////////////////////
 // JS Code encapsulating POST method
-////////////////////////////////////////////////////
-//# Copyright (c) 2001, Julian Lishev, Sofia 2001
-//# All rights reserved.
-//# This code is free software; you can redistribute
-//# it and/or modify it under the same terms 
-//# as Perl itself.
 ////////////////////////////////////////////////////
 // This JS accumulate data from forms
 // into one var! So you need to submit
@@ -248,12 +236,6 @@ sub JS_read_var
 ///////////////////////////////////////////////////////
 // Read one variable from document location URL
 ///////////////////////////////////////////////////////
-//# Copyright (c) 2001, Julian Lishev, Sofia 2001
-//# All rights reserved.
-//# This code is free software; you can redistribute
-//# it and/or modify it under the same terms 
-//# as Perl itself.
-///////////////////////////////////////////////////////
 function ReadVar(name)
  {
   var srch = new String(document.location);
@@ -302,12 +284,7 @@ sub JS_redirect
 // in main frame this code apear, it will read sent cookie and redirect page to caller... so
 // page wrote a cookie will be loaded into main frame!
 ////////////////////////////////////////////////////////////////////////////////////////////
-//# Copyright (c) 2001, Julian Lishev, Sofia 2001
-//# All rights reserved.
-//# This code is free software; you can redistribute
-//# it and/or modify it under the same terms 
-//# as Perl itself.
-////////////////////////////////////////////////////////////////////////////////////////////
+
 var index = '$index';
 var page = '$page';
 function read_cookie(name)
@@ -383,12 +360,6 @@ sub session_expire_notify
 <script language="JavaScript">
 ////////////////////////////////////////////////////
 // JS Code: Notify user when session will expire
-////////////////////////////////////////////////////
-//# Copyright (c) 2001, Julian Lishev, Sofia 2001
-//# All rights reserved.
-//# This code is free software; you can redistribute
-//# it and/or modify it under the same terms 
-//# as Perl itself.
 ////////////////////////////////////////////////////
 // This JS set timer to expiration time and wait
 // session to expire. So when session going to

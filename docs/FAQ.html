@@ -145,8 +145,6 @@
           'update' and so on... i.e. you must be very carefull when use these 
           functions for anything else! Please QUOTE all data and take care about 
           what kind of DB engine you prepare to use!<br>
-          <font size="-1" face="Arial, Helvetica, sans-serif"><i>(For sessions 
-          and users you don't need to care about anything!)</i></font><br>
           <br>
           <i>Example: </i><br>
           So best way to insert, update...your data is:</font></b></font></p>
@@ -160,7 +158,12 @@
           <font color="#000066" size="2"><b><font face="Courier New, Courier, mono" color="#333333">If 
           inserted data is numeric then you don't need to quote them!</font></b></font></p>
         <p><font face="Verdana, Arial, Helvetica, sans-serif" size="2" style="13px"><b><font size="2">Using 
-          that style you will remove most problems with insert/update!</font></b></font></p>
+          that style you will remove most problems with insert/update!<br>
+          <br>
+          <font color="#CC6633">Note:</font> Flat DB and Ms Access does not support 
+          binary files, so please don't insert binary files into session with 
+          these engines! However session support via MySQL and Flat files (not 
+          Flat DB) is FULL!</font></b></font></p>
         <p>&nbsp;</p>
         <p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2" style="13px"><a name="faq5"></a>Q: 
           <font color="#FF6600" size="2" style="font-size:13px"> <i> How I can 

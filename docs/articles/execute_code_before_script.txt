@@ -17,19 +17,18 @@ Example:
  # You are in "globexport.pm" -> No webtools functins are avaliable here!
  # If you need to print some messages don't forget "Content-type: text/html\n\n"!
  # Only available due StartUp process (parsing,loading drivers and so on)
- config.my_cgi = 8388608;                  # 8MB (if you want load it from external file)
- # where 'config.' is alias to '$webtools::'
- config.tmp='/tmp/your_folder/';
- config.cgi_lib_maxdata=$webtools::my_cgi; # Set new POST limit size (8MB)
+ $webtools::my_cgi = 8388608;                  # 8MB (if you want load it from external file)
+ $webtools::tmp='/tmp/your_folder/';
+ $webtools::cgi_lib_maxdata=$webtools::my_cgi; # Set new POST limit size (8MB)
 </#onStartUp-->
 
 <!--#onActivate>
  # You are in "webtools.pm" -> All webtools functins are avaliable here!
  # If you need to print some messages just go ahead :)
  # Available through script execution
- # Currently 'config.cgi_lib_maxdata' still has default value (not 8MB)!
- config.cgi_lib_maxdata=$webtools::my_cgi; # Set new POST limit size again for script!!!
- config.db_support='db_mysql';             # ...Change default db driver...
+ # Currently '$webtools::cgi_lib_maxdata' still has default value (not 8MB)!
+ $webtools::cgi_lib_maxdata=$webtools::my_cgi; # Set new POST limit size again for script!!!
+ $webtools::db_support='db_mysql';             # ...Change default db driver...
 </#onActivate-->
 
 <?perl 

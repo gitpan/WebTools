@@ -107,3 +107,7 @@ Revision history for Perl sub system "WebTools"
         - Removed READLINE operator in place where is needful to
           speed up execution of scripts
         - Removed bugs found at: htmlparser.pl and dump.pl
+
+1.26   23 Jun 2002
+        - Speed optimization of WebTools module.
+        - Eval WebTools scripts on runtime.

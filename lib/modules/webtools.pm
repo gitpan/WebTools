@@ -3,7 +3,7 @@ package webtools;
 # Perl`s WEB module
 ####################################################
 
-# Copyright (c) 2001, Julian Lishev, Sofia 2001
+# Copyright (c) 2001, Julian Lishev, Sofia 2002
 # All rights reserved.
 # This code is free software; you can redistribute
 # it and/or modify it under the same terms 
@@ -14,7 +14,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.25";
+    $VERSION = "1.26";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -158,13 +158,10 @@ sub StartUpInit
  $webtools::loaded_functions = 0;
  $webtools::global_variables_dump = 0;
  $webtools::global_variables_dump_style = 'layer';
- eval "if(!($webtools::loaded_functions & 128)){require '$library_path"."utl.pl';}";
- if($@) {DieAlert('Error: Can`t open library utl!');}
- eval "require '$library_path"."cookie.pl';";
- if($@) {DieAlert('Error: Can`t open library cookie!');}
+ if(!($webtools::loaded_functions & 128)){require "$library_path"."utl.pl";}
+ require "$library_path"."cookie.pl";
  ###################################################################
  require $driver_path.'sess_flat.pl';  # Must be placed before any require on db drivers!
- require $driver_path.'userdefined.pl';
  #####################################################################
  #  ###   ###     ###   ####   #####  #   #  #####  ####             #
  #  #  #  #  #    #  #  #   #    #    #   #  #      #   #            #
@@ -536,7 +533,7 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
 {
  my ($clear) = @_;
  if($clear == 1) { $sess_header_flushed = 1; return;}
- my $oldslcthnd = select(STDOUT);           # Select real output handler
+ my $oldslcthnd = CORE::select(STDOUT);           # Select real output handler
  $i = 0;
  if ($flag_onFlush_Event == 0)
  {
@@ -555,7 +552,7 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
   $| = 1;
   if(!$is and !($sys_stdouthandle_header and $sys_stdouthandle_content_ok))
    {
-    $print_header_buffer = "X-Powered-By: WebTools/1.25\n".$print_header_buffer; # Print version of this tool.
+    $print_header_buffer = "X-Powered-By: WebTools/1.26\n".$print_header_buffer; # Print version of this tool.
    }
   if ((!$sys_cookie_accepted) and ($sys_local_sess_id ne ''))
    {
@@ -594,9 +591,10 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
    }
   my $sys_print_res;
   my $sys_data;
-  while($sys_data = substr($print_header_buffer,0,4096))
+
+  while($sys_data = substr($print_header_buffer,0,2048))
     {
-      substr($print_header_buffer,0,4096,'');
+      substr($print_header_buffer,0,2048,'');
       $sys_print_res = print ($sys_data);
       if($sys_print_res eq undef) {onExit();exit;}
     }
@@ -608,10 +606,11 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
   $sess_header_flushed = 1;
  }
  #print $print_flush_buffer;  # Just Print It!
- while($sys_data = substr($print_flush_buffer,0,4096))
+ my $sys_data = '';
+ while($sys_data = substr($print_flush_buffer,0,2048))
     {
-      substr($print_flush_buffer,0,4096,'');
-      $sys_print_res = print ($sys_data);
+      substr($print_flush_buffer,0,2048,'');
+      my $sys_print_res = print ($sys_data);
       if($sys_print_res eq undef) {onExit();exit;}
     }
  $print_flush_buffer = '';
@@ -907,7 +906,7 @@ sub href_sid_adder
     $before = $`;
     $after = $';
     $this = $&;
-    if($url =~ m/.*?\.(cgi|pl|php|asp|html).*/is)
+    if($url =~ m/.*?\.(cgi|pl).*/is)
      {
       if ($url =~ s/(.*?\?.*)/$1\&$name\=$value/is)
         {
@@ -942,7 +941,7 @@ sub href_adder
     $before = $`;
     $after = $';
     $this = $&;
-    if($url =~ m/.*?\.(cgi|pl|php|asp|html).*/is)
+    if($url =~ m/.*?\.(cgi|pl).*/is)
      {
       if ($url =~ s/(.*?\?.*)/$1\&$name\=$value/is){}
       else
@@ -968,18 +967,17 @@ sub action_sid_adder
  my $src = $source;
  my $match = $source;
     $source = '';
- my $after,$before,this;
+ my $after,$before,this,$cntr;
+ $cntr = 0;
  if($session_started)
  {
-  if($src =~ m/\ +(action *?= *?)(\'|\"|)(.*?)(\'|\"|\ |\>)/is)
-   {
     $src =~ s!\ +action *?= *?(\'|\")?(.*?)(\'|\")?!do{
     $match =~ m/\ +(action *?= *?)(\'|\"|)(.*?)(\'|\"|\ |\>)/is;
     $url = $3;   #Matched string
     $before = $`;
     $after = $';
     $this = $&;
-    
+    $cntr++;
     if ($url =~ s/(.*?\?.*)/$1\&$name\=$value/is){}
     else
       {
@@ -992,7 +990,7 @@ sub action_sid_adder
     $match = $after;
    };!isge;
    $source .= $after;
-  } else { return ($src); }
+   if($cntr == 0) { return ($src); }
  }
  else { return($src); }   
    return($source);
@@ -1005,16 +1003,15 @@ sub action_adder
  my $match = $source;
     $source = '';
  my $after,$before,this;
+ my $cntr = 0;
  
- if($src =~ m/\ +(action *?= *?)(\'|\"|)(.*?)(\'|\"|\ |\>)/is)
-   {
     $src =~ s!\ +action *?= *?(\'|\")?(.*?)(\'|\")?!do{
     $match =~ m/\ +(action *?= *?)(\'|\"|)(.*?)(\'|\"|\ |\>)/is;
     $url = $3;   #Matched string
     $before = $`;
     $after = $';
     $this = $&;
-    
+    $cntr++;
     if ($url =~ s/(.*?\?.*)/$1\&$name\=$value/is)
       {
       }
@@ -1029,8 +1026,7 @@ sub action_adder
     $match = $after;
    };!isge;
    $source .= $after;
-  } else { return ($src); }
- 
+   if($cntr == 0) { return ($src); }
     
    return($source);
 }
@@ -1203,6 +1199,7 @@ sub save_session_data   # ($session_ID,$buffer,$database_handler) // Save into D
      $r_q = " and IP = \'$ip\'";    # Restrict session on IP!
     }
   my $buf = sql_quote($buffer,$dbh);
+   
   my $q = "update $sql_sessions_table set DATA = $buf where S_ID = \'$sid\'".$r_q;
   if (sql_query($q,$dbh) ne undef) { return(1); }
  }
@@ -1239,10 +1236,35 @@ sub load_session_data   # ($session_ID,$database_handler) // Load DATA from tabl
  }
  return($arr[0]);     # Return DATA field
 }
+sub read_redirected_script_file
+{
+ my $p_file_name_N001 = '';
+ my $rurl = $ENV{PATH_INFO} || $ENV{REDIRECT_URL};
+ if ($rurl eq '')
+   {
+    $rurl = $ENV{REQUEST_URI};
+    $rurl =~ s/\?.*//;
+   }
+ if(($rurl ne '') and !($rurl =~ m/(\.cgi|\.pl)^/si))
+   {
+    $rurl =~ s/\\/\//sg;
+    $rurl =~ m/\/([^\/]*)$/s;
+    $rurl =~ m/\/([^\/]*)$/s;
+    my $spth = $webtools::cgi_home_path;
+    if($webtools::perl_html_dir =~ m/^\.\/(.*)$/s)
+      {
+       $spth .= $1;
+      }
+    $rurl =~ m/$spth(.*)$/s;
+    $p_file_name_N001 = $1;
+   }
+ return($p_file_name_N001);
+}
 sub RunScript
 {
  my $sys_loaded_src = 0;
  my $p_file_name_N001 = read_form('file');
+ if($p_file_name_N001 eq '') { $p_file_name_N001 = read_redirected_script_file(); }
  $p_file_name_N001 =~ m/^(.*?)\./si;
  my $sys_RS_p_file_name = $1;
  if($globexport::sys_script_cached_source eq '')
@@ -1255,6 +1277,7 @@ sub RunScript
     die ':QUIT:';
    }
  $p_file_name_N001 = read_form('file');
+ if($p_file_name_N001 eq '') { $p_file_name_N001 = read_redirected_script_file(); }
  $p_file_checked_done_N001 = 0;
  if ($p_file_name_N001 =~ m/^[A-Za-z0-9-_.\/]*$/is)
    {
@@ -1296,9 +1319,10 @@ sub RunScript
        exit;
       }
     binmode(FILE_H_OPEN_N001);
-    read(FILE_H_OPEN_N001,$p_file_buf_N001,(-s $perl_html_dir.$p_file_name_N001));
+    read(FILE_H_OPEN_N001,$p_file_buf_N001,(-s FILE_H_OPEN_N001));
     close (FILE_H_OPEN_N001);
     $sys_loaded_src = 1;
+    $globexport::sys_script_cached_source = $p_file_buf_N001;
    }
   }
  else
@@ -1326,7 +1350,6 @@ sub RunScript
     {
       # Parse confing constants
       $sys_str =~ s/\#(.*?)(\r\n|\n)/$2/sgi;
-      $sys_str =~ s/\bconfig[\ \t]{0,}\.[\ \t]{0,}(.*?)\;/\$webtools\:\:$1\;/sgi;
       eval $sys_str;
       my $codeerr = $@;
       if($@ ne '')
@@ -1344,18 +1367,12 @@ sub RunScript
        }
     }
    StartUpInit();
-   $p_file_buf_N001 =~ s/\bmain[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$webtools\:\:$1$2/sgi;
-   $p_file_buf_N001 =~ s/\bscript[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
-   $p_file_buf_N001 =~ s/\b\@main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@webtools\:\:$1$2/sgi;
-   $p_file_buf_N001 =~ s/\b\@script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
-   $p_file_buf_N001 =~ s/\b\%main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%webtools\:\:$1$2/sgi;
-   $p_file_buf_N001 =~ s/\b\%script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
    $p_file_buf_N001 =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>(\r\n|\n)?/$2/gsio;
    $p_file_buf_N001 =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>(\r\n|\n)?//gsio;
    $p_file_buf_N001 = pre_process_templates($p_file_buf_N001);  # Process all build-in templates
    
    # Remove all the COMMENTS!!! That will reduce perl computing and printing!                
-   ExecuteHTMLfile($p_file_name_N001,$p_file_buf_N001);  
+   ExecuteHTMLfile($p_file_name_N001,$p_file_buf_N001);
    onExit();
    if(exists($webtools::SIGNALS{'OnExit'}))
      {
@@ -1382,7 +1399,7 @@ sub ExecuteHTMLfile
  my @html_N001 = split(/\<\?perl/is,$sys_p_buf_N001);
  my $sys_a_N001;
  my $error_locator_N001 = 1;
- my $sys_all_code_in_one = "\n"; #"$sys_globvars"."\n";
+ my $sys_all_code_in_one = "\n";
  foreach $sys_l_N001 (@html_N001)
   {
    $sys_l_N001 =~ s/(.*)\?\>(\r\n|\n)?//is;
@@ -1735,7 +1752,7 @@ sub onExit
           unlink ($full_path_to_file); 
         }
     }
- if($todo ne 'withOutDB') {DB_OnDestroy();}
+ if($todo ne 'withOutDB') {DB_OnDestroy($webtools::system_database_handle);}
 EVAL_TERMINATOR
  eval $delete_uploaded_files;
  return(1);
@@ -1781,10 +1798,6 @@ sub On_Term_Event
   	if($webtools::system_database_handle ne undef)
   	  {
   	   my $q =<<'THAT_TERM_SIG_STR';
-  	   if ($sys_local_sess_id ne '')
-  	     {
-  	      close_session_file($webtools::system_database_handle);
-  	     }
   	   DB_OnExit($webtools::system_database_handle);
   	   $webtools::system_database_handle = undef;
   	   $usystem_database_handle = undef;
@@ -1842,12 +1855,20 @@ sub set_variables_dump
 sub pre_process_templates ($)
 {
  my $sys_temp_buffer = shift(@_);
+ local *SYS_PRE_PROCESS_TEMPLATES_FILE;
  my $sys_binlinet = '\<\!\-\-\©INLINE\©\>';   # <!--©INLINE©>
  my $sys_einlinet = '\<\/\©INLINE\©\-\-\>';   # </©INLINE©-->
  my $sys_binlinep = '\<\!\-\-\©INPERL\©\>';   # <!--©INPERL©>
  my $sys_einlinep = '\<\/\©INPERL\©\-\-\>';   # </©INPERL©-->
- my $sys_include_file = '\<\!\-\-\©INCLUDE\©(.*?)\©\-\-\>';   # <!--©INCLUDE©file.ext©-->
- my $sys_include_file_new = '\<\!\-\-\%INCLUDE\%(.*?)\%\-\-\>';   # <!--%INCLUDE%file.ext%-->
+ 
+ my $sys_binlinet_new = '\%\%\%INLINE\%\%\%';   # %%%INLINE%%%
+ my $sys_einlinet_new = '\%\%\%\/INLINE\%\%\%'; # %%%/INLINE%%%
+ my $sys_binlinep_new = '\%\%\%INPERL\%\%\%';   # %%%INPERL%%%
+ my $sys_einlinep_new = '\%\%\%\/INPERL\%\%\%'; # %%%/INPERL%%%
+ 
+ my $sys_include_file = '\<\!\-\-\©INCLUDE\©(.*?)\©\-\-\>';     # <!--©INCLUDE©file.ext©-->
+ my $sys_include_file_new = '\<\!\-\-\%INCLUDE\%(.*?)\%\-\-\>'; # <!--%INCLUDE%file.ext%-->
+ my $sys_include_file_new2 = '\%\%\%INCLUDE\%(.*?)\%\%\%';      # %%%INCLUDE%file.ext%%%
  
  my $work_buffer = $sys_temp_buffer;
  
@@ -1857,16 +1878,10 @@ sub pre_process_templates ($)
      {
       binmode(SYS_PRE_PROCESS_TEMPLATES_FILE);
       local $/ = undef;
-      $sys_prd_template = <SYS_PRE_PROCESS_TEMPLATES_FILE>;
+      read(SYS_PRE_PROCESS_TEMPLATES_FILE,$sys_prd_template,(-s SYS_PRE_PROCESS_TEMPLATES_FILE));
       $sys_prd_template =~ s/\r\n/\n/gs;
       $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>\n?/$2/gsi;
       $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>\n?//gsi;
-      $sys_prd_template =~ s/\bmain[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$webtools\:\:$1$2/sgi;
-      $sys_prd_template =~ s/\bscript[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
-      $sys_prd_template =~ s/\b\@main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@webtools\:\:$1$2/sgi;
-      $sys_prd_template =~ s/\b\@script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
-      $sys_prd_template =~ s/\b\%main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%webtools\:\:$1$2/sgi;
-      $sys_prd_template =~ s/\b\%script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
       close(SYS_PRE_PROCESS_TEMPLATES_FILE);
      }
     else {$sys_prd_template = '';}
@@ -1881,16 +1896,10 @@ sub pre_process_templates ($)
      {
       binmode(SYS_PRE_PROCESS_TEMPLATES_FILE);
       local $/ = undef;
-      $sys_prd_template = <SYS_PRE_PROCESS_TEMPLATES_FILE>;
+      read(SYS_PRE_PROCESS_TEMPLATES_FILE,$sys_prd_template,(-s SYS_PRE_PROCESS_TEMPLATES_FILE));
       $sys_prd_template =~ s/\r\n/\n/gs;
       $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>\n?/$2/gsi;
       $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>\n?//gsi;
-      $sys_prd_template =~ s/\bmain[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$webtools\:\:$1$2/sgi;
-      $sys_prd_template =~ s/\bscript[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
-      $sys_prd_template =~ s/\b\@main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@webtools\:\:$1$2/sgi;
-      $sys_prd_template =~ s/\b\@script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
-      $sys_prd_template =~ s/\b\%main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%webtools\:\:$1$2/sgi;
-      $sys_prd_template =~ s/\b\%script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
       close(SYS_PRE_PROCESS_TEMPLATES_FILE);
      }
     else {$sys_prd_template = '';}
@@ -1899,7 +1908,23 @@ sub pre_process_templates ($)
  
  $sys_temp_buffer = $work_buffer;
  
+ $sys_temp_buffer =~ s#$sys_include_file_new2#do{
+    my $sys_prd_template;
+    if(open(SYS_PRE_PROCESS_TEMPLATES_FILE,$1))
+     {
+      binmode(SYS_PRE_PROCESS_TEMPLATES_FILE);
+      local $/ = undef;
+      read(SYS_PRE_PROCESS_TEMPLATES_FILE,$sys_prd_template,(-s SYS_PRE_PROCESS_TEMPLATES_FILE));
+      $sys_prd_template =~ s/\r\n/\n/gs;
+      $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>\n?/$2/gsi;
+      $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>\n?//gsi;
+      close(SYS_PRE_PROCESS_TEMPLATES_FILE);
+     }
+    else {$sys_prd_template = '';}
+    $work_buffer =~ s/$sys_include_file_new2/$sys_prd_template/si;
+   };#sgie;
  
+ $sys_temp_buffer = $work_buffer;
  $sys_temp_buffer =~ s#$sys_binlinet(.*?)$sys_einlinet#do{
     my $sys_prd_template = sys_make_template_code($1,'h');
     $work_buffer =~ s/$sys_binlinet(.*?)$sys_einlinet/$sys_prd_template/si;
@@ -1909,6 +1934,18 @@ sub pre_process_templates ($)
  $sys_temp_buffer =~ s#$sys_binlinep(.*?)$sys_einlinep#do{
     my $sys_prd_template = sys_make_template_code($1,'p');
     $work_buffer =~ s/$sys_binlinep(.*?)$sys_einlinep/$sys_prd_template/si;
+   };#sgie;
+ 
+ $sys_temp_buffer = $work_buffer;
+ $sys_temp_buffer =~ s#$sys_binlinet_new(.*?)$sys_einlinet_new#do{
+    my $sys_prd_template = sys_make_template_code($1,'h');
+    $work_buffer =~ s/$sys_binlinet_new(.*?)$sys_einlinet_new/$sys_prd_template/si;
+   };#sgie;
+ 
+ $sys_temp_buffer = $work_buffer;
+ $sys_temp_buffer =~ s#$sys_binlinep_new(.*?)$sys_einlinep_new#do{
+    my $sys_prd_template = sys_make_template_code($1,'p');
+    $work_buffer =~ s/$sys_binlinep_new(.*?)$sys_einlinep_new/$sys_prd_template/si;
    };#sgie;
  
  return($work_buffer);
@@ -1989,7 +2026,7 @@ sub sys_make_template_code
         {
           $rztl_sconn = sql_connect(); 
         }
-     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     if(!($webtools::loaded_functions & 8)) {eval 'require $library_path.'."'xreader.pl';";}
      xreader_dbh($rztl_sconn);#;
      
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
@@ -2006,7 +2043,7 @@ sub sys_make_template_code
         {
           $rztl_sconn = sql_connect(); 
         }
-     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     if(!($webtools::loaded_functions & 8)) {eval 'require $library_path.'."'xreader.pl';";}
      xreader_dbh($rztl_sconn);#;
      
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
@@ -2025,7 +2062,7 @@ sub sys_make_template_code
           $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
         }
-     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     if(!($webtools::loaded_functions & 8)) {eval 'require $library_path.'."'xreader.pl';";}
      xreader_dbh($rztl_sconn);#;
 
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
@@ -2043,7 +2080,7 @@ sub sys_make_template_code
           $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
         }
-     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     if(!($webtools::loaded_functions & 8)) {eval 'require $library_path.'."'xreader.pl';";}
      xreader_dbh($rztl_sconn);#;
 
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
@@ -2062,7 +2099,7 @@ sub sys_make_template_code
           $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
         }
-     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     if(!($webtools::loaded_functions & 8)) {eval 'require $library_path.'."'xreader.pl';";}
      xreader_dbh($rztl_sconn);#;
 
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
@@ -2080,7 +2117,7 @@ sub sys_make_template_code
           $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
         }
-     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     if(!($webtools::loaded_functions & 8)) {eval 'require $library_path.'."'xreader.pl';";}
      xreader_dbh($rztl_sconn);#;
 
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
@@ -2098,7 +2135,7 @@ sub sys_make_template_code
         {
           $rztl_sconn = sql_connect();
         }
-     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     if(!($webtools::loaded_functions & 8)) {eval 'require $library_path.'."'xreader.pl';";}
      xreader_dbh($rztl_sconn);#;
 
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
@@ -2116,7 +2153,7 @@ sub sys_make_template_code
         {
           $rztl_sconn = sql_connect();
         }
-     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     if(!($webtools::loaded_functions & 8)) {eval 'require $library_path.'."'xreader.pl';";}
      xreader_dbh($rztl_sconn);#;
 
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';

@@ -22,18 +22,11 @@ package globexport;
 # in any other case you may rase an error!!!
 #####################################################################
 
-# Copyright (c) 2001, Julian Lishev, Sofia 2001
-# All rights reserved.
-# This code is free software; you can redistribute
-# it and/or modify it under the same terms 
-# as Perl itself.
-
-#####################################################################
 require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.25";
+    $VERSION = "1.26";
     @ISA = qw(Exporter);
     $sys_askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa '.
                          '%global_hashes @multipart_headers $parsedform $sys_globvars $contenttype $query '.
@@ -50,7 +43,7 @@ use vars qw($VERSION @ISA @EXPORT);
  #####################################################################
  my $cnf = (-e './conf') ? './conf' : '../conf';
  eval "use lib \'$cnf\';";
- if($webtools::sys_config_pl_loaded ne 1) {require 'config.pl';}
+ if($webtools::sys_config_pl_loaded ne 1) {require $cnf.'/config.pl';}
 
  my $lib = (-e $webtools::library_path) ? $webtools::library_path : '.'.$webtools::library_path;
  my $drv = (-e $webtools::driver_path) ? $webtools::driver_path : '.'.$webtools::driver_path;
@@ -65,7 +58,7 @@ use vars qw($VERSION @ISA @EXPORT);
  
  if($webtools::run_restrict_mode =~ m/^on$/si)
   {
-   eval "require 'allowed.pl';";
+   eval "require '$cnf/allowed.pl';";
    if($@ eq '')
      {
       my @res = Check_Remote_IP($ENV{'REMOTE_ADDR'});
@@ -94,7 +87,7 @@ use vars qw($VERSION @ISA @EXPORT);
  #####################################################################
  # Parse cookies
  #####################################################################
- require 'cookie.pl';
+ require $lib.'/cookie.pl';
  
  #####################################################################
  # PreLoad GET input
@@ -130,6 +123,28 @@ use vars qw($VERSION @ISA @EXPORT);
  my %in = %out;
  my $sys_parsed = 0;
  my ($file) = $out{'file'};
+ if($file eq '')
+   {
+    my $rurl = $ENV{PATH_INFO} || $ENV{REDIRECT_URL};
+    if ($rurl eq '')
+      {
+	$rurl = $ENV{REQUEST_URI};
+	$rurl =~ s/\?.*//;
+      }
+    if(($rurl ne '') and !($rurl =~ m/(\.cgi|\.pl)^/si))
+     {
+      $rurl =~ s/\\/\//sg;
+      $rurl =~ m/\/([^\/]*)$/s;
+      $rurl =~ m/\/([^\/]*)$/s;
+      my $spth = $webtools::cgi_home_path;
+      if($webtools::perl_html_dir =~ m/^\.\/(.*)$/s)
+       {
+       	$spth .= $1;
+       }
+      $rurl =~ m/$spth(.*)$/s;
+      $file = $1;
+     }
+   }
  if($file ne '')
    {
     if(($webtools::perl_html_dir eq '') or ($webtools::perl_html_dir =~ m/^(\\|\/)$/si))
@@ -177,7 +192,7 @@ use vars qw($VERSION @ISA @EXPORT);
        else
         {
          binmode(FILE_H_OPEN_N001);
-         read(FILE_H_OPEN_N001,$globexport::sys_script_cached_source,(-s $webtools::perl_html_dir.$p_file_name_N001));
+         read(FILE_H_OPEN_N001,$globexport::sys_script_cached_source,(-s FILE_H_OPEN_N001));
          close (FILE_H_OPEN_N001);
          $sys_parsed = 1;
         }
@@ -203,7 +218,6 @@ use vars qw($VERSION @ISA @EXPORT);
     {
       # Parse confing constants
       $sys_str =~ s/\#(.*?)(\r\n|\n)/$2/sgi;
-      $sys_str =~ s/\bconfig[\ \t]{0,}\.[\ \t]{0,}(.*?)\;/\$webtools\:\:$1\;/sgi;
       eval $sys_str;
       my $codeerr = $@;
       if($@ ne '')
@@ -220,7 +234,7 @@ use vars qw($VERSION @ISA @EXPORT);
  #####################################################################
  # Parse input data
  #####################################################################
- require 'cgi-lib.pl';
+ require $lib.'/cgi-lib.pl';
 if(!$parsedform){
 	
  my (%cgi_data,   # The form data
