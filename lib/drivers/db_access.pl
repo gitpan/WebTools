@@ -17,7 +17,6 @@
 
 #####################################################################
 
-$usystem_database_handle = undef;
 my $access_local_id_counter = 0;
 my $db_access_read_size_limit = 1048576;   # Maximum bytes per db read (1MB)
 
@@ -115,7 +114,7 @@ sub access_sql_connect   # No params needed!
        $SIG{'__WARN__'} = "access_hideerror";
        my $uOurSQL = DBI->connect("DBI:ODBC:"."$database",$user,$pass,{RaiseError => 0, PrintError => 1, AutoCommit => 1}) or access_hideerror();
        $SIG{'__WARN__'} = $oldh;
-       $usystem_database_handle = $uOurSQL;   # That is current opened DB Handler!
+       $webtools::usystem_database_handle_access = $uOurSQL;   # That is current opened DB Handler!
        return($uOurSQL);
       }
     }

@@ -17,8 +17,6 @@
 
 #####################################################################
 
-$usystem_database_handle = undef;
-
 eval 'use Mysql;';
 if($@ ne '')
  {
@@ -101,7 +99,7 @@ sub mysql_sql_connect   # No params needed!
        my $port = $port eq '' ? '' : ';port='.$port;
        my $uOurSQL = Mysql->connect($host.$port,$database,$user,$pass);
        $SIG{'__WARN__'} = $oldh;
-       $usystem_database_handle = $uOurSQL;   # That is current opened DB Handler!
+       $webtools::usystem_database_handle_mysql = $uOurSQL;   # That is current opened DB Handler!
        return($uOurSQL);
       }
     }

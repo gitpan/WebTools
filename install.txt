@@ -50,8 +50,8 @@
       First of all you must have webtools package. It must be packed into one 
       tar.gz file.
       Please copy this .gz file into some directory and run follow commands:
-      tar -zxvf WebTools-1.21.tar.gz
-      cd WebTools-1.21
+      tar -zxvf WebTools-1.22.tar.gz
+      cd WebTools-1.22
       perl Makefile.PL
       make
       make install
@@ -124,7 +124,7 @@
       july.newald.proscriptum.com)
       His full cgi-bin directory is: /home/july/public_html/cgi-bin
       So  his webtools directory can be: /home/july/public_html/cgi-bin/webtools
-      Now we can upload WebTools-1.21.tar.gz to our home directory and after 
+      Now we can upload WebTools-1.22.tar.gz to our home directory and after 
       that to install script.
       After installation our process.cgi has permission mode set to 0755, 
       directories have permission modes: 0755 and any other files: 0444
@@ -294,8 +294,8 @@
       #-----------------------------------------------------------------------------------------
       # Step by Step Installation example:
       #-----------------------------------------------------------------------------------------
-      tar -zxvf WebTools-1.21.tar.gz
-      cd WebTools-1.21
+      tar -zxvf WebTools-1.22.tar.gz
+      cd WebTools-1.22
       perl Makefile.pl
               > /usr/local/apache/cgi-bin/webtools/
       make
@@ -303,7 +303,7 @@
       make permissions
       make clean
       cd ..
-      rm -rf WebTools-1.21
+      rm -rf WebTools-1.22
       cd /usr/local/apache/cgi-bin/webtools
       ls -l -a
       perl -c process.cgi     # Must be "ok"

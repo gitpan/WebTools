@@ -70,3 +70,7 @@ Revision history for Perl sub system "WebTools"
           DB functions, using AUTOLOAD method.
         - All "config" variables now "belongs" to webtools module!
         - Install.cgi now catch $webtools:: variables in config.pl
+        
+1.22   19 Feb 2002
+        - Fixed bug with simultaneous work of different databases
+          (fixed through load_database_driver() function)

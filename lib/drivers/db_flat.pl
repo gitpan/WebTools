@@ -17,9 +17,6 @@
 
 #####################################################################
 
-$usystem_database_handle = undef;
-
-
 eval 'use DBI;';
 if($@ ne '')
  {
@@ -122,7 +119,7 @@ sub flat_sql_connect   # No params needed!
        my $port = $port eq '' ? '' : ';port='.$port;
        my $uOurSQL = DBI->connect("DBI:WTSprite:".$path."$database",$user,$pass,{AutoCommit => 0, PrintError => 0}) or flat_hideerror;
        $SIG{'__WARN__'} = $oldh;
-       $usystem_database_handle = $uOurSQL;   # That is current opened DB Handler!
+       $webtools::usystem_database_handle_flat = $uOurSQL;   # That is current opened DB Handler!
        select($oldslcthnd);
        return($uOurSQL);
       }

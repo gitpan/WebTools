@@ -14,7 +14,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.21";
+    $VERSION = "1.22";
     $INTERNALVERSION = "1";
     $webtools::sys_ERROR = 'error';
     @ISA = qw(Exporter);
@@ -113,6 +113,12 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
 
 ###########################################        
   $webtools::system_database_handle = undef;   # That is current opened DB Handler!
+  $webtools::system_database_handle_flat   = undef;
+  $webtools::system_database_handle_mysql  = undef;
+  $webtools::system_database_handle_access = undef;
+  $webtools::usystem_database_handle_flat   = undef;
+  $webtools::usystem_database_handle_mysql  = undef;
+  $webtools::usystem_database_handle_access = undef;
   
   $webtools::sys_ERROR->install('onTerm',\&On_Term_Event);
 
@@ -572,7 +578,7 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
   $| = 1;
   if(!$is and !($sys_stdouthandle_header and $sys_stdouthandle_content_ok))
    {
-    $print_header_buffer = "X-Powered-By: WebTools/1.21\n".$print_header_buffer; # Print version of this tool.
+    $print_header_buffer = "X-Powered-By: WebTools/1.22\n".$print_header_buffer; # Print version of this tool.
    }
   if ((!$sys_cookie_accepted) and ($sys_local_sess_id ne ''))
    {
@@ -1450,6 +1456,24 @@ TIME_EVAL_TERMINATOR
    eval $script_time_eval;
   }
 }
+
+sub save_database_handlers
+{
+ my $current = $webtools::db_support;
+ if($current =~ m/^db_mysql$/si)
+    {
+     $webtools::system_database_handle_mysql  = $webtools::system_database_handle;
+    }
+  if($current =~ m/^db_flat$/si)
+    {
+     $webtools::system_database_handle_flat  = $webtools::system_database_handle;
+    }
+  if($current =~ m/^db_access$/si)
+    {
+     $webtools::system_database_handle_access  = $webtools::system_database_handle;
+    }
+   $webtools::system_database_handle = undef;
+}
 ##########################################################################
 # Load (reload) database driver
 # PROTO: load_database_driver($driver);
@@ -1459,8 +1483,15 @@ sub load_database_driver
 {
  my $new_driver = shift;
  
+ my $current = $webtools::db_support;
+ 
  if($new_driver =~ m/^flat$/si)
   {
+   &save_database_handlers();
+   if($webtools::system_database_handle_flat ne undef)
+    {
+     $webtools::system_database_handle = $webtools::system_database_handle_flat;
+    }
    if(!($webtools::loaded_functions & 4))
     {
      require $driver_path.'db_flat.pl';
@@ -1498,6 +1529,11 @@ sub load_database_driver
   }
  if($new_driver =~ m/^mysql$/si)
   {
+   &save_database_handlers();
+   if($webtools::system_database_handle_mysql ne undef)
+    {
+     $webtools::system_database_handle = $webtools::system_database_handle_mysql;
+    }
    if(!($webtools::loaded_functions & 1))
     {
      require $driver_path.'db_mysql.pl';
@@ -1534,6 +1570,11 @@ sub load_database_driver
   }
  if($new_driver =~ m/^access$/si)
   {
+   &save_database_handlers();
+   if($webtools::system_database_handle_access ne undef)
+    {
+     $webtools::system_database_handle = $webtools::system_database_handle_access;
+    }
    if(!($webtools::loaded_functions & 2))
     {
      require $driver_path.'db_access.pl';
@@ -1970,7 +2011,7 @@ __END__
 
 =head1 NAME
 
- webtools.pm - Full featured WEB Development Tools (compare with Php language) in Perl syntax
+webtools - Full featured WEB Development Tools (compare with Php language) in Perl syntax
 
 =head1 DESCRIPTION
 
