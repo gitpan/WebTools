@@ -17,7 +17,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.001";
+    $VERSION = "1.002";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -1475,17 +1475,47 @@ __END__
 
 =over 4
 
-=item Session Tools
+=item webtools.pm
 
 =back
+
+=head1 DESCRIPTION
+
+=over 4
+
+This package is written in pure Perl and its main purpose is: to help all Web developers. 
+It brings in self many features of modern Web developing:
+
+  -  Grabs best of Php but in Perl syntax.
+  -  Embedded Perl into HTML files.
+  -  Buffered output.
+  -  Easy reading input forms and cookies using global variables.
+  -  Flat files database support.
+  -  MySQL/MS Access support.
+  -  Full Sessions support (via flat files or via DB)
+  -  Easy User support (SignIn / SignUp)
+  -  Cookies support.
+  -  Attached variables.
+  -  Html/SQL templates and variables.
+  -  Mail functions (plain/html mails/uploads)
+  -  Upload/download functions via Perl scripts.
+  -  DES III encription/decription in MIME style
+  and more...
+
+=item Specifications and examples
+
+=back
+
+ Please read HELP.doc and see all examples in docs/examples directory
 
 =head1 AUTHOR
 
 =over 4
 
-=item
+=item Contacts:
+
  Julian Lishev - Bulgaria,Sofia
- e-mail: perlsite@mail.bg
+ e-mail: julian@proscriptum.com
 
 =back
 

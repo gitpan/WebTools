@@ -15,9 +15,10 @@ package stdouthandle;
 
 require Exporter;
 use Fcntl;
+use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(reset clear $var_printing_mode);
-$VERSION = "1.00";
+$VERSION = "1.002";
 $var_printing_mode = 'buffered';
 my $cnf = (-e './conf') ? './conf/' : '../conf/';
 eval "use lib \'$cnf\';";
@@ -289,41 +290,31 @@ __END__
 
 =over 4
 
-=item Standart Handle Module
+=item stdouthandle.pm
 
 =back
 
-=head1 SYNOPSIS
+=head1 DESCRIPTION
 
 =over 4
 
-=item Examples
+This module is used internal by WebTools module.
+
+=item Specifications and examples
 
 =back
 
- #!/usr/bin/perl
- use stdouthandle;
- use Fcntl qw(:seek);
-
- $hd = tie(*MYSTDOUT,'stdouthandle');
- select(MYSTDOUT);
-
- $hd->reset();
-
- seek(MYSTDOUT,3,SEEK_SET);
- $m->Header("Content-type: text/html\n");
- print "Start...\n";
+ Please read HELP.doc and see all examples in docs/examples directory
 
 =head1 AUTHOR
 
 =over 4
 
-=item Julian Lishev
+=item Contacts:
+
+ Julian Lishev - Bulgaria,Sofia
+ e-mail: julian@proscriptum.com
 
 =back
 
- Bulgaria,Sofia
- e-mail: perlsite@mail.bg
-
 =cut
-
