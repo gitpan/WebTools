@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl5
 
 ##++
-##    JSprite
+##    WTWTJSprite
 ##    Sprite v.3.2
 ##    Last modified: August 22, 1998
 ##
@@ -24,15 +24,15 @@
 
 =head1 NAME
 
-JSprite - Modified version of Sprite to manipulate text delimited flat-files 
+WTWTJSprite - Modified version of Sprite to manipulate text delimited flat-files 
 as databases using SQL emulating Oracle.  The remaining documentation
 is based on Sprite.
 
 =head1 SYNOPSIS
 
-  use JSprite;
+  use WTWTJSprite;
 
-  $rdb = new JSprite;
+  $rdb = new WTJSprite;
 
   $rdb->set_delimiter (-read  => '::')  ## OR: ('read',  '::');
   $rdb->set_delimiter (-write => '::')  ## OR: ('write', '::');
@@ -81,7 +81,7 @@ the same as VARCHAR (Perl Strings, for comparisens).
 
 =head1 Supported SQL Commands
 
-Here are a list of the SQL commands that are supported by JSprite:
+Here are a list of the SQL commands that are supported by WTJSprite:
 
 =over 5
 
@@ -182,7 +182,7 @@ I<Examples>:
 
 This example adds a new column as the 2nd column (0 for 1st column) of the 
 table.  By default, new fields are added as the right-most (last) column of 
-the table.  This is a JSprite Extension and is not supported by standard SQL.
+the table.  This is a WTJSprite Extension and is not supported by standard SQL.
 
   alter table my_db modify (Legend VARCHAR(40))
 
@@ -191,7 +191,7 @@ the table.  This is a JSprite Extension and is not supported by standard SQL.
 The last example moves the "Legend" column to the 1st column in the table and 
 shifts the others over, and causes all subsequent records added to use a 
 default value of "1" for the "Legend" field, if no value is inserted for it.
-This "Position" field (zero in the example) is a JSprite extension and is not 
+This "Position" field (zero in the example) is a WTJSprite extension and is not 
 part of standard SQL.  
 
 =item I<insert> - inserts a record into the database:
@@ -226,7 +226,7 @@ Here are the available methods:
 
 The set_delimiter function sets the read and write delimiter for the
 database. The delimiter is not limited to one character; you can have 
-a string, and even a regexp (for reading only).  In JSprite,
+a string, and even a regexp (for reading only).  In WTJSprite,
 you can also set the record seperator (default is newline).
 
 I<Return Value>
@@ -285,7 +285,7 @@ I<Return Value>
 
 =item I<set_db_ext>
 
-JSprite permits the user to specify an extension that is part
+WTJSprite permits the user to specify an extension that is part
 of the actual file name, but not part of the corresponding
 table name.  The default is '.sdb'.
 
@@ -349,22 +349,22 @@ be done with minimal or no changes to your Perl code.
 Another advantage of Sprite is that you can use Perl's regular expressions 
 to search through your data. Yippee!
 
-JSprite provides the ability to emulate basic database tables
+WTJSprite provides the ability to emulate basic database tables
 and SQL calls via flat-files.  The primary use envisioned
 for this is to permit website developers who can not afford
 to purchase an Oracle licence to prototype and develop Perl 
 applications on their own equipment for later hosting at 
 larger customer sites where Oracle is used.  :-)
 
-JSprite attempts to do things in as database-independent manner as possible, 
-but where differences occurr, JSprite most closely emmulates Oracle, for 
-example "sequences/autonumbering".  JSprite uses tiny one-line text files 
+WTJSprite attempts to do things in as database-independent manner as possible, 
+but where differences occurr, WTJSprite most closely emmulates Oracle, for 
+example "sequences/autonumbering".  WTJSprite uses tiny one-line text files 
 called "sequence files" (.seq).  and Oracle's "seq_file_name.NEXTVAL" 
 function to insert into autonumbered fields.
 
-=head1 ADDITIONAL JSPRITE-SPECIFIC FEATURES
+=head1 ADDITIONAL WTJSprite-SPECIFIC FEATURES
 
-JSprite supports Oracle sequences and functions.  The
+WTJSprite supports Oracle sequences and functions.  The
 currently-supported Oracle functions are "SYSTIME", NEXTVAL, and "NULL".  
 Users can also "register" their own functions via the 
 "fn_register" method.
@@ -378,7 +378,7 @@ package name (default is "main").
   
 -or-
 
-  JSprite::fn_register ('myfn',__PACKAGE__);
+  WTJSprite::fn_register ('myfn',__PACKAGE__);
 
 Then, you could say:
 
@@ -397,7 +397,7 @@ I<Return Value>
 
 None
 
-JSprite has added the SQL "create" function to 
+WTJSprite has added the SQL "create" function to 
 create new tables and sequences.  
 
 I<Examples:>
@@ -411,7 +411,7 @@ I<Examples:>
 
 =head1 SEE ALSO
 
-DBD::Sprite, Sprite, Text::CSV, RDB
+DBD::WTSprite, Sprite, Text::CSV, RDB
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -432,7 +432,7 @@ for finding bugs and offering suggestions:
 
 =head1 COPYRIGHT INFORMATION
 	
-			JSprite Copyright (c) 1998-2000, Jim Turner
+			WTJSprite Copyright (c) 1998-2000, Jim Turner
           Sprite Copyright (c) 1995-1998, Shishir Gundavaram
                       All Rights Reserved
 
@@ -444,7 +444,7 @@ for finding bugs and offering suggestions:
 
 ###############################################################################
 
-package JSprite;
+package WTJSprite;
 
 require 5.002;
 
@@ -463,9 +463,9 @@ eval {require 'OraSpriteFns.pl';};
 use vars qw ($VERSION $LOCK_SH $LOCK_EX);
 ##--
 
-$JSprite::VERSION = '5.20';
-$JSprite::LOCK_SH = 1;
-$JSprite::LOCK_EX = 2;
+$WTJSprite::VERSION = '5.20';
+$WTJSprite::LOCK_SH = 1;
+$WTJSprite::LOCK_EX = 2;
 
 my $NUMERICTYPES = '^(NUMBER|FLOAT|DOUBLE|INT|INTEGER|NUM)$';       #20000224
 my $STRINGTYPES = '^(VARCHAR2|CHAR|VARCHAR|DATE|LONG|BLOB|MEMO)$';
@@ -1829,9 +1829,9 @@ sub update
 					             $all_columns);
         foreach my $l (@{$self->{order}})
 	 {
-	 if(exists($DBD::Sprite::Sprite_global_MAX_VAL{uc($l.'|'.$table)}))
+	 if(exists($DBD::WTSprite::WTSprite_global_MAX_VAL{uc($l.'|'.$table)}))
 	  {
-	   delete($DBD::Sprite::Sprite_global_MAX_VAL{uc($l.'|'.$table)});
+	   delete($DBD::WTSprite::WTSprite_global_MAX_VAL{uc($l.'|'.$table)});
 	  }				      
 	 }					             
 	return ($status);
@@ -1865,7 +1865,7 @@ sub delete
 
 	$status = $self->delete_rows ($condition);
 
- 	%DBD::Sprite::Sprite_global_MAX_VAL = ();
+ 	%DBD::WTSprite::WTSprite_global_MAX_VAL = ();
 	return $status;
     } else {
 	return (-505);
@@ -1878,7 +1878,7 @@ sub drop
     my ($path, $table, $condition, $status, $wherepart);
 
     $path = $self->{path};
-    %DBD::Sprite::Sprite_global_MAX_VAL = ();
+    %DBD::WTSprite::WTSprite_global_MAX_VAL = ();
 	$_ = undef;
     if ($query =~ /^drop\s+table\s+($path)\s*$/io)
     {
@@ -2122,7 +2122,7 @@ sub alter
     my ($self, $query) = @_;
     my ($i, $path, $regex, $table, $extra, $type, $column, $count, $status);
     my ($posn);
-    %DBD::Sprite::Sprite_global_MAX_VAL = ();
+    %DBD::WTSprite::WTSprite_global_MAX_VAL = ();
     $path  = $self->{path};
     $regex = $self->{column};
 
@@ -2444,9 +2444,9 @@ $fieldregex = $self->{fieldregex};
 
 #	foreach my $l (@{$self->{order}})
 #	 {
-#	 if(exists($DBD::Sprite::Sprite_global_MAX_VAL{uc($l.'|'.$table)}))
+#	 if(exists($DBD::WTSprite::WTSprite_global_MAX_VAL{uc($l.'|'.$table)}))
 #	  {
-#	   delete($DBD::Sprite::Sprite_global_MAX_VAL{uc($l.'|'.$table)});
+#	   delete($DBD::WTSprite::WTSprite_global_MAX_VAL{uc($l.'|'.$table)});
 #	  }				      
 #	 }
 	return $status;
@@ -2591,7 +2591,7 @@ sub write_file
 	}
 	else    #GOOD, MUST BE A NON-M$ SYSTEM :-)
 	{
-		eval { flock (FILE, $JSprite::LOCK_EX) || die };
+		eval { flock (FILE, $WTJSprite::LOCK_EX) || die };
 
 		if ($@)
 		{
@@ -2690,7 +2690,7 @@ sub load_database
 	}
 	else    #GOOD, MUST BE A NON-M$ SYSTEM :-)
 	{
-		eval { flock (FILE, $JSprite::LOCK_EX) || die };
+		eval { flock (FILE, $WTJSprite::LOCK_EX) || die };
 
 		if ($@)
 		{

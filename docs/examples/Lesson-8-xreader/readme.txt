@@ -2,6 +2,64 @@
 !	                              XReader example 				   		!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                        
 
+What is template?
+-----------------
+
+[Definition]: Template is small or big pice of data that could be replaced with dinamic data.
+
+Example of my words could be site that has in upper right corrner free space that should
+display current loged user. At first time that could be "guest" but when user fill out sigin
+form and your script verify user/password, this place can be substituted with name of your
+registrated user.
+
+One web page can be one template:
++=================================+
+|[proscriptum.com]      User:July |
+|                                 |
+|                                 |
+|       Example html page         |
+            ...
++=================================+
+
+In our case "July" can be any valid user of your site i.e. "July" can be "template variable".
+In our html file(page) instead of "July" let place follow string: "<§VAR§>".
+When user come on your site you could replace "<§VAR§>" with "guest" and when user
+successfuly login in your system, you can replace "<§VAR§>" with real name of your
+visitor.
+
+So our template should look like this:
++=================================+
+|[proscriptum.com]   User:<§VAR§> |
+|                                 |
+|                                 |
+|       Example html page         |
+            ...
++=================================+
+
+I hope all is clear?!
+Now you will see complicated template (SQL templte)
+
+SQL Template is similar to commomn templates but input data become form database.
+
+Example:
+
++=================================+
+|[proscriptum.com]   User: <S©L>  |
+|                                 |
+|                                 |
+|       Example html page         |
+                ...
++=================================+
+
+Where "<S©L>" is: <S©L:1:"select USER from visitors where IP = ...":1:1:1:1:S©L>
+So you see that our visitor can be extracted from database using it's onw IP.
+
+That wasn't fun, was it? :-)
+
+
+WebTools and Xreader!
+--------------------
+
  Xreader is template processor that proceed template(.jhtml) files. Evry pice of template file
 could contain variables and/or SQL queries. But what actualy is template? Template is pice of
 code (commonaly html) that contain variable information i.e. some part of this code can be replaced

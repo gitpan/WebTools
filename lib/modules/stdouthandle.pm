@@ -18,7 +18,7 @@ use Fcntl;
 use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(reset clear $var_printing_mode);
-$VERSION = "1.003";
+$VERSION = "1.004";
 $var_printing_mode = 'buffered';
 my $cnf = (-e './conf') ? './conf/' : '../conf/';
 eval "use lib \'$cnf\';";
@@ -288,11 +288,7 @@ __END__
 
 =head1 NAME
 
-=over 4
-
-=item stdouthandle.pm
-
-=back
+ stdouthandle.pm - STDOUT handle module used from webtools.pm
 
 =head1 DESCRIPTION
 
@@ -308,13 +304,7 @@ This module is used internal by WebTools module.
 
 =head1 AUTHOR
 
-=over 4
-
-=item Contacts:
-
  Julian Lishev - Bulgaria,Sofia
  e-mail: julian@proscriptum.com
-
-=back
 
 =cut

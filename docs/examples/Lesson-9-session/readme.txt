@@ -2,7 +2,7 @@
 !	                                Session example				   		!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                        
 
- These days the hart of web applications is sessions. Almost in any case you can't do anything
+These days the heart of web applications are sessions. Almost in any case you can't do anything
 without session support in your web pages. Now you will see how easy is that to be done with
 webtools module.
 
@@ -62,7 +62,7 @@ Ok, now run sess.whtml:
    }
   else                            # ..or we reregister "counter" variable with this session!
    {
-    $coded_buffer .= register_var ('scalar','counter',$i);
+    $coded_buffer .= register_var('scalar','counter',$i);
     session_register($coded_buffer,$dbh);
    }
 All implemented session's functions you can see in HELP.doc file

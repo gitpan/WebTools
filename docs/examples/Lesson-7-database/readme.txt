@@ -2,7 +2,7 @@
 !	                              Database example 				   		!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                        
 
- Database is realy powerfull toy for any programmer, so we will show how to access database with 
+ Database is realy powerfull "toy" for programmers, so we will show how to access database with 
 webtools.
 
 Example:

@@ -2,8 +2,7 @@
 !	                            Upload files via cgi script 				!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                        
 
- This example will regards Upload and Mail capability of Webtools! We will send e-mail with two
-attached files.
+ This example will regards Upload and Mail capability of Webtools! Here we will send e-mail with two attached files.
 
 Example:
 

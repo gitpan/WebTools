@@ -1,6 +1,6 @@
 require DBI;
 
-package DBD::Sprite;
+package DBD::WTSprite;
 
 use strict;
 #use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
@@ -18,8 +18,8 @@ use vars qw($VERSION $err $errstr $state $sqlstate $drh $i $j $dbcnt);
 $VERSION = '0.20';
 
 # Preloaded methods go here.
-$DBD::Sprite::Sprite_global_db_handler = 0;
-%DBD::Sprite::Sprite_global_MAX_VAL = ();
+$DBD::WTSprite::WTSprite_global_db_handler = 0;
+%DBD::WTSprite::WTSprite_global_MAX_VAL = ();
 
 $err = 0;	# holds error code   for DBI::err
 $errstr = '';	# holds error string for DBI::errstr
@@ -35,10 +35,10 @@ sub driver{
     # not a 'my' since we use it above to prevent multiple drivers
     $drh = DBI::_new_drh($class, { 'Name' => 'Sprite',
 				   'Version' => $VERSION,
-				   'Err'    => \$DBD::Sprite::err,
-				   'Errstr' => \$DBD::Sprite::errstr,
-				   'State' => \$DBD::Sprite::state,
-				   'Attribution' => 'DBD::Sprite by Shishir Gurdavaram & Jim Turner',
+				   'Err'    => \$DBD::WTSprite::err,
+				   'Errstr' => \$DBD::WTSprite::errstr,
+				   'State' => \$DBD::WTSprite::state,
+				   'Attribution' => 'DBD::WTSprite by Shishir Gurdavaram & Jim Turner',
 				 });
     $drh;
 }
@@ -54,11 +54,11 @@ sub DESTROY   #ADDED 20001108
 1;
 
 
-package DBD::Sprite::dr; # ====== DRIVER ======
+package DBD::WTSprite::dr; # ====== DRIVER ======
 use strict;
 use vars qw($imp_data_size);
 
-$DBD::Sprite::dr::imp_data_size = 0;
+$DBD::WTSprite::dr::imp_data_size = 0;
 
 sub connect {
     my($drh, $dbname, $dbuser, $dbpswd, $attr, $old_driver, $connect_meth) = @_;
@@ -67,7 +67,7 @@ sub connect {
     # Avoid warnings for undefined values
     $dbuser ||= '';
     $dbpswd ||= '';
-    %DBD::Sprite::Sprite_global_MAX_VAL = ();
+    %DBD::WTSprite::WTSprite_global_MAX_VAL = ();
     # create a 'blank' dbh
     my($privateattr) = {
 		'Name' => $dbname,
@@ -118,7 +118,7 @@ sub connect {
 			eval { $crypted = crypt($dbpswd, substr($dbuser,0,2)); };
 			if ($dbinputs[2] eq $crypted || $@ =~ /excessive paranoia/)
 			{
-				++$DBD::Sprite::dbcnt;
+				++$DBD::WTSprite::dbcnt;
 				$this->STORE('sprite_dbname',$dbname);
 				$this->STORE('sprite_dbuser',$dbuser);
 				$this->STORE('sprite_dbpswd',$dbpswd);
@@ -146,7 +146,7 @@ sub connect {
 				$this->STORE('sprite_dbrdelim', eval("return(\"$dbinputs[4]\");") || "\n");
 				$this->STORE('sprite_attrhref', $attr);
 				$this->STORE('AutoCommit', ($attr->{AutoCommit} || 0));
-				$DBD::Sprite::Sprite_global_db_handler = $this;
+				$DBD::WTSprite::WTSprite_global_db_handler = $this;
 				return $this;
 			}
 		}
@@ -230,7 +230,7 @@ sub admin {                 #I HAVE NO IDEA WHAT THIS DOES!
 
     my($dbname) = ($command eq 'createdb'  ||  $command eq 'dropdb') ?
 			shift : '';
-    my($host, $port) = DBD::Sprite->_OdbcParseHost(shift(@_) || '');
+    my($host, $port) = DBD::WTSprite->_OdbcParseHost(shift(@_) || '');
     my($user) = shift || '';
     my($password) = shift || '';
 
@@ -244,11 +244,11 @@ sub admin {                 #I HAVE NO IDEA WHAT THIS DOES!
 1;
 
 
-package DBD::Sprite::db; # ====== DATABASE ======
+package DBD::WTSprite::db; # ====== DATABASE ======
 use strict;
-use JSprite;
+use WTJSprite;
 
-$DBD::Sprite::db::imp_data_size = 0;
+$DBD::WTSprite::db::imp_data_size = 0;
 use vars qw($imp_data_size);
 
 sub prepare
@@ -296,7 +296,7 @@ sub prepare
 	}
 	else   #CREATE A NEW SPRITE OBJECT.
 	{
-		$myspriteref = new JSprite;
+		$myspriteref = new WTJSprite;
 		$csr->STORE('sprite_spritedb', $myspriteref);
 		my ($openhash) = $resptr->FETCH('sprite_SpritesOpen');
 		$openhash->{$spritefid} = \$myspriteref;
@@ -530,7 +530,7 @@ sub DESTROY   #ADDED 20001108
 1;
 
 
-package DBD::Sprite::st; # ====== STATEMENT ======
+package DBD::WTSprite::st; # ====== STATEMENT ======
 use strict;
 
 my (%typehash) = (
@@ -546,7 +546,7 @@ my (%typehash) = (
 	'BOOLEAN' => -7,    #ADDED 20000308!
 );
 
-$DBD::Sprite::st::imp_data_size = 0;
+$DBD::WTSprite::st::imp_data_size = 0;
 use vars qw($imp_data_size *fetch);
 
 sub bind_param
@@ -770,7 +770,7 @@ sub DESTROY   #ADDED 20010221
 
 1;
 
-package DBD::Sprite; # ====== HAD TO HAVE TO PREVENT MAKE ERROR! ======
+package DBD::WTSprite; # ====== HAD TO HAVE TO PREVENT MAKE ERROR! ======
 
 1;
 
@@ -778,7 +778,7 @@ __END__
 
 =head1 NAME
 
-     DBD::Sprite - Perl extension for DBI, providing database emmulation via flat files.  
+     DBD::WTSprite - Perl extension for DBI, providing database emmulation via flat files.  
 
 =head1 AUTHOR
 
@@ -811,9 +811,9 @@ __END__
 
 =head1 DESCRIPTION
 
-DBD::Sprite is a DBI extension module adding database emulation via flat-files 
+DBD::WTSprite is a DBI extension module adding database emulation via flat-files 
 to Perl's database-independent database interface.  Unlike other DBD::modules, 
-DBD::Sprite does not require you to purchase or obtain a database.  Every 
+DBD::WTSprite does not require you to purchase or obtain a database.  Every 
 thing you need to prototype database-independent applications using Perl and 
 DBI are included here.  You will, however, probably wish to obtain a real 
 database, such as "mysql", for your production and larger data needs.  This 
@@ -821,33 +821,33 @@ is because emulating databases and SQL with flat text files gets very slow as
 the size of your "database" grows to a non-trivial size (a few dozen records 
 or so per table).  
 
-DBD::Sprite is built upon an old Perl module called "Sprite", written by 
+DBD::WTSprite is built upon an old Perl module called "Sprite", written by 
 Shishir Gurdavaram.  This code was used as a starting point.  It was completly 
 reworked and many new features were added, producing a module called 
 "JSprite.pm" (Jim Turner's Sprite).  This was then merged in to DBI::DBD to 
-produce what you are installing now.  (DBD::Sprite).  JSprite.pm is included 
+produce what you are installing now.  (DBD::WTSprite).  JSprite.pm is included 
 in this module as a separate file, and is required.
 
 Many thanks go to Mr. Gurdavaram.
 
-The main advantage of DBD::Sprite is the ability to develop and test 
+The main advantage of DBD::WTSprite is the ability to develop and test 
 prototype applications on personal machines (or other machines which do not 
 have an Oracle licence or some other "mainstream" database) before releasing 
 them on "production" machines which do have a "real" database.  This can all 
 be done with minimal or no changes to your Perl code.
 
-Another advantage of DBD::Sprite is that you can use Perl's regular 
+Another advantage of DBD::WTSprite is that you can use Perl's regular 
 expressions to search through your data.  Maybe, someday, more "real" 
 databases will include this feature too!
 
-DBD::Sprite provides the ability to emulate basic database tables
+DBD::WTSprite provides the ability to emulate basic database tables
 and SQL calls via flat-files.  The primary use envisioned
 for this to permit website developers who can not afford
 to purchase an Oracle licence to prototype and develop Perl 
 applications on their own equipment for later hosting at 
 larger customer sites where Oracle is used.  :-)
 
-DBD::Sprite attempts to do things in as database-independent manner as possible, 
+DBD::WTSprite attempts to do things in as database-independent manner as possible, 
 but where differences occurr, JSprite most closely emmulates Oracle, for 
 example "sequences/autonumbering".  JSprite uses tiny one-line text files 
 called "sequence files" (.seq).  and "seq_file_name.NEXTVAL" function to 
@@ -856,7 +856,7 @@ works in an Oracle shop and wrote this module to allow himself to work on
 code on his PC, and machines which did not have Oracle on them, since 
 obtaining Oracle licences was sometimes time-consuming.
 
-DBD::Sprite is similar to DBD::CSV, but differs in the following ways:  
+DBD::WTSprite is similar to DBD::CSV, but differs in the following ways:  
 
 	1) It creates and works on true "databases" with user-ids and passwords, 
 	2) The	database author specifies the field delimiters, record delimiters, 
@@ -1123,7 +1123,7 @@ I<Return Value>
         RaiseError
         Warn
 
-    The following DBI attributes are handled by DBD::Sprite:
+    The following DBI attributes are handled by DBD::WTSprite:
 
     AutoCommit
         Works
@@ -1142,7 +1142,7 @@ I<Return Value>
 
     NULLABLE
         Not really working. Always returns an array ref of one's, as
-        DBD::Sprite always allows NULL (handled as an empty string). 
+        DBD::WTSprite always allows NULL (handled as an empty string). 
         Valid after `$sth->execute'.
         
     PRECISION
@@ -1257,7 +1257,7 @@ I<Return Value>
 		
 =head1 RESTRICTIONS
 
-	Although DBD::Sprite supports the following datatypes:
+	Although DBD::WTSprite supports the following datatypes:
 		NUMBER FLOAT DOUBLE INT INTEGER NUM CHAR VARCHAR VARCHAR2 
 		DATE LONG BLOB and MEMO, there are really only 3 basic datatypes 
 		(NUMBER, CHAR, and VARCHAR).  This is because Perl treates 
@@ -1268,12 +1268,12 @@ I<Return Value>
 		padded with spaces when stored.  LONG-type fields are subject to 
 		truncation by the "LongReadLen" attribute value.
 
-	DBD::Sprite works with the tieDBI module, if "Sprite => 1" lines are added 
+	DBD::WTSprite works with the tieDBI module, if "Sprite => 1" lines are added 
 	to the "%CAN_BIND" and "%CAN_BINDSELECT" hashes.  This should not be 
 	necessary, and I will investigate when I have time.
 	
 =head1 TODO
-    Extensions of DBD::Sprite
+    Extensions of DBD::WTSprite
 
     Joins
         The current version of the module works with single table SELECTs

@@ -33,7 +33,7 @@ require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.003";
+    $VERSION = "1.004";
     @ISA = qw(Exporter);
     $askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa @multipart_headers $parsedform $globvars $contenttype $query';
     
@@ -140,11 +140,7 @@ __END__
 
 =head1 NAME
 
-=over 4
-
-=item globexport.pm
-
-=back
+ globexport.pm - Global Exporter module used from webtools.pm
 
 =head1 DESCRIPTION
 
@@ -160,13 +156,7 @@ This module is used internal by WebTools module.
 
 =head1 AUTHOR
 
-=over 4
-
-=item Contacts:
-
  Julian Lishev - Bulgaria,Sofia
  e-mail: julian@proscriptum.com
-
-=back
 
 =cut

@@ -5,7 +5,7 @@
 #  #  #  #  #    #  #  #  #     #     # #   #      #  #             #
 #  ###   ###     ###   #  ##  #####    #    #####  #  ##            #
 #####################################################################
-#  DRIVER FOR Flat DB (DBD::Sprite)
+#  DRIVER FOR Flat DB (DBD::WTSprite)
 #####################################################################
 #####################################################################
 
@@ -26,12 +26,12 @@ if($@ ne '')
   exit;
  }
 use lib '../../modules/';
-eval 'use DBD::Sprite;';
+eval 'use DBD::WTSprite;';
 if($@ ne '')
  {
-  print "<br><font color='red'><h3>Error: DBD::Sprite module was not installed on your server!</h3></font><BR>";
-  print "<br><font color='red'><h3>NOTE: This DBD::Sprite module must be into WebTools package, not into standart LIB directory!</h3></font><BR>";
-  print "<br><font color='red'><h3>Please try to reinstall your WebTools! (don't try to install DBD::Sprite)</h3></font><BR>";
+  print "<br><font color='red'><h3>Error: DBD::WTSprite module was not installed on your server!</h3></font><BR>";
+  print "<br><font color='red'><h3>NOTE: This DBD::WTSprite module must be into WebTools package, not into standart LIB directory!</h3></font><BR>";
+  print "<br><font color='red'><h3>Please try to reinstall your WebTools! (don't try to install DBD::WTSprite)</h3></font><BR>";
   exit;
  }
  
@@ -61,7 +61,7 @@ sub hideerror
       print "<font color='green' size=2>Please think over follow things at all...</font>";
       print "<br><font color='green' size=2> - What is your DB name, User name and password?</font>";
       print "<br><font color='green' size=2> - Where is DB located and how it is linked?</font>";
-      print "<br><font color='green' size=2> - There is DBD::Sprite and is it correct installed?</font>";
+      print "<br><font color='green' size=2> - There is DBD::WTSprite and is it correct installed?</font>";
       print "<br><font color='green' size=2> - Is Apache has a correct user (permission to access DB files)?</font>";
       print "<br><BR><font color='black'><h3>Please be nice and send e-mail to: $support_email </h3></font>";
       exit;
@@ -74,7 +74,7 @@ sub sql_connect   # No params needed!
        if($db_path =~ m/^\.\./s) {$db_path = './';}
        $oldh = $SIG{'__WARN__'};
        $SIG{'__WARN__'} = "hideerror";
-       my $OurSQL = DBI->connect("DBI:Sprite:".$db_path."$sql_database_sessions",$sql_user,$sql_pass,{AutoCommit => 0, PrintError => 0}) or hideerror;
+       my $OurSQL = DBI->connect("DBI:WTSprite:".$db_path."$sql_database_sessions",$sql_user,$sql_pass,{AutoCommit => 0, PrintError => 0}) or hideerror;
        $SIG{'__WARN__'} = $oldh;
        $system_database_handle = $OurSQL;   # That is current opened DB Handler!
        select($oldslcthnd);
@@ -91,7 +91,7 @@ sub sql_connect   # No params needed!
        $oldh = $SIG{'__WARN__'};
        $SIG{'__WARN__'} = "hideerror";
        my $port = $port eq '' ? '' : ';port='.$port;
-       my $uOurSQL = DBI->connect("DBI:Sprite:".$path."$database",$user,$pass,{AutoCommit => 0, PrintError => 0}) or hideerror;
+       my $uOurSQL = DBI->connect("DBI:WTSprite:".$path."$database",$user,$pass,{AutoCommit => 0, PrintError => 0}) or hideerror;
        $SIG{'__WARN__'} = $oldh;
        $usystem_database_handle = $uOurSQL;   # That is current opened DB Handler!
        select($oldslcthnd);
@@ -104,7 +104,7 @@ sub test_connect
      if($db_path =~ m/^\.\./s) {$db_path = './';}
      $oldh = $SIG{'__WARN__'};
      $SIG{'__WARN__'} = '';
-     my $OurSQL = DBI->connect("DBI:Sprite:".$db_path."$sql_database_sessions",$sql_user,$sql_pass,{AutoCommit => 0, PrintError => 0}) or return(0);
+     my $OurSQL = DBI->connect("DBI:WTSprite:".$db_path."$sql_database_sessions",$sql_user,$sql_pass,{AutoCommit => 0, PrintError => 0}) or return(0);
      $SIG{'__WARN__'} = $oldh;
      $system_database_handle = $OurSQL;   # That is current opened DB Handler!
      select($oldslcthnd);
@@ -116,7 +116,7 @@ sub sql_connect2
      my $oldslcthnd = select(STDOUT);
      $oldh = $SIG{'__WARN__'};
      $SIG{'__WARN__'} = "hideerror";
-     my $OurSQL = DBI->connect("DBI:Sprite:".$db_path."$db",$sql_user,$sql_pass,{AutoCommit => 0, PrintError => 0}) or hideerror();
+     my $OurSQL = DBI->connect("DBI:WTSprite:".$db_path."$db",$sql_user,$sql_pass,{AutoCommit => 0, PrintError => 0}) or hideerror();
      $SIG{'__WARN__'} = $oldh;
      $system_database_handle = $OurSQL;   # That is current opened DB Handler!
      select($oldslcthnd);

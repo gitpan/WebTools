@@ -2,11 +2,11 @@
 !	                            Download file via cgi script				!
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                        
 
- This task is very popular in Web. Currently most of downloads is very simple: Web developer just
-print html page and user download that file. Ofcourse there is and other way: Via cgi script. If 
-you use cgi script you can find download status i.e. is download successful or not?!
+ This task is very popular in Web. Currently most of downloads are very simple: Web developer just
+put in html page links to files and user download these files. Ofcourse there is and other way: Via cgi script.
+If you use cgi script you can find download status i.e. to find out whether download were successful or not?!
 
- Now with webtools you can download file. Also you can set maximum speed limit of downloading.
+ Now with webtools you can download file easly. Also you can set maximum speed limit of downloading process.
 
 Example:
 

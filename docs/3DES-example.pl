@@ -1,7 +1,8 @@
 ###############################################
 # Cript/EnCript Test Program by Julian Lishev
 ###############################################
-#Don`t forgot to show the right path to module!
+# Don`t forgot to show the right path to module!
+# use lib '......';
 use TripleDES;
 
  $crpt = CriptData("sicret_credit_card=4557024001932895","Unhackable_password");

@@ -56,7 +56,7 @@ $debug_mail = 'on';                   # Show whether real mail must by send
 $sendmail = '/usr/sbin/sendmail';     # sendmail path
 
 #[Other]
-$charset = 'n5b0xzlQWdgfNXytCMAwq1TYu7SVBmUIvcOPZ2aprER9kjh3sHJKL8e4oiDFG6'; # Please mix well this chars
+$charset = 'WdgfNXytCMAwq1TYn5b0xzlQu7SVBmUIvcOPZ2aprEe4oiDFG6R9kjh3sHJKL8'; # Please mix well this chars
 					   # to get higher security of your session ID :-)
 
 $cpg_priority = 'cookie';                  # Show order of value fetching! There is 2 values: 'cookie' and 'get/post'.

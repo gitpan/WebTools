@@ -170,7 +170,9 @@ sub writeMailToFile
     $file =~ s/.*\/(.*)$/$1/; 
     if (!($temp_dir =~ /.*\/$/)) { $temp_dir .= '/';}
     # generation of a file name, in test mode usually :)
-    $webtools_gen_file_name = $temp_dir.'webtools_'.$file.$ext;
+    my $rndf = rand()*1000;
+    if($file ne '') {$rndf = '';}
+    $webtools_gen_file_name = $temp_dir.'webtools_'.$rndf.$file.$ext;
 
     open    (FILE,">$webtools_gen_file_name") or return('');
     binmode (FILE);

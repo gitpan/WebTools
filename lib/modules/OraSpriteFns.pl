@@ -55,12 +55,12 @@ sub MAXVAL
 	my ($in) = @_;
 	my ($col,$tabl) = split(/\|/,$in);
 	my $maximum = -1;
-	if(exists($DBD::Sprite::Sprite_global_MAX_VAL{uc($in)}))
+	if(exists($DBD::WTSprite::WTSprite_global_MAX_VAL{uc($in)}))
 	  {
-	   $DBD::Sprite::Sprite_global_MAX_VAL{uc($in)}++;
-	   return($DBD::Sprite::Sprite_global_MAX_VAL{uc($in)});
+	   $DBD::WTSprite::WTSprite_global_MAX_VAL{uc($in)}++;
+	   return($DBD::WTSprite::WTSprite_global_MAX_VAL{uc($in)});
 	  }
-	my $dbh = $DBD::Sprite::Sprite_global_db_handler;
+	my $dbh = $DBD::WTSprite::WTSprite_global_db_handler;
 	$res = $dbh->prepare("select $col from $tabl");
 	if($res)
 	 {
@@ -74,7 +74,7 @@ sub MAXVAL
 	  $maximum++;
 	 }
 	else {$maximum = -1;}
-	$DBD::Sprite::Sprite_global_MAX_VAL{uc($in)} = $maximum;
+	$DBD::WTSprite::WTSprite_global_MAX_VAL{uc($in)} = $maximum;
 	return $maximum;
 }
 sub NOW

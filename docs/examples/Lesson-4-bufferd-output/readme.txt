@@ -3,7 +3,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                        
 
  In Perl world there are couple of modules that capture STDOUT handler. For Webtools however
-this is a base feuture and I can't miss this example :)
+this is a base feature and I can't miss this example :)
 
 Example:
 

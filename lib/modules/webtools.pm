@@ -17,7 +17,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.003";
+    $VERSION = "1.004";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -348,7 +348,11 @@ sub register_var
     }
   if ($type eq 'hash')
     {
-     my %val = @val;
+     my $h = $val[0];
+     my %val = ();
+     my $res = ref($h);
+     if ($res eq 'HASH'){%val = %$h; @val = %val;}
+     else { %val = @val;}
      $sp = $uni_sep.'<hash>:'.$name.':';
      $reg_buffer = $sp;
      my $size = int((scalar @val) / 2);
@@ -544,7 +548,7 @@ if($clear == 1) { $sess_header_flushed = 1; return;}
  if(!$sess_header_flushed)                  # If Header is not flushed...
  {
   $| = 1;
-  $print_header_buffer = "X-Powered-By: WebTools/1.003\n".$print_header_buffer; # Print version of this tool.
+  $print_header_buffer = "X-Powered-By: WebTools/1.004\n".$print_header_buffer; # Print version of this tool.
   if(($sess_cpg eq 'cookie') and ($local_sess_id ne ''))
     {
      if($sess_cookie ne 'sesstime')
@@ -1473,11 +1477,7 @@ __END__
 
 =head1 NAME
 
-=over 4
-
-=item webtools.pm
-
-=back
+ webtools.pm - Full featured WEB Development Tools (compare with Php language) in Perl syntax
 
 =head1 DESCRIPTION
 
@@ -1502,6 +1502,75 @@ It brings in self many features of modern Web developing:
   -  DES III encription/decription in MIME style
   and more...
 
+=back
+
+=head1 SYNOPSIS
+
+ Follow example show session capabilities, when WebTools is configured with 
+ Flat file session support(default):
+
+ <?perl 
+    
+    $sid = session_start();
+    
+    %h = read_hash('myhash');
+    
+    if($h{'city'} ne "Pleven")
+      {
+       print "<B>New session started!</B>";
+       %h = (city=>"Pleven",country=>"Bulgaria");
+       $reg_data = register_var('hash','myhash',%h);
+       # $reg_data .= register_var('scalar','scl_name',$cnt);
+       # $reg_data .= register_var('array',''arrname',@arr);
+       session_register($reg_data);
+      }
+    else
+      {
+       print "Current session is: <B>$sid</B> <BR> and registrated data are:<BR>";
+       print "Country: <B>".$h{'country'}."</B><BR>";
+       print "City: <B>".$h{'city'}."</B><BR>";
+       session_destroy();
+       print "Session Destroyed!";
+      }
+    Header(type=>'content',val=>'text/html; charset=Windows-1251');
+    # SURPRISE: We send header after html data??? (Is Php capable of this? ;-)
+ ?>
+ 
+ Above code can be saved in 'htmls' directory under 'test.whtml' file name and you can
+ run it in browser location with follow line:
+ http://your_host.com/cgi-bin/webtools/process.cgi?file=test.whtml
+
+
+ 
+ Code below show how easy is to send e-mails with WebTools
+ (Don't forget to set $debug_mail = 'off' in config.pl)
+ <?perl 
+ 
+    require 'mail.pl';
+    
+    $to   = 'some@where.com';
+    $from = 'me@myhost.com';
+    $subject = 'Test';
+    $body = 'Hello there!';
+    
+    $orginal_filename = $uploaded_original_file_names{'myupload'};
+    # 'myupload' is name of input field in html form.
+    
+    $fn = $uploaded_files{'myupload'};
+    
+    set_mail_attachment($orginal_filename,$fn);
+    
+    send_mail($from,$to,$subject,$body);
+    print 'Mail sent!';
+ ?>
+
+ Above code can be saved in 'htmls' directory under 'mail.whtml' file name and you can
+ run it in browser location with follow line:
+ http://your_host.com/cgi-bin/webtools/process.cgi?file=mail.whtml
+ 
+
+=over 4
+
 =item Specifications and examples
 
 =back
@@ -1510,13 +1579,7 @@ It brings in self many features of modern Web developing:
 
 =head1 AUTHOR
 
-=over 4
-
-=item Contacts:
-
  Julian Lishev - Bulgaria,Sofia
  e-mail: julian@proscriptum.com
-
-=back
 
 =cut
