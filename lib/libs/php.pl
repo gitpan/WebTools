@@ -242,6 +242,70 @@ sub htmlspecialchars
  return $str;
 }
 
+# $string = undo_htmlspecialchars ($str);
+sub undo_htmlspecialchars
+   {
+    my ($string) = shift(@_);
+    
+    $string =~ s/\&amp\;/\&/sgi;
+    $string =~ s/\&quot\;/\//sgi;
+    $string =~ s/\&lt\;/\</sgi;
+    $string =~ s/\&gt\;/\>/sgi;
+    return $string;
+  }
+
+# $string = htmlencode ($str);
+sub htmlencode
+   {
+    my ($string) = shift(@_);
+    my $ret_string="";
+    my $x;
+    my $ord;
+    $string =~ s#(.)#do{
+     $ord = ord($1);
+     $ret_string .= "&\#$ord;";
+     };#sgie;
+    return $ret_string;
+   }
+
+# $string = implode ($join_string, @array);
+sub implode
+{
+ return(join(shift(@_),@_));
+}
+
+# @array = explode ($split_separator, $string, $limit);
+sub explode
+{
+ my $spl = shift(@_);
+ my $str = shift(@_);
+ my $lim = &integer(shift(@_));
+ my @arr = ();
+ my @add = ();
+ my @res = ();
+ my $el;
+ my $cnt = 0;
+ my $flag = 1;
+ @arr = split($spl,$str);
+ 
+ foreach $el (@arr)
+  {
+   if((!&IsEmpty($lim)) and ($lim != 0) and ($cnt == ($lim-1))) {$flag = 0;}
+   $cnt++;
+   if($flag)
+    {
+     push(@res,$el);
+    }
+   else
+    {
+     push(@add,$el);
+    }
+  }
+ if(scalar(@add) > 0) {push(@res,join($spl,@add));}
+ 
+ return(@res);
+}
+
 # $string = trim ($str);
 sub trim
 {
@@ -396,6 +460,8 @@ sub mx_lookup
  }
  return sort(@mxrecs);
 }
+
+
 
 # TODO: More and more... :-)
 $webtools::loaded_functions = $webtools::loaded_functions | 512;

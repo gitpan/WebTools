@@ -66,7 +66,6 @@ sub sql_connect   # No params needed!
        my ($host,$database,$user,$pass,$port) = @_;
        $port = $port || 3306;
        $host = $host || 'localhost';
-       $database = $database || $sql_database_sessions;
        $user = $user || $sql_user;
 
        $oldh = $SIG{'__WARN__'};
@@ -235,20 +234,20 @@ sub session_expire_update
     {
      $r_q = " and IP = \'$ip\'";    # Restrict session on IP!
     }
-  my $r = sql_query("update $sql_sessions_table set EXPIRE = DATE_ADD(NOW(),interval $sess_time $sess_datetype) where S_ID = \'$local_sess_id\'".$r_q,$dbh);
+  my $r = sql_query("update $sql_sessions_table set EXPIRE = DATE_ADD(NOW(),interval $sess_time $sess_datetype) where S_ID = \'$sys_local_sess_id\'".$r_q,$dbh);
   if ($r eq undef) { return(0);}
  }
  else
  {
   ###FLAT###
-  return(update_SF_File($tmp.'/',$local_sess_id));
+  return(update_SF_File($tmp.'/',$sys_local_sess_id));
  }
  return (1);
 }
 sub insert_sessions_row   # ($session_id,$db_handler)
 {
   my ($dbh) = @_;
-  my $sid = $local_sess_id;
+  my $sid = $sys_local_sess_id;
   my $ip = $ENV{'REMOTE_ADDR'}; # Get remote IP address
   if($sess_force_flat eq 'off') ###DB###
   {

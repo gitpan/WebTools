@@ -21,7 +21,17 @@ if(!$sys_config_pl_loaded) {require './conf/config.pl';}
 $webtools::loaded_functions = $webtools::loaded_functions | 64;
 sub send_mail 
   {
-    use MIME::QuotedPrint;  
+    eval 'use MIME::QuotedPrint;';
+    if($@ ne '')
+     {
+      ClearBuffer(); ClearHeader(); flush_print();
+      select(STDOUT);
+      CORE::print '<B><font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
+      CORE::print "<font color='red'>Error: Sorry but you can't send e-mails till Perl module MIME::QuotedPrint is not available!</font><BR>";
+      CORE::print "Hint: Contact your administrator and ask for assistance<BR>";
+      CORE::print '</font></B>';
+      die ':QUIT:';
+     }
     local($from, $to, $subject, $messagebody, $is_html) = @_;
     local($fromuser, $fromsmtp, $touser, $tosmtp);
     my $crlf = $sys_CRLF;
@@ -109,7 +119,17 @@ sub real_send_mail
                   'jpe','image/jpeg','pgn','image/png','html','text/html','htm','text/html','mpeg','video/mpeg',
                   'mpg','video/mpeg','mpe','video/mpeg','avi','video/x-msvideo','movie','video/x-sgi-movie');
  
- use MIME::Base64;
+ eval 'use MIME::Base64;';
+ if($@ ne '')
+  {
+   ClearBuffer(); ClearHeader(); flush_print();
+   select(STDOUT);
+   CORE::print '<B><font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
+   CORE::print "<font color='red'>Error: Sorry but you can't send e-mails till Perl module MIME::Base64 is not available!</font><BR>";
+   CORE::print "Hint: Contact your administrator and ask for assistance<BR>";
+   CORE::print '</font></B>';
+   die ':QUIT:';
+  }
  
  my $crlf = $sys_CRLF;
  my $boundary = "MZ8dd988d1d73016OQ104bWebTools050010191".(int(rand()*1000000000)+192837460)."PE";
@@ -133,12 +153,12 @@ sub real_send_mail
     #---------------------------------------------------------------------------
     $html .= 'Content-type: multipart/mixed; boundary="'.$boundary.'"';
     $html .= $crlf;
-    $hmtl .= 'This message is in MIME 1.0 format.';
+    $html .= 'This message is in MIME 1.0 format.';
     $html .= $crlf;
     $html .= $next_boundary;
     $html .= 'Content-type: multipart/alternative; boundary="'.$a_boundary.'"';
     $html .= $crlf;
-    $hmtl .= 'This alternative message is in MIME 1.0 format.';
+    $html .= 'This alternative message is in MIME 1.0 format.';
     $html .= $crlf;
   if($messagebody ne '')
      {
@@ -584,8 +604,28 @@ sub mail_data
                   'jpe','image/jpeg','pgn','image/png','html','text/html','htm','text/html','mpeg','video/mpeg',
                   'mpg','video/mpeg','mpe','video/mpeg','avi','video/x-msvideo','movie','video/x-sgi-movie');
  
- use MIME::QuotedPrint;  
- use MIME::Base64;
+ eval 'use MIME::QuotedPrint;';
+ if($@ ne '')
+  {
+   ClearBuffer(); ClearHeader(); flush_print();
+   select(STDOUT);
+   CORE::print '<B><font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
+   CORE::print "<font color='red'>Error: Sorry but you can't send e-mails till Perl module MIME::QuotedPrint is not available!</font><BR>";
+   CORE::print "Hint: Contact your administrator and ask for assistance<BR>";
+   CORE::print '</font></B>';
+   die ':QUIT:';
+  }
+ eval 'use MIME::Base64;';
+ if($@ ne '')
+  {
+   ClearBuffer(); ClearHeader(); flush_print();
+   select(STDOUT);
+   CORE::print '<B><font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
+   CORE::print "<font color='red'>Error: Sorry but you can't send e-mails till Perl module MIME::Base64 is not available!</font><BR>";
+   CORE::print "Hint: Contact your administrator and ask for assistance<BR>";
+   CORE::print '</font></B>';
+   die ':QUIT:';
+  }
  
  my $crlf = $sys_CRLF;
  my $boundary = "MZ8dd988d1d73016OQ104bWebTools050010191".(int(rand()*1000000000)+192837460)."PE";
@@ -611,12 +651,12 @@ sub mail_data
     #---------------------------------------------------------------------------
     $html .= 'Content-type: multipart/mixed; boundary="'.$boundary.'"';
     $html .= $crlf;
-    $hmtl .= 'This message is in MIME 1.0 format.';
+    $html .= 'This message is in MIME 1.0 format.';
     $html .= $crlf;
     $html .= $next_boundary;
     $html .= 'Content-type: multipart/alternative; boundary="'.$a_boundary.'"';
     $html .= $crlf;
-    $hmtl .= 'This alternative message is in MIME 1.0 format.';
+    $html .= 'This alternative message is in MIME 1.0 format.';
     $html .= $crlf;
   if($body ne '')
      {

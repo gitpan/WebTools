@@ -315,5 +315,27 @@ sub csetflag_SF_File
   }
 }
 
+#####################################################################
+# Session Support Functions
+#####################################################################
+
+my $sys_sess_flat_eval = << 'SYS_FLAT_EVAL_TERMINATOR';
+sub session_clear_expired
+{
+ remove_SF_OldSessions($tmp.'/',time()-$sys_time_for_flat_sess);
+ return(1);
+}
+sub session_expire_update
+{
+ return(update_SF_File($tmp.'/',$sys_local_sess_id));
+}
+sub insert_sessions_row   # ($session_id,$db_handler)
+{
+ write_SF_File($tmp.'/',$sys_local_sess_id,'');
+ return(1);
+}
+SYS_FLAT_EVAL_TERMINATOR
+
+if($sess_force_flat =~ m/^on$/i){eval $sys_sess_flat_eval;}
 
 1;

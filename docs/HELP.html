@@ -830,7 +830,10 @@
           <b><font size="3" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000"><a name="6"></a>6. 
           Config.pl</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">Typical 
-          configuration for &quot;Web Tools&quot;</font></b> <BR>
+          configuration for &quot;Web Tools&quot;<br>
+          If you want to edit this file via Web just </font><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#000000">use 
+          install.cgi !</font></b><br>
+          <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
           <font color="#006633">#[Name_Of_Project]</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
@@ -865,10 +868,6 @@
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># ... 
           and DB password</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $mysqlbequiet = '1';</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># If 
-          you use MySQL then: Must be QUIET?</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
           <font color="#006633">#[DataBase]</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
@@ -916,25 +915,13 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Expire 
           time on session: 60 minutes</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          %dts = ('second' =&gt; 's','minute' =&gt; 'm', 'hour' =&gt; 'h', 'month' 
-          =&gt; 'M', 'year' =&gt; 'y');</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sys_conf_d = 'hour'; <font color="#FF0000"># !!!</font></font></b> 
-          <BR>
+          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$sys_conf_d 
+          = 'hour'; <font color="#FF0000"># !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Type 
           of sess time dimension</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sys_c_d_h = $dts{$sys_conf_d};</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># s(econds) 
-          m(inutes) h(our) d(ay) now M(onths) y(ears)</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sesstimead = '+'.$sess_time.$sys_c_d_h;</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sess_datetype = $sys_conf_d;</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Type 
-          of sess time dimension</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $rand_sid_length = '16';</font></b> <BR>
+          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$rand_sid_length 
+          = '16';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Length 
           of SID string!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
@@ -942,10 +929,6 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># 'sesstime' 
           - cookie expire when session expired. Enter any other value to expire 
           cookie when user close browser.</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $tmp = '/tmp';<font color="#FF0000"> # !!!</font></font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Please 
-          set full path to your temp directory</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
           $l_sid = 'sid';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Session 
@@ -1029,35 +1012,8 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><font color="#006633">#</font></font><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#006633">[Other]</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $var_printing_mode = 'buffered'; <font color="#FF0000"># !!!</font></font></b> 
-          <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Default 
-          output is buffered, leave this variable empty if you need output of 
-          </font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># your 
-          script to flush immediately!</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $uni_sep = '©';</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Col 
-          separator</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $uni_sep_t = '\©';</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Col 
-          separator (slashed)</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $uni_gr_sep = ':';</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Row 
-          separator</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $uni_gr_sep_t = '\:';</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Row 
-          separator (slashed)</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $uni_esc = '%';</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Escape 
-          char</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $charset = 'n5b0xzlQWdgfNXytCMAwq1TYu7SVBmUIvcOPZ2aprER9kjh3sHJKL8e4oiDFG6';</font></b> 
+          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$charset 
+          = 'n5b0xzlQWdgfNXytCMAwq1TYu7SVBmUIvcOPZ2aprER9kjh3sHJKL8e4oiDFG6';</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Please 
           mix well this chars to get higher security of your session ID :-)</font></b> 
@@ -1157,6 +1113,12 @@
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><font color="#006633">#</font></font><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#006633">[PATHS]</font></b> 
           <br>
+          <br>
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$tmp 
+          = '/tmp/';<font color="#FF0000"> # !!!</font></font></b> <br>
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Please 
+          set full path to your temp directory</font></b> <br>
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"></font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$driver_path 
           = './drivers/';</font></b> <BR>
@@ -1195,7 +1157,7 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$apacheshtdocs 
-          = 'c:/Apache/htdocs/';</font></b> <BR>
+          = '/var/www/htdocs/';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Path 
           to your apache htdocs directory('/usr/local/apache/htdocs/') (please 
           keep structure)</font></b> <BR>
@@ -1212,7 +1174,7 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$http_home_path 
-          = '/dw/webtools/';</font></b> <BR>
+          = '/webtools/';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Please 
           change this to your http path!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># NOTE: 
@@ -1292,7 +1254,7 @@ href="http://your_server/cgi-bin/your_webtools/process.cgi?file=../some_script">
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">where 
           /some_local_dir/ is directory in your &quot;default htmls&quot; directory. 
-          For eample that could be: /home/my_htmls/some_local_dir/ </font></b> 
+          For example that could be: /home/my_htmls/some_local_dir/ </font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
           So I hope that you are understood how important is not keeping of &quot;htmls&quot; 
@@ -1301,7 +1263,7 @@ href="http://your_server/cgi-bin/your_webtools/process.cgi?file=../some_script">
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">Also 
           via &quot;file=&quot; variable in query line you CAN'T call scripts 
-          with whatever you want extensions! Only acceptable are: whtml html htm 
+          with whatever you want extension! Only acceptable are: whtml html htm 
           cgihtml and cgi</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
           Please notice that all these files are WEBTOOLS files (HTML plus Perl 
@@ -1315,7 +1277,6 @@ href="http://your_server/cgi-bin/your_webtools/process.cgi?file=../some_script">
           data (I mean uploads) are saved in your TMP directory and if you don't 
           know about them, after end of your script WebTools will automatically 
           delete all of them!<br>
-          <br>
           </font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp;Also 
           you have POST limit size. i.e. you can't accept more data that specified 
@@ -1357,7 +1318,7 @@ href="http://your_server/cgi-bin/your_webtools/process.cgi?file=../some_script">
           Session restriction based on IP</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp;If 
           you use sessions you may want to protect your sessions by IP i.e. one 
-          open session can be used only by PC, created that session! <br>
+          opened session can be used only by PC, created that session! <br>
           <br>
           </font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">Note: 

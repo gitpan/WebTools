@@ -18,7 +18,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.14";
+    $VERSION = "1.16";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -76,6 +76,7 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
  $flag_onFlush_Event = 0;
  $syspre_process_counter = 0;
  $sys_cookie_accepted = 0;
+ $webtools::sys_header_warnings = 0;
  
  tie(*SESSIONSTDOUT,'stdouthandle');
  select(SESSIONSTDOUT);
@@ -162,7 +163,7 @@ sub StartUpInit
  eval "require '$library_path"."cookie.pl';";
  if($@) {DieAlert('Error: Can`t open library cookie!');}
  ###################################################################
- require $driver_path.'sess_flat.pl';
+ require $driver_path.'sess_flat.pl';  # Must be placed before any require on db drivers!
  require $driver_path.'userdefined.pl';
  #####################################################################
  #  ###   ###     ###   ####   #####  #   #  #####  ####             #
@@ -177,10 +178,12 @@ sub StartUpInit
  # TODO: more lines and more db engines
 }
 ##########################################
-# I may need something to do on exit
+# When process.cgi exit...
 ##########################################
 sub DestroyScript
 {
+ my $sys_destroy_db_code = 'DB_OnExit($system_database_handle);';
+ eval $sys_destroy_db_code;
  1;
 }
 ####################################################################
@@ -542,8 +545,10 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
  if(!$sess_header_flushed)      # If Header was not flushed...
  {
   $| = 1;
-  $print_header_buffer = "X-Powered-By: WebTools/1.14\n".$print_header_buffer; # Print version of this tool.
-
+  if(!$is and !($sys_stdouthandle_header and $sys_stdouthandle_content_ok))
+   {
+    $print_header_buffer = "X-Powered-By: WebTools/1.16\n".$print_header_buffer; # Print version of this tool.
+   }
   if ((!$sys_cookie_accepted) and ($sys_local_sess_id ne ''))
    {
     if($sess_cookie ne 'sesstime')
@@ -574,7 +579,10 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
        }
   if((!($print_header_buffer =~ m/Content\-type\:(.+)/is)) and (!($print_header_buffer =~ m/Status:( *?)204/is)))
    {
-     Header(type=>'content');  # Well we forgot to send content-type
+    if(!$is and !($sys_stdouthandle_header and $sys_stdouthandle_content_ok))
+     {
+      Header(type=>'content');  # Well we forgot to send content-type
+     }
    }
   print "$print_header_buffer\n";
   $print_header_buffer = '';
@@ -582,6 +590,12 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
  }
  print $print_flush_buffer;  # Just Print It!
  $print_flush_buffer = '';
+ if($webtools::sys_header_warnings > 0)
+  {
+   CORE::print('<BR><font face="Verdana, Arial, Helvetica, sans-serif" size="2">'."\n<BR>");
+   CORE::print("<B>Warnings Note: <font color='red'>WebTools is unable to use sessions/cookies till 'non-buffered' print mode is forced ");
+   CORE::print("or any headers are sent after body!\n<BR></font></B></font><BR>");
+  }
  select($oldslcthnd);
 }
 sub ClearBuffer
@@ -686,9 +700,32 @@ sub Header
   my %arg = @_;
   my $type = $arg{'type'};
   my $val = $arg{'val'};
+  local $oldstd;
   
   my $is = $stdouthandle::var_printing_mode eq 'buffered' ? 1 : 0;
-  
+  if(!$is)
+   {
+     if($stdouthandle::sys_stdouthandle_header or $stdouthandle::sys_stdouthandle_print_text)
+      {
+       local $oldHand = select(STDOUT);
+       CORE::print('<BR><font face="Verdana, Arial, Helvetica, sans-serif" size="2">'."<B>Warning:</B>\n<BR>");
+       CORE::print("You are in non-buffered print mode and header is already sent!\n</font><BR>");
+       CORE::print("<B>Hint: <font color='red'>Send header before body (or force 'buffered' print mode)!</font></B><BR>");
+       CORE::print("<B>Raw data:</B>");
+       select($oldHand);
+       $webtools::sys_header_warnings ++;
+      }
+     if(!$stdouthandle::sys_stdouthandle_header and !$stdouthandle::sys_stdouthandle_print_text)
+      {
+      	if(($type =~ m/Content/si) or ($type =~ m/Location/si) or ($type =~ m/Status/si) or
+      	   ($val =~ m/Content\-type\:/si) or ($val =~ m/Location\:/si) or ($val =~ m/Status\:/si))
+          {
+           $stdouthandle::sys_stdouthandle_content_ok = 1;
+          }
+        else {$stdouthandle::sys_stdouthandle_content_ok = 0;}
+       }
+   }
+  if(!$is) {$oldstd = select(STDOUT);}
   if (exists($arg{'type'}))
     {
       if ($type =~ m/content/is)
@@ -697,16 +734,16 @@ sub Header
           {
            $sentcontent = 1;
            if($is) {$print_header_buffer .= "Content-type: ";}
-           else { print "Content-type: ";}
+           else { CORE::print "Content-type: ";}
            if (exists($arg{'val'}))
              {
              if($is) {$print_header_buffer .= $val."\n";}
-             else { print $val."\n";}
+             else { CORE::print $val."\n";}
              }
            else
              {
               if($is) {$print_header_buffer .= "text/html\n";}
-              else { print "text/html\n";}
+              else { CORE::print "text/html\n";}
              }
           }
         }
@@ -722,29 +759,27 @@ sub Header
 	     if (!($val =~ m/(;| )path ?=.*$/is))
               {
               	if($is) {$print_header_buffer .= $val."; path=$cookie_path_cgi\n";}
-                else { print $val."; path=$cookie_path_cgi\n";}
+                else { CORE::print $val."; path=$cookie_path_cgi\n";}
               }
              else
               {
                if($is) {$print_header_buffer .= $val."\n"; }
-               else { print $val."\n"; }
+               else { CORE::print $val."\n"; }
               }
            }
          else 
            {
             if($is) {$print_header_buffer .= "\n";}
-            else { print "\n"; }
+            else { CORE::print "\n"; }
            }
-         return;
         }
       if ($type =~ m/raw/is)
         {
          if (exists($arg{'val'}))
            {
             if($is) {$print_header_buffer .= $val;}
-            else { print $val; }
+            else { CORE::print $val; }
            }
-         return;
         }
       if ($type =~ m/modified/is)
         {
@@ -753,94 +788,90 @@ sub Header
            {
              my $expi = expires($val);
              if($is) {$print_header_buffer .= $expi."\n";}
-             else { print $expi."\n";}
+             else { CORE::print $expi."\n";}
            }
          else {
                my $expi = expires('-1m');
                if($is) {$print_header_buffer .= $expi."\n";}
-               else { print $expi."\n";}
+               else { CORE::print $expi."\n";}
               }
-         return;
         }
       if ($type =~ m/MIME/is)
         {
          if($is) {$print_header_buffer .= "MIME-version: ";}
-         else { print "MIME-version: ";}
+         else { CORE::print "MIME-version: ";}
          if (exists($arg{'val'}))
            {
              if($is) {$print_header_buffer .= $val."\n";}
-             else { print $val."\n";}
+             else { CORE::print $val."\n";}
            }
          else 
            {
             if($is) {$print_header_buffer .= "1.0\n";}
-            else { print "1.0\n";}
+            else { CORE::print "1.0\n";}
            }
-         return;
         }
       if ($type =~ m/window/is)
         {
          if($is) {$print_header_buffer .= "Window-target: ";}
-         else { print "Window-target: ";}
+         else { CORE::print "Window-target: ";}
          if (exists($arg{'val'}))
            {
              if($is) {$print_header_buffer .= $val."\n";}
-             else { print $val."\n";}
+             else { CORE::print $val."\n";}
            }
          else {
                 if($is) {$print_header_buffer .= "\n";}
-                else { print "\n";}
+                else { CORE::print "\n";}
               }
-         return;
         }
       if ($type =~ m/Pragma/is)
         {
          if($is) {$print_header_buffer .= "Pragma: ";}
-         else { print "Pragma: ";}
+         else { CORE::print "Pragma: ";}
          if (exists($arg{'val'}))
            {
              if($is) {$print_header_buffer .= $val."\n";}
-             else { print $val."\n";}
+             else { CORE::print $val."\n";}
            }
          else { 
          	if($is) {$print_header_buffer .= "no-cache\n";}
-         	else { print "no-cache\n";}
+         	else { CORE::print "no-cache\n";}
               }
-         return;
         }
       if ($type =~ m/Expires/is)
         {
          if($is) {$print_header_buffer .= "Expires: ";}
-         else { print "Expires: ";}
+         else { CORE::print "Expires: ";}
          if (exists($arg{'val'}))
            {
              my $expi = expires($val);
              if($is) {$print_header_buffer .= $expi."\n";}
-             else { print $expi."\n";}
+             else { CORE::print $expi."\n";}
            }
          else {
          	my $expi = expires('-1m');
                 if($is) {$print_header_buffer .= $expi."\n";}
-                else { print $expi."\n";}
+                else { CORE::print $expi."\n";}
               }
-         return;
         }
       if ($type =~ m/Referrer/is)
         {
          if($is) {$print_header_buffer .= "Referrer: ";}
-         else { print "Referrer: ";}
+         else { CORE::print "Referrer: ";}
          if (exists($arg{'val'}))
            {
              if($is) {$print_header_buffer .= $val."\n";}
-             else { print $val."\n";}
+             else { CORE::print $val."\n";}
            }
          else {
          	if($is) {$print_header_buffer .= "\n";}
-         	else { print "\n";}
+         	else { CORE::print "\n";}
                }
-         return;
         }
     }
+  if(!$is) {select($oldstd);}
+  return(1);
 }
 sub href_sid_adder
 {
@@ -1064,7 +1095,6 @@ sub close_session_file
   else
   {
    ###FLAT###
-   $sess_force_flat = 'off';
    $re = csetflag_SF_File($tmp.'/',$sid);
    return(1);
   }
@@ -1294,7 +1324,7 @@ sub ExecuteHTMLfile
     chomp($sys_l_N001);
     if($sys_l_N001 ne '')
       {
-       $sys_all_code_in_one .= '$sys_l_N001 =~ s/\|/\\\|/sgo; $print_flush_buffer .= q|'.$sys_l_N001.'|;'."\n";
+       $sys_all_code_in_one .= '$sys_l_N001 =~ s/\|/\\\|/sgo; if ($var_printing_mode eq "buffered"){$print_flush_buffer .= q|'.$sys_l_N001.'|;} else {print q|'.$sys_l_N001.'|;}'."\n";
       }
     my $cd_N001 = $code_N001[$i_N001]; $i_N001++;
     $sys_all_code_in_one .= $cd_N001;
@@ -1546,10 +1576,9 @@ sub sys_make_template_code
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# if($system_database_handle eq undef)
         {
           my $rztl_sconn = sql_connect(); 
-          if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
         }
      if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
-     xreader_dbh($system_database_handle);#;
+     xreader_dbh($rztl_sconn);#;
      
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
    eval $sys_my_pre_process_tmp_eval;
@@ -1567,7 +1596,7 @@ sub sys_make_template_code
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
         }
      if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
-     xreader_dbh($system_database_handle);#;
+     xreader_dbh($rztl_sconn);#;
 
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
    eval $sys_my_pre_process_tmp_eval;
@@ -1585,7 +1614,7 @@ sub sys_make_template_code
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
         }
      if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
-     xreader_dbh($system_database_handle);#;
+     xreader_dbh($rztl_sconn);#;
 
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
    eval $sys_my_pre_process_tmp_eval;
@@ -1599,11 +1628,10 @@ sub sys_make_template_code
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# if($system_database_handle eq undef)
         {
-          my $rztl_sconn = sql_connect(); 
-          if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
+          my $rztl_sconn = sql_connect();
         }
      if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
-     xreader_dbh($system_database_handle);#;
+     xreader_dbh($rztl_sconn);#;
 
    $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
    eval $sys_my_pre_process_tmp_eval;

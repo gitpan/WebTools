@@ -33,7 +33,7 @@ require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.14";
+    $VERSION = "1.16";
     @ISA = qw(Exporter);
     $sys_askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa @multipart_headers $parsedform $sys_globvars $contenttype $query';
     
@@ -91,6 +91,8 @@ if(!$parsedform){
  %uploaded_files = %cgi_sfn;
  $parsedform = 1;
  
+ %sys_ported_hashes = ();
+ 
  $sys_askqwvar_bstr = '';
  $sys_globvars = '';
 
@@ -109,6 +111,21 @@ if(!$parsedform){
            eval $sys_askqwvar_elval;
           }
         }
+     }
+   if($sys_askqwvar_k =~ m/^\%inputhash\_([A-Z0-9]+?)\_([A-Z0-9_]+)$/sio)
+     {
+      my $sys_askqwvar_L_hn = $1;
+      my $sys_askqwvar_L_vn = $2;
+      
+      $sys_askqwvar_elval = '$inputhash_'.$sys_askqwvar_L_hn.'{'.$sys_askqwvar_L_vn.'} = $sys_askqwvar_v;';
+      $sys_globvars .= $sys_askqwvar_elval."\n";
+      eval $sys_askqwvar_elval;
+      
+      if(!exists($sys_ported_hashes{$sys_askqwvar_L_hn}))
+       {
+        $sys_askqwvar_bstr .= '%inputhash_'.$sys_askqwvar_L_hn.' ';
+        $sys_ported_hashes{$sys_askqwvar_L_hn} = 1;
+       }
      }
   }
  } 

@@ -31,7 +31,8 @@
     set_mail_attachment($orgfile1,$fn1);                      # Push first file in attachment list
     set_mail_attachment($orgfile2,$fn2);                      # and second one
     
-    mail(to=>$to,from=>$from,subject=>'Test',body=>'<font color="red"> Just a small email test in HTML format!</font>',html=>1);
+    send_mail($from,$to,'Test','<font color="red"> Just a small email test in HTML format!</font>',1);
+    # mail(to=>$to,from=>$from,subject=>'Test',body=>'<font color="red"> Just a small email test in HTML format!</font>',html=>1);
     
     print "<HR>";
     print "E-mail SENT<BR>TO: $to <BR> FROM: $from<BR>\n";

@@ -14,7 +14,7 @@ package TripleDES;
 BEGIN {
 use vars qw( $AUTOLOAD $VERSION);
 @ISA = qw(Exporter);
-@EXPORT = qw(CriptData EncriptData);
+@EXPORT = qw(EncriptData DecriptData);
 ( $VERSION )  = '$Revision: 0.24 $' =~ /\s(\d+\.\d+)\s/; 
 }
 sub AUTOLOAD { 
@@ -64,10 +64,10 @@ sub debug {
 }
 
 ###############################################
-# Cript/EnCript Library by July
+# Encript/Decript Library by July
 ###############################################
 
-sub CriptData
+sub EncriptData
 {
  my ($data,$password) = @_;         # $data - Cripted data; $password - Cripting key
  my $des = new TripleDES;           # Return encoded string.
@@ -86,7 +86,7 @@ sub CriptData
  return($ciphertextBlock);
 }
 
-sub EncriptData
+sub DecriptData
 {
  my ($data,$password) = @_;         # $data - Cripted data; $password - Cripting key
  my $des = new TripleDES;           # Return encoded string, otherwhise undef on error!

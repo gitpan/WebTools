@@ -5,10 +5,10 @@
 # use lib '......';
 use TripleDES;
 
- $crpt = CriptData("secret_credit_card=4557024001932895","Unhackable_password");
+ $crpt = EncriptData("secret_credit_card=4557024001932895","Unhackable_password");
  print "My data now is crypted like: $crpt\n";
 
- $encrpt = EncriptData($crpt,"Unhackable_password");
+ $encrpt = DecriptData($crpt,"Unhackable_password");
  print "Now we read encripted value via password: $encrpt\n";
  
 1;

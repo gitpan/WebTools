@@ -58,6 +58,6 @@ sub postamble
  my $q2 = $^O =~ /Win/si ? "\'" : '"';
  return << "EOF";
 permissions :
-	\@\$(PERL) -e $q1 chmod (0755,$q2\$(INSTALLPRIVLIB)process.cgi$q2); $q1
+	\@\$(PERL) -e $q1 chmod (0755,$q2\$(INSTALLPRIVLIB)process.cgi$q2,$q2\$(INSTALLPRIVLIB)install.cgi$q2); $q1
 EOF
 }

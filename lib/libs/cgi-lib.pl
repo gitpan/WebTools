@@ -238,6 +238,7 @@ $errflag = !(eval <<'END_MULTIPART');
         $buf = substr($buf, $bufsize);
         $amt = ($left > $bufsize ? $bufsize : $left); #$maxbound==length($buf);
         $errflag = (($got = read(STDIN, $buf, $amt, length($buf))) != $amt);
+        if($errflag) {eval 'close FILE;'; eval 'unlink $fn;';}
 	die "Short Read: wanted $amt, got $got\n" if $errflag;
         $left -= $amt;
       }
@@ -251,6 +252,7 @@ $errflag = !(eval <<'END_MULTIPART');
       $amt = ($left > $bufsize+$maxbound-length($buf) 
 	      ? $bufsize+$maxbound-length($buf) : $left);
       $errflag = (($got = read(STDIN, $buf, $amt, length($buf))) != $amt);
+      if($errflag) {eval 'close FILE;'; eval 'unlink $fn;';}
       die "Short Read: wanted $amt, got $got\n" if $errflag;
       $left -= $amt;
 
@@ -270,6 +272,7 @@ $errflag = !(eval <<'END_MULTIPART');
         $buf = substr($buf, $bufsize);
         $amt = ($left > $bufsize ? $bufsize : $left); #$maxbound==length($buf);
         $errflag = (($got = read(STDIN, $buf, $amt, length($buf))) != $amt);
+        if($errflag) {eval 'close FILE;'; eval 'unlink $fn;';}
         die "Short Read: wanted $amt, got $got\n" if $errflag;
         $left -= $amt;
       }

@@ -9,45 +9,49 @@
   <tr><td>
 <div align="center">
   <p><b><font color="#000000" size="4">MySQL</font></b></p>
-  <p align="left">&nbsp;&nbsp;&nbsp;<b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">This 
-    README file regards MySQL users and this help is all information that I can 
-    give to you!<br>
-    <br>
-    Installation:<br>
-    &nbsp;&nbsp;&nbsp;Before you can use MySQL server you may need to install 
-    some standart modules:<br>
+        <p align="left">&nbsp;&nbsp;&nbsp;<b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">This 
+          README file regards MySQL users and this help is all information that 
+          I can give to you!<br>
+          <br>
+          Installation:<br>
+          &nbsp;&nbsp;&nbsp;Before you can use MySQL server you may need to install 
+          some standart modules:<br>
           First of all you need: </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/TIMB/DBI-1.20.tar.gz">DBI</a></font><font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
           and also you need MySQL DBD module: </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/JWIED/Msql-Mysql-modules-1.2216.tar.gz">MySQL</a></font><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br>
           After successful installation please run 'mysql' client with your adminstrator 
           user and make new user for your webtools project (or use some other 
           older user):<br>
-    <br>
-    &nbsp;&nbsp;&nbsp;<font color="#990000">&gt; mysql -u root_user -p<br>
-    <br>
-    &nbsp;&nbsp;&nbsp;mysql&gt; use mysql;<br>
-    &nbsp;&nbsp;&nbsp;mysql&gt; insert into user values ('localhost', 'webtools_user', 
-    password('its_password'),<br>
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
-    'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N');<br>
-    &nbsp;&nbsp;&nbsp;mysql&gt; exit<br>
-    <br>
-    &nbsp;&nbsp;&nbsp;&gt; mysqladmin reload<br>
-    &nbsp;&nbsp;&nbsp;&gt; cd &nbsp;&nbsp;to_your_<font color="#000066">webtools_db_strutures</font>_directory</font><br>
-    <br>
-    Now, edit '<font color="#006600">mysql-webtoolsdb.sql</font>' (please coordinate 
-    information from '<font color="#006600">config.pl</font>' and '<font color="#006600">mysql-webtoolsdb.sql</font>' 
-    file). <br>
-    Now you can create structure needed by webtools:<br>
-    <br>
-    &nbsp;&nbsp;&nbsp;<font color="#990000">&gt; mysql -u webtools_user -p &lt; 
-    mysql-webtoolsdb.sql<br>
-    <br>
-    <font color="#000000">Well database is ready! Now don't forget to configure 
-    follow sections of 'config.pl':<br>
-    <br>
-    <font color="#006600">#[Name_Of_Project]<br>
-    $projectname = '<font color="#990000">webtools</font>'; &nbsp;&nbsp;&nbsp;&nbsp;# 
-    Name of project! (be careful!) </font></font></font></font></b></p>
+          <br>
+          &nbsp;&nbsp;&nbsp;<font color="#990000">&gt; mysql -u root_user -p<br>
+          <br>
+          &nbsp;&nbsp;&nbsp;mysql&gt; use mysql;<br>
+          &nbsp;&nbsp;&nbsp;mysql&gt; insert into user values ('localhost', 'webtools_user', 
+          password('its_password'),<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+          'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N');<br>
+          &nbsp;&nbsp;&nbsp;mysql&gt; exit<br>
+          <br>
+          &nbsp;&nbsp;&nbsp;&gt; mysqladmin reload<br>
+          &nbsp;&nbsp;&nbsp;&gt; cd &nbsp;&nbsp;to_your_<font color="#000066">webtools_db_strutures</font>_directory</font><br>
+          <br>
+          Now, edit '<font color="#006600">mysql-webtoolsdb.sql</font>' (please 
+          coordinate information from '<font color="#006600">config.pl</font>' 
+          and '<font color="#006600">mysql-webtoolsdb.sql</font>' file). <br>
+          Now you can create structure needed by webtools:<br>
+          <br>
+          <font color="#FF0000">STOP: Use Web based script install.cgi introduced 
+          in WebTools ver. 1.16 to manage config.pl file and to create base structure 
+          of MySQL database!</font> <br>
+          <br>
+          &nbsp;&nbsp;&nbsp;<font color="#990000">&gt; mysql -u webtools_user 
+          -p &lt; mysql-webtoolsdb.sql<br>
+          <br>
+          <font color="#000000">Well database is ready! Now don't forget to configure 
+          follow sections of 'config.pl':<br>
+          <br>
+          <font color="#006600">#[Name_Of_Project]<br>
+          $projectname = '<font color="#990000">webtools</font>'; &nbsp;&nbsp;&nbsp;&nbsp;# 
+          Name of project! (be careful!) </font></font></font></font></b></p>
   <p align="left"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#006600"><b>#[SQL]<br>
     $db_support = 'db_mysql';&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# MySQL 
     driver. <br>

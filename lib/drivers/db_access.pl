@@ -270,13 +270,13 @@ if($sess_force_flat eq 'off') ###DB###
     {
      $r_q = " and IP = \'$ip\'";    # Restrict session on IP!
     }
-  my $r = sql_query("update $sql_sessions_table set EXPIRE = $inter where S_ID = \'$local_sess_id\'".$r_q,$dbh);
+  my $r = sql_query("update $sql_sessions_table set EXPIRE = $inter where S_ID = \'$sys_local_sess_id\'".$r_q,$dbh);
   if ($r eq undef) { return(0);}
  }
  else
  {
   ###FLAT###
-  return(update_SF_File($tmp.'/',$local_sess_id));
+  return(update_SF_File($tmp.'/',$sys_local_sess_id));
  }
  return (1);
 }
@@ -287,7 +287,7 @@ sub insert_sessions_row   # ($session_id,$db_handler)
   my %globmin = ('s',1,'m',60,'h',3600,'d',86400,'M',2678400,'y',31536000);
   my $inter = $calmin{$sess_datetype};
   $inter += time();
-  my $sid = $local_sess_id;
+  my $sid = $sys_local_sess_id;
   my $ip = $ENV{'REMOTE_ADDR'}; # Get remote IP address
   if($sess_force_flat eq 'off') ###DB###
   {

@@ -3,7 +3,7 @@
 ############################
 
 $sys_SQL_generator_DefaultCount = 10;
-$sys_SQL_generator_DefaultOrder = 'ORDER BY SUBMDATE';
+$sys_SQL_generator_DefaultOrder = 'ORDER BY ID';
 %sys_SQL_generator_Dirs = (up => 'bottom', down => 'top');
 
 sub  MoveSQLGenerator
@@ -14,6 +14,7 @@ sub  MoveSQLGenerator
  if($from <= 0){ $from = 1; }
  $from --;
  if($count <= 0) { $count = $sys_SQL_generator_DefaultCount; }
+ if($dir eq '') {$dir = 'bottom';}
  push(@out,$from+1+$count);
  push(@out,$count);
  if($dir eq $sys_SQL_generator_Dirs{'up'})

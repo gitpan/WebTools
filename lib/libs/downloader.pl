@@ -1,21 +1,29 @@
-###########################################
+#######################################################
 # Perl`s Download Library
-###########################################
+#######################################################
 # Written by Julian Lishev - Sofia 2001
-# Ver 2.0
-###########################################
+# Ver 3.0
+#######################################################
 use strict;      # Perl was here...
 
-my %MIMETYPES = ('zip','application/zip','exe','application/octet-stream','doc','application/msword',
+my %sys_MIMETYPES = ('zip','application/zip','exe','application/octet-stream','doc','application/msword',
               'report','application/zip','mpga','audio/mpeg','mp3','audio/mpeg','gz','application/x-gzip',
               'gzip','application/x-gzip','xls','application/vnd.ms-excel');
-my $kill_flag = 0;
-my $lenght = 2048;             # Each print() will be limited of this size!
-my $period = 1;
+my $sys_kill_flag = 0;
+my $sys_length = 2048;             # Each print() will be limited of this size!
+my $sys_period = 1;
+my $sys_last_sent_byte;
 $webtools::loaded_functions = $webtools::loaded_functions | 256;
-###########################################
-# Download File
-###########################################
+#######################################################
+# CGI based download function
+# PROTO:
+# $result = download_file($full_filename, $speed_limit);
+# Example:
+# $res = download_file('/downloads/unix.tar.gz','20');
+# Where:
+# '/downloads/unix.tar.gz' is full file name
+# and '20' is speed limit in KB
+#######################################################
 sub download_file
 {
  my ($filename,$speed) = @_;
@@ -28,7 +36,7 @@ sub download_file
    {
     $ext = '';
    }
- my $type = $MIMETYPES{$ext};
+ my $type = $sys_MIMETYPES{$ext};
  if (($type eq '') or($ext eq '')) { $type = 'application/octet-stream'; }
  if (downloader_SendFile($filename,$type,$speed))
    {
@@ -37,18 +45,73 @@ sub download_file
  else { return (0); }             # Transfer interrupted...or Apache kill process!
  # If Apache start killing..., Mole get exit NOW! :-))))
 }
-###########################################
+
+#######################################################
+# Add new MIME type
+# PROTO:  download_add_mimetype($ext,$mimetype);
+# Example:
+# download_add_mimetype('zip','application/zip');
+#######################################################
+sub download_add_mimetype
+{
+ my ($ext,$mimetype) = @_;
+ $ext =~ s/\.//sgi;
+ $ext =~ s/^\ //sgi;
+ $ext =~ s/\ {1,}$//sgi;
+ $mimetype =~ s/^\ //sgi;
+ $mimetype =~ s/\ {1,}$//sgi;
+ if(($mimetype ne '') and ($ext ne ''))
+  {
+   $sys_MIMETYPES{$ext} = $mimetype;
+  }
+}
+#######################################################
+# Get file site of download target
+# PROTO:  $size = download_get_filesize($filename);
+# Example:
+# $size = download_get_filesize('/downloads/file.zip');
+#######################################################
+sub download_get_filesize
+{
+ my ($file) = shift(@_);
+ use POSIX;
+ $file =~ s/\\/\//sgi;
+ $file =~ s/^\ //sgi;
+ $file =~ s/\ {1,}$//sgi;
+ if(-e $file)
+  {
+   local *GETFSIZE;
+   open(GETFSIZE,$file) or return(-1); # Error or just locked
+   seek(GETFSIZE,0,SEEK_END);
+   my $size = tell(GETFSIZE);
+   close(GETFSIZE);
+   return($size);
+  }
+ return(-1);   # File not found
+}
+#######################################################
+# Get file site of download target
+# PROTO:  $size = download_last_bytes();
+# Example:
+# $size = download_last_bytes();
+#######################################################
+sub download_last_bytes
+{
+ return($sys_last_sent_byte);
+}
+#######################################################
 sub downloader_onApacheKill
 {
- $kill_flag = 1;
+ $sys_kill_flag = 1;
 }
-###########################################
+#######################################################
 # Read and Send file to STDOUT
-###########################################
+#######################################################
 sub downloader_SendFile
 {
  my ($filename,$type,$speed) = @_;
  my $name;
+ $sys_last_sent_byte = 0;
  if($speed) {$speed = int($speed*1024);}
  if($filename =~ m/\//)
   {
@@ -61,23 +124,25 @@ sub downloader_SendFile
  local $SIG{'QUIT'} = '\&downloader_onApacheKill';
  local $SIG{'PIPE'} = '\&downloader_onApacheKill';
  
- $kill_flag = 0;
+ $sys_kill_flag = 0;
  $| = 1;
  open(FH,$filename) or return(0);
  binmode(FH);
  binmode(STDOUT);
  
+ eval '$stdouthandle::sys_stdouthandle_header = 1;';
+  
  print "MIME-Type: 1.0\n";
+ print "X-Powered-By: WebTools/1.16\n";
  print "Content-Disposition: filename=\"$name\"\n";
  print "Content-Transfer-Encoding: binary\n";
- print "Content-Type: ".$type.";name=\"$name\"\n\n";;
+ print "Content-Type: ".$type.";name=\"$name\"\n\n";
  my $buffer = '';
- 
- if($speed){$lenght = downloader_setSpeed($speed);}
+ if($speed){$sys_length = downloader_setSpeed($speed);}
  while(1)
    {
-    if($kill_flag == 1) { return(0);}  # Killed!
-    my $result = read(FH,$buffer,$lenght);
+    if($sys_kill_flag == 1) { return(0);}  # Killed!
+    my $result = read(FH,$buffer,$sys_length);
     if($result == 0)
       {
        last;
@@ -92,7 +157,8 @@ sub downloader_SendFile
        close FH;
        return(0);
       }
-    if($speed){sleep($period);}
+    $sys_last_sent_byte += $sys_length;
+    if($speed){sleep($sys_period);}
    }
  close FH;
  return(1);           		       # Done...
@@ -101,10 +167,7 @@ sub downloader_setSpeed
 {
   my $speed=shift;
 
-  return(int($speed*$period));
+  return(int($speed*$sys_period));
 }
+
 1;
-############################################
-# TODO: To show what part of code were
-# downloaded before connection break down.
-############################################

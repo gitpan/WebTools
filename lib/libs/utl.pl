@@ -71,7 +71,6 @@ sub MIME_encoding_data {
   my $str = shift;
   return undef unless defined($str);
   $str =~ s/([^a-zA-Z0-9_.-])/uc sprintf("%%%02x",ord($1))/seg;
-  $str =~ s/\%20/\+/sg;
   return $str;
 }
 

@@ -17,9 +17,13 @@ require Exporter;
 use Fcntl;
 use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter);
-@EXPORT = qw(reset clear $var_printing_mode);
-$VERSION = "1.14";
+@EXPORT = qw(reset clear $var_printing_mode $sys_stdouthandle_print_text $sys_stdouthandle_content_ok 
+             $sys_stdouthandle_header $sys_stdouthandle_header_up_to_now);
+$VERSION = "1.16";
 $var_printing_mode = 'buffered';
+$sys_stdouthandle_print_text = 0;
+$sys_stdouthandle_header = 0;
+$sys_stdouthandle_content_ok = 0;
 my $cnf = (-e './conf') ? './conf/' : '../conf/';
 eval "use lib \'$cnf\';";
 require 'config.pl';
@@ -34,6 +38,7 @@ sub TIEHANDLE
 sub WRITE
  {
   my $this = shift;
+  $sys_stdouthandle_print_text = 1;
   if ($var_printing_mode eq 'buffered')
    {
     my ($buf,$len,$ofs) = @_;
@@ -50,6 +55,16 @@ sub WRITE
   else
    {
     local $oldHand = select(STDOUT);
+    if(!$sys_stdouthandle_header)
+     {
+      if(!$sys_stdouthandle_content_ok)
+       {
+       	CORE::print "Content-type: text/html\n";
+       }
+      CORE::print "X-Powered-By: WebTools/1.16\n\n";
+      $sys_stdouthandle_content_ok = 1;
+      $sys_stdouthandle_header = 1;
+     }
     CORE::write($_[0],$_[1],$_[2]);
     select($oldHand);
    }
@@ -58,6 +73,7 @@ sub WRITE
 sub PRINT
  {
   my $this = shift;
+  $sys_stdouthandle_print_text = 1;
   if ($var_printing_mode eq 'buffered')
    { 	
     my @data = @_;
@@ -70,6 +86,16 @@ sub PRINT
   else
    {
     local $oldHand = select(STDOUT);
+    if(!$sys_stdouthandle_header)
+     {
+      if(!$sys_stdouthandle_content_ok)
+       {
+       	CORE::print "Content-type: text/html\n";
+       }
+      CORE::print "X-Powered-By: WebTools/1.16\n\n";
+      $sys_stdouthandle_content_ok = 1;
+      $sys_stdouthandle_header = 1;
+     }
     CORE::print(@_);
     select($oldHand);
    }
@@ -78,6 +104,7 @@ sub PRINT
 sub PRINTF
  {
   my $this = shift;
+  $sys_stdouthandle_print_text = 1;
   if ($var_printing_mode eq 'buffered')
    {
     my $frmt = shift;
@@ -90,6 +117,16 @@ sub PRINTF
   else
    {
     local $oldHand = select(STDOUT);
+    if(!$sys_stdouthandle_header)
+     {
+      if(!$sys_stdouthandle_content_ok)
+       {
+       	CORE::print "Content-type: text/html\n";
+       }
+      CORE::print "X-Powered-By: WebTools/1.16\n\n";
+      $sys_stdouthandle_content_ok = 1;
+      $sys_stdouthandle_header = 1;
+     }
     CORE::print(@_);
     select($oldHand);
    }

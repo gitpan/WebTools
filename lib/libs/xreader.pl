@@ -13,7 +13,7 @@
 #####################################################################
 
 my $x_sep_begin1 = '\<\©N\®';
-my $x_sep_begin2 = '\®(\d{1})\®(\w*?)\®\©\>';
+my $x_sep_begin2 = '\®(\d{1})\®(.*?)\®\©\>';
 my $x_sep_begin;
 my $x_sep_end = '\<\˜\©\˜\>';
 my $x_var = '\<\§VAR\§\>';
@@ -108,7 +108,7 @@ sub _xreader
     $sys_xreader_buf = '';
     %sys_xreader_queries = {};
     undef $/;
-    open(XFILE,$xreader_path.$filename) or return(0);
+    open(XFILE,$xreader_path.$xprt_n) or return(0);
     binmode(XFILE);
     $xpart = <XFILE>;
     close (XFILE); 
@@ -188,7 +188,9 @@ sub _mem_xreader
 ###################################
 sub xreader_dbh ($)  # Set default DB Handler for SQL operations!
 {
- $sys_sql_dbh = shift(@_);
+ my $sys_dbh = shift(@_);
+ if($sys_dbh ne '') { $sys_sql_dbh = $sys_dbh;}
+ else { $sys_sql_dbh = undef;}
 }
 
 ##################################################

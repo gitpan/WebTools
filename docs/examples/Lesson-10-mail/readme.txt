@@ -4,8 +4,8 @@
 
  This example will introduce last (raw) mail functions. They not required "sendmail" so you 
 could use it when other mail program is not available. The only one prerequirement is: 
-"nslookup" - Don't worry, be happy: these functions works good under Unix/Linux as good as they
-do that and under Windows(NT/XP) :-)
+"nslookup" - Don't worry: these functions works under Unix/Linux and under 
+Windows(NT/XP) :-)
 Note: 'nslookup' is depricated, so for Unix/Linux system we support 'host' program, but Windows
 still use 'nslookup'!
 

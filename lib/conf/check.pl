@@ -12,11 +12,26 @@
 
 sub check_configuration
 {
+ if($ENV{'SCRIPT_NAME'} eq '') 
+  {
+   print STDOUT "\n  Test Mode\n\n";
+   print STDOUT "Your variable ".'$check_module_functions'.
+                " (in config.pl) is turned 'on'\n";
+   print STDOUT "...force CHECKING mode\n";
+   print STDOUT "(to turn off this check and script run normal, please set variable to 'off'!\n\n";
+   print STDOUT "This is a WEB BASED check up program! It works only through WEB!\n";
+   print STDOUT "Check script exit immediately! Use your favorit Browser!\n\n";
+   print STDOUT "Syntax Ok";
+   exit;
+  }
  if ($check_module_functions eq 'on')   # Script now working only in debug mode!
   {
    # Eval code for speed! (this code will be compiled only if need)
    $eval_this_code = << 'EVAL_TERMINATOR';
-   print STDOUT "Content-type: text/html\n\n";
+   if(($ENV{'SCRIPT_NAME'} ne '') and !($ENV{'SCRIPT_NAME'} =~ m/\/install\.cgi$/si))
+    {
+     print STDOUT "Content-type: text/html\n\n";
+    }
    print STDOUT '<font face="Verdana, Arial" size=2 color="#202070">';
    print STDOUT '<center><H3><p style="color:red">Test Mode</p></H3></center>';
    print STDOUT "<B>Your variable ".'<span style="color:red">$check_module_functions</span>'.
@@ -27,6 +42,7 @@ sub check_configuration
    print STDOUT "<HR><U><span style='color:red'>Checking your paths</span></U>:<BR><BR>";
    
    print STDOUT "<LI>Driver path";
+
    if(-e $driver_path) { print STDOUT "...ok"; }
    else {ErrorMessage("...<span style='background:red'>NOT EXISTS...</span><BR>");}
    
@@ -81,10 +97,50 @@ sub check_configuration
      else {ErrorMessage("...<span style='background:red'>".$result."...</span><BR>");}
 
    print STDOUT "<HR><U><span style='color:red'>Checking your external programs</span></U>:<BR><BR>";
+      
+   my $sys_mailing = 0;
    
-   print STDOUT "<LI> Sendmail";
-   if(-e $sendmail) { print STDOUT "...ok"; }
-   else {ErrorMessage("...<span style='background:red'>NOT EXISTS...</span><BR>");}
+   print STDOUT "<LI> sendmail";
+   my $sys_res_open =  (-e $sendmail) ? 1:0;
+   if($sys_res_open) { print STDOUT "...ok"; $sys_mailing |= 1;}
+   else {print STDOUT "...<font color='#C02020'>not available</font>";}
+   
+   print STDOUT "<LI> host";
+   my $sys_res_open =  (-e '/usr/bin/host') ? 1:0;
+   if($sys_res_open) { print STDOUT "...ok"; $sys_mailing |= 2;}
+   else {print STDOUT "...<font color='#C02020'>not available</font>";}
+   
+   print STDOUT "<LI> nslookup";
+   my $sys_res_open = `nslookup 127.0.0.1`;
+   if($sys_res_open) { print STDOUT "...ok"; $sys_mailing |= 4;}
+   else {print STDOUT "...<font color='#C02020'>not available</font>";}
+
+   if($sys_mailing == 0)
+    {
+     print '<BR><BR><font color="#C02020">Sorry but you can`t send emails anyway! Either sendmail and host/nslookup are not available for WebTools.</font><BR>';
+     print '<BR>Hint: <font color="#C02020">Set full path for sendmail program in config.pl ($sendmail variable) and then use send_mail() function available in mail.pl</font><BR>';
+    }
+   elsif($sys_mailing == 1)
+    {
+     print '<BR><BR><font color="#C02020">"host" and "nslookup" are not available for WebTools, so you can send emails only via sendmail program!</font><BR>';
+     print '<BR>Hint: <font color="#C02020">Use send_mail() function available in mail.pl</font><BR>';
+    }
+   elsif($sys_mailing == 4)
+    {
+     print '<BR><BR><font color="#C02020">"sendmail" and "host" programs are not available for WebTools! <BR>If you want to use our build-in mail client you must relay on nslookup program!</font><BR>';
+     print '<font color="#C02020">This case is typical for Windows systems!</font><BR>';
+     print '<BR>Hint: <font color="#C02020">Use mail() function available in mail.pl</font><BR>';
+    }
+   elsif(($sys_mailing != 0) and !($sys_mailing & 1))
+    {
+     print '<BR><BR><font color="#C02020">"sendmail" is not available for WebTools, so if you want to use our build-in mail client you must relay on host/nslookup</font><BR>';
+     print '<BR>Hint: <font color="#C02020">Use mail() function available in mail.pl</font><BR>';
+     print '<BR>Note: <font color="#C02020">Check whether $sendmail variable (in config.pl) is set to correct full path of sendmail program!</font><BR>';
+    }
+    if(($sys_mailing != 7) and ($sys_mailing != 0))
+     {
+      print '<BR>Note: Critical errors are not found in mail section!<BR>';
+     }
    
    print STDOUT "<HR><U><span style='color:red'>Info</span></U>:<BR><BR>";
    
@@ -130,15 +186,8 @@ sub check_configuration
      print STDOUT " get/post has higher priority";
     }
    
-   print STDOUT "<LI> Session support via:";
-   if($sess_cpg eq 'cookie')
-    {
-     print STDOUT "  cookies";
-    }
-   else
-    {
-     print STDOUT " get/post(links/forms)";
-    }
+   print STDOUT "<LI> Session support:";
+   print STDOUT "  authomatic choice via cookies/get/post";
 
    print STDOUT "<LI> Force flat files with sessions:";
    if($sess_force_flat eq 'on')

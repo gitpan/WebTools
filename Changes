@@ -39,3 +39,20 @@ Revision history for Perl sub system "WebTools"
         - Global variable parsing was speed up and all global variables
           are able to contain in self any kind of data.
         - Currently no bugs wait to be removed! :-)
+
+1.14   08 Jan 2002
+        - Session support was enhanced
+        - config.pl was rearranged
+        - webtools.pm was optimized
+      
+1.15   16 Jan 2002
+        - WebTools export HASH-es to global namespace (global hashes)
+        - Bug in xreader_dbh() removed
+        - Additional php(.pl) functions are now available
+        
+1.16   24 Jan 2002
+        - Configuration script released for easy manage of config.pl file
+          and databases.
+        - Thank's to S. Marinov for some fixed bugs.
+        - Fixed problem with header in 'non-buffered' print mode.
+        - New object oriented module for image (password) generation.

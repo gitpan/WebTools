@@ -10,12 +10,14 @@ Here I want to demonstrate how you can access variables become from GET/POST
 - All variables authomaticly become global with this module! (there is only one exception),
   so you don't need to call parse subprogram.
 
+
  Rule Number 2:
 
 - Cookies that have same names as variables from GET/POST rewrite this vars only if in config.pl file is set: 
   $cpg_priority = 'cookie';    # In this case cookies has higher priority!
 
   If set 'get/post' then GET/POST vars has higher priority than cookies!
+
   
  Rules Number 3:
 
@@ -24,11 +26,13 @@ Here I want to demonstrate how you can access variables become from GET/POST
   can be used throught %uploaded_original_file_names hash. In both cases use for a hash key
   "name" of input form element i.e <input name="...hash_key..." type="file">
 
+
  Rule Number 4:
 
 - Principle you can use any normal name for variable in your FORM or cookie
   name, except reserved into modlues (for example you can`t use name 'file' it is
   reserved with process.cgi)!
+
 
  Rule Number 5:
 
@@ -39,7 +43,37 @@ Here I want to demonstrate how you can access variables become from GET/POST
   first element is a name of variable and second element is it's value.
   (multipart data are not global exported, so don't worry about it..see Rule 3)
 
-Example:
+
+ Rule Number 6:
+
+- Your variable may become global (if match previus rules) and then it will be saved
+  in scalar variable!
+  >>> BUT <<<  WebTools can also export global HASHes,
+  if only it match follow condition:
+
+  %inputhash_nameOfHash_keyOfHash
+
+  where: 
+  %inputhash_  - is magical. All your global hashes should start with this sequence in
+                         name. That rule is security dependent!
+  nameOfHash  - is name of your hash (infact your real hash names always will start
+                         with %inputhash_ plus your personal name: nameOfHash) !
+                         nameOfHash must be construct of follow chars: [A-Za-z0-9]
+  _                   - is separator between hash name and hash key!
+
+  keyOfHash     - is hash key. It must be construct of follow chars: [A-Za-z0-9_]
+
+  Follow HTML code is valid:
+  <input type="text" name="%inputhash_example_first_name" value="Hrisy">
+  <input type="text" name="%inputhash_example_age" value="20">
+
+  If post these form elements to WebTools script, then you will be able to
+  use them through global hash: %inputhash_example and these two values you
+  can access via:
+  $inputhash_example{'first_name'} and $inputhash_example{'age'}
+
+
+Global Variables (Example):
 
 *******************************
   1. Installation
@@ -91,7 +125,7 @@ Also you can use follow pair instead previous:
 
  but I don't recommend that style to you, because in many cases you can confuse yourself! 
  You can have as many as you wish "scripts" like this in your "html" file!
- Of course this is not a real "html"! This is mix of Perl code and HTML code in one pretty 
+ Of course this is not a real "html"! This is a mix of Perl code and HTML code in one pretty 
  file. (Just like in PHP stuff)
 
  Well lets go back over our code:
@@ -112,7 +146,7 @@ Also you can use follow pair instead previous:
 	 Header(type=>"raw", val="Your_HEADER_Line_terminated_with_\n");
 
  Also you need to know, that you can post as many as you want headers at all the script runnig time
-(You can post header event after you had printed some pice of body, because the output is buffered
+(You can post header even after you had printed some piece of body, because the output is buffered
 (on default)!)
 
  In our example we check directly variable $method
@@ -121,7 +155,7 @@ Also you can use follow pair instead previous:
 
  because all variables from links/forms and cookies are global exported!
 
-NOTE: You can mix Perl and HTML even in "if", "for", "while" and so on, and so on...
+NOTE: You can mix Perl and HTML even in "if", "for", "while" statements and so on, and so on...
  
  Example:
         <!-- PERL: Hide Perl`s script

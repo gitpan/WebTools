@@ -1,6 +1,7 @@
 ###################################################################
-# Configuration file for "Web Tools" ver 1.14
+# Configuration file for "Web Tools" ver 1.16
 # Please edit here, don’t do that in Perl scripts!
+# For Web based configurator script see install.cgi
 ###################################################################
 
 #[Name_Of_Project]
@@ -36,8 +37,8 @@ $l_sid = 'sid';                       # Session ID label used by module
 $cgi_lib_forbid_mulipart = 'off';     # If you want to protect yourself from multipart spam
                                       # turn this 'on' (you will be no longer able to use 
                                       # multipart forms)!
-$cgi_lib_maxdata    = 4194304;        # maximum bytes to accept via POST (4MB)
-$cgi_script_timeout = 120;            # Expiration time of script! (120 seconds default)
+$cgi_lib_maxdata    = '4194304';      # maximum bytes to accept via POST (4MB)
+$cgi_script_timeout = '120';          # Expiration time of script! (120 seconds default)
 $ip_restrict_mode   = 'off';          # Set 'on' to restrict session on IP! If you get proxy
                                       # problems with restricted IPs, please set 'off' or use
                                       # proper function to set mode of this variable!
@@ -163,7 +164,7 @@ $driver_path   = PathMaker($driver_path,'.'.$driver_path);
 $xreader_path  = PathMaker($xreader_path,'.'.$xreader_path);
 $perl_html_dir = PathMaker($perl_html_dir,'.'.$perl_html_dir);
 $tmp =~ s/\/$//si;
-foreach my $path (@use_addition_paths) { PathMaker($path,''); }
+foreach my $path (@use_addition_paths) { PathMaker($path,$path); }
 
 ##########################################################################################
 # This part check structure of script
