@@ -49,7 +49,7 @@
     <br>
     <i>NOTE:</i> You can choose your own names for database and/or tables, but 
     you must change that names where is needful! I.e. you need to edit config.pl 
-    and don't forgot to change $sql_user and $sql_pass. <br>
+    and don't forgot to change $webtools::sql_user and $webtools::sql_pass. <br>
     &nbsp;&nbsp;&nbsp;User name and password in config.pl MUST be the same as 
     </font><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#006600"><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">webtools_user</font></font></b></font> 
     <font face="Verdana, Arial, Helvetica, sans-serif" size="2">and </font><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#006600"><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">its_password</font></font></b></font> 
@@ -59,27 +59,27 @@
     configure follow sections of '../../conf/config.pl':<br>
     <br>
     <font color="#006600">#[Name_Of_Project]<br>
-          $projectname = '<font color="#990000">webtools</font>'; &nbsp;&nbsp;&nbsp;&nbsp;# 
+          $webtools::projectname = '<font color="#990000">webtools</font>'; &nbsp;&nbsp;&nbsp;&nbsp;# 
           Name of project! (be careful what exacly you write here!) </font></font></font></font></b></p>
   <p align="left"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#006600"><b>#[SQL]<br>
-    $db_support = '<font color="#990000">db_flat</font>'; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    $webtools::db_support = '<font color="#990000">db_flat</font>'; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
     &nbsp;&nbsp;# Driver for Flat DB support<br>
-    $sql_host = '<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">localhost</font></font>';&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 
+    $webtools::sql_host = '<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">localhost</font></font>';&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 
     Your address to SQL server.<br>
-    $sql_port = '3306'; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 
+    $webtools::sql_port = '3306'; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 
     Your port of SQL server.<br>
-    $sql_user = '<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">webtools_user</font></font>'; 
+    $webtools::sql_user = '<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">webtools_user</font></font>'; 
     &nbsp;&nbsp;# Don't forget user!<br>
-    $sql_pass = '<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">its_password</font></font>'; 
+    $webtools::sql_pass = '<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">its_password</font></font>'; 
     &nbsp;&nbsp;&nbsp;&nbsp;# and password<br>
-    $mysqlbequiet = '1';&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    $webtools::mysqlbequiet = '1';&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
     # MySQL be QUIET?</b></font></p>
   <p align="left"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#006600"><b>#[DataBase]<br>
-    $sql_database_sessions = <font color="#990000">$projectname</font>.'db';&nbsp;&nbsp; 
+    $webtools::sql_database_sessions = <font color="#990000">$webtools::projectname</font>.'db';&nbsp;&nbsp; 
     &nbsp;&nbsp;&nbsp;&nbsp;# Database name.<br>
-    $sql_sessions_table = <font color="#990000">$projectname</font>.'_sessions'; 
+    $webtools::sql_sessions_table = <font color="#990000">$webtools::projectname</font>.'_sessions'; 
     # Session table.<br>
-    $sql_user_table = <font color="#990000">$projectname</font>.'_users'; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 
+    $webtools::sql_user_table = <font color="#990000">$webtools::projectname</font>.'_users'; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 
     Contain all users (and admin too).</b></font></p>
   <p align="left"><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><i>NOTE:</i> 
     Before countinue you must edit <font color="#000099">webtoolsdb-flat.pl</font> 
@@ -118,9 +118,9 @@
           run <font color="#000099">perl webtoolsdb-flat.pl</font> and this must 
           create for you wished tables!</font></b><br>
           <font size="2" face="Verdana, Arial, Helvetica, sans-serif"><b>(please 
-          be convinced that variable <font color="#006600">$check_module_functions</font> 
+          be convinced that variable <font color="#006600">$webtools::check_module_functions</font> 
           in config.pl has '<font color="#FF0000">off</font>' value. After execution 
-          of line above please turn <font color="#006600">$check_module_functions</font> 
+          of line above please turn <font color="#006600">$webtools::check_module_functions</font> 
           to '<font color="#FF0000">on</font>' again).<br>
           You need '<font color="#FF0000">off</font>' value when everything is 
           OK and you want to use WebTools in &quot;normal&quot; mode!</b></font><br>
@@ -136,10 +136,10 @@
           <font color="#000099">pico conf/config.pl</font><br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#990000">edit 
           follow vars to:<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$projectname = 'webhtml'; 
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$webtools::projectname = 'webhtml'; 
           <br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$sql_user = 'mynewuser';<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$sql_pass = 'mynewpass';</font><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$webtools::sql_user = 'mynewuser';<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$webtools::sql_pass = 'mynewpass';</font><br>
           <font color="#000099">rm db/webtoolsdb.sdb<br>
           rm db/webtools_sessions.stb<br>
           rm db/webtools_users.stb <br>
@@ -147,7 +147,7 @@
           perl makesdb.pl</font><br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#990000">Database 
           name: webhtmldb &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(must 
-          be same as $projectname plus 'db' at the end!!!)<br>
+          be same as $webtools::projectname plus 'db' at the end!!!)<br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Database user: mynewuser<br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Database password: mynewpass<br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Database path: /usr/local/apache/cgi-bin/whtml/<br>
@@ -159,33 +159,33 @@
           pico webtoolsdb-flat.pl</font><br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#990000">edit 
           follow vars to: <br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$admin_user = 'myadmin';<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$admin_pass = 'mysecretadminpassword';<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$webtools::admin_user = 'myadmin';<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$webtools::admin_pass = 'mysecretadminpassword';<br>
           <font color="#000099">pico ../../conf/config.pl</font><br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;edit follow var to:<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$check_module_functions 
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$webtools::check_module_functions 
           = 'off';</font><br>
           <font color="#000099">perl webtoolsdb-flat.pl<br>
           pico ../../conf/config.pl</font><br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#990000">edit 
           follow var to:<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$check_module_functions 
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$webtools::check_module_functions 
           = 'on';</font> <br>
           <font color="#006600">Ok, now write down in your browser: <br>
           <font color="#FF0000">http://www.your_host.com/cgi-bin/whtml/process.cgi</font><br>
-          and see what process.cgi with $check_module_functions = 'on' will show 
+          and see what process.cgi with $webtools::check_module_functions = 'on' will show 
           to you.<br>
           You should see &quot;Test DB Engine...looks good&quot; : This line mean 
           that webtools can connect, insert, select, update and delete rows from 
           your database throught driver you selected in config.pl<br>
           Note: If you don't configure you config.pl file properly you will get 
           errors and warnnings!<br>
-          If your config.pl is properly configured you can turn $check_module_functions 
+          If your config.pl is properly configured you can turn $webtools::check_module_functions 
           &quot;off&quot; !</font><br>
           <font color="#000099">pico ../../conf/config.pl</font><br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#990000">edit 
           follow var to:<br>
-          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$check_module_functions 
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$webtools::check_module_functions 
           = 'off';</font> </font></b><br>
           <br>
           <font color="#663399" size="2" face="Verdana, Arial, Helvetica, sans-serif"><b><i>Unix/Linux-WIN/DOS 

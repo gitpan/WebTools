@@ -532,9 +532,9 @@
           &nbsp;&nbsp;&nbsp;&nbsp;<font color="#0000CC">attach_var</font>($var_name,$var_value);<br>
           <br>
           </b></font>
-        <p align="left"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000">disattach_var</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          &nbsp;&nbsp;&nbsp;Disattach variable, attached with attach_var()<br>
-          &nbsp;&nbsp;&nbsp;<font color="#0000CC">disattach_var</font>($var_name);<BR>
+        <p align="left"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000">detach_var</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
+          &nbsp;&nbsp;&nbsp;Detach variable, attached with attach_var()<br>
+          &nbsp;&nbsp;&nbsp;<font color="#0000CC">detach_var</font>($var_name);<BR>
           </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">________________________________________________<br>
           <br>
           </font></b> <BR>
@@ -695,8 +695,26 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp; 
           terminate automatically! This prevent from infinitive scripts!<br>
           &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$res = <font color="#0000CC">set_script_timeout</font> 
-          ($time_out_in_sec);</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000"><br>
+          ($time_out_in_sec);</font></b> 
+        <p align="left"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000">set_variables_dump<br>
+          </font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> 
+          &nbsp;&nbsp; That function force dump of get/post, cookies, session 
+          variables </font></b><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> 
+          and uploaded files at the end of result html page. If you want to use<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this feature call this function wherever 
+          you want before end of script.<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Call function with parameter '1' if you 
+          want to use this feature or '0' <br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to turn it off!<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Note: However, you also need to be in 
+          debug mode (see config.pl)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;before this feature to be useful!</font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Second parameter is debug style view, it can take<BR>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;follow values: 'html', 'popup' and 'layer'. Try it!<BR>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<font color="#0000CC">set_variables_dump</font> 
+          (1,'popup');</font></b> <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000"><br>
+          <br>
           r_str </font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000">rand_srand</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> 
           </font></b> <BR>
@@ -870,7 +888,8 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Port 
           of SQL server</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $webtools::sql_user = 'me';<font color="#FF0000"> # !!!</font></font></b> <BR>
+          $webtools::sql_user = 'me';<font color="#FF0000"> # !!!</font></font></b> 
+          <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># User 
           name used to connect SQL server</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
@@ -881,18 +900,18 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
           <font color="#006633">#[DataBase]</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $webtools::sql_database_sessions = $webtools::projectname.'db';<font color="#FF0000"> # 
-          !!!</font></font></b> <BR>
+          $webtools::sql_database_sessions = $webtools::projectname.'db';<font color="#FF0000"> 
+          # !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Database 
           name (name some like project!?!?!). If need change it!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $webtools::sql_sessions_table = $webtools::projectname.'_sessions'; <font color="#FF0000"># 
-          !!!</font></font></b> <BR>
+          $webtools::sql_sessions_table = $webtools::projectname.'_sessions'; 
+          <font color="#FF0000"># !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Name 
           of session table.</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $webtools::sql_user_table = $webtools::projectname.'_users'; <font color="#FF0000"># !!!</font></font></b> 
-          <BR>
+          $webtools::sql_user_table = $webtools::projectname.'_users'; <font color="#FF0000"># 
+          !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Table 
           that contain all users (and admin too)</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
@@ -921,7 +940,8 @@
           between two attempts (in sec)</font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $webtools::sess_time = '2'; <font color="#FF0000"># !!!</font></font></b> <BR>
+          $webtools::sess_time = '2'; <font color="#FF0000"># !!!</font></font></b> 
+          <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Expire 
           time on session: 60 minutes</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
@@ -944,8 +964,8 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Session 
           label ID used by module</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $webtools::cgi_lib_forbid_mulipart = 'off';<font color="#FF0000"> # !!!</font></font></b> 
-          <BR>
+          $webtools::cgi_lib_forbid_mulipart = 'off';<font color="#FF0000"> # 
+          !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># If 
           you want to protect yourself from multipart spam turn this 'on' (you 
           will be no longer able to use multipart forms)!</font></b> <BR>
@@ -1385,7 +1405,7 @@ href="http://your_server/cgi-bin/your_webtools/process.cgi?file=../some_script">
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">Sofia, 
           Bulgaria</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
-      </div>
+        </div>
     </td>
   </tr>
 </table>

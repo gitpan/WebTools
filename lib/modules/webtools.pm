@@ -14,13 +14,13 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.22";
+    $VERSION = "1.23";
     $INTERNALVERSION = "1";
     $webtools::sys_ERROR = 'error';
     @ISA = qw(Exporter);
     @EXPORT = 
      qw(
-        %sess_cookies %SESREG $sys_cookie_accepted 
+        %sess_cookies %SESREG %SESREG_TYPES $sys_cookie_accepted 
         session_start session_destroy session_register 
         $session_started session_clear_expired session_id 
         read_scalar read_array read_hash register_var unregister_var exists_var 
@@ -46,8 +46,8 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
         encode_separator decode_separator 
         StartUpInit RunScript set_script_timeout flush_print set_printing_mode DestroyScript 
         ClearBuffer ClearHeader $print_header_buffer $print_flush_buffer 
-        r_str rand_srand b_print Parse_Form 
-        *SESSIONSTDOUT $reg_buffer   
+        r_str rand_srand b_print Parse_Form exists_insensetive 
+        *SESSIONSTDOUT $reg_buffer $global_variables_dump set_variables_dump global_variables_dump_style 
         $sentcontent $apacheshtdocs %SIGNALS $loaded_functions 
         $sys_OS $sys_CRLF $sys_EBCDIC $sys_config_pl_loaded $sys_ERROR 
        );
@@ -70,6 +70,7 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
  %webtools::attached_vars = ();        # The variables that we will store
  $webtools::reg_buffer = '';           # Contain register session file!
  %webtools::SESREG = ();
+ %webtools::SESREG_TYPES = ();
  %webtools::SESREG_VAR = ();
  $webtools::print_flush_buffer = '';
  $webtools::print_header_buffer = '';
@@ -184,6 +185,8 @@ sub StartUpInit
 {
  my $add = PathMaker('./modules/additionals','./additionals');
  $webtools::loaded_functions = 0;
+ $webtools::global_variables_dump = 0;
+ $webtools::global_variables_dump_style = 'layer';
  eval "if(!($webtools::loaded_functions & 128)){require '$library_path"."utl.pl';}";
  if($@) {DieAlert('Error: Can`t open library utl!');}
  eval "require '$library_path"."cookie.pl';";
@@ -210,6 +213,7 @@ sub DestroyScript
 {
  my $sys_destroy_db_code = 'DB_OnExit($webtools::system_database_handle);';
  eval $sys_destroy_db_code;
+ if($webtools::global_variables_dump and ($webtools::debugging =~ m/^on$/sig)) {printDump($webtools::global_variables_dump_style);}
  1;
 }
 ####################################################################
@@ -465,8 +469,8 @@ sub read_hash   # Read one hash from DB (registrated only)
 {
   my ($name) = @_;
   my  $ptr = $SESREG{$name};
-  my  @h = @$ptr;
-  return(@h);
+  my  %h = %$ptr;
+  return(%h);
 }
 sub read_form   # Read one scalar from form (browser)
 {
@@ -578,7 +582,7 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
   $| = 1;
   if(!$is and !($sys_stdouthandle_header and $sys_stdouthandle_content_ok))
    {
-    $print_header_buffer = "X-Powered-By: WebTools/1.22\n".$print_header_buffer; # Print version of this tool.
+    $print_header_buffer = "X-Powered-By: WebTools/1.23\n".$print_header_buffer; # Print version of this tool.
    }
   if ((!$sys_cookie_accepted) and ($sys_local_sess_id ne ''))
    {
@@ -675,7 +679,7 @@ sub Get_Old_SID
          if($my_sid eq $sid) { return($sid); }
          return('');
         }
-       else { delete_cookie($sid); return(''); }
+       else { delete_cookie($l_sid); return(''); }
       }
       else
       {
@@ -685,7 +689,7 @@ sub Get_Old_SID
         {
          return($sid);
         }
-       else { delete_cookie($sid); return(''); }
+       else { delete_cookie($l_sid); return(''); }
       }
      }  
    }
@@ -779,10 +783,6 @@ sub Header
          $print_header_buffer .= "Set-Cookie: ";
          if (exists($arg{'val'}))
            {
-             if($val =~ m/^ccn=/si)
-               {
-                $val =~ s/\ path=.*(;|\b)(.*)/ path=\/$1$2/gsi;
-               }
 	     if (!($val =~ m/(;| )path ?=.*$/is))
               {
               	if($is) {$print_header_buffer .= $val."; path=$cookie_path_cgi\n";}
@@ -1186,16 +1186,19 @@ sub make_scalar_from
 {
  my ($s_name,$val) = @_;
  $SESREG{$s_name} = $val;
+ $SESREG_TYPES{$s_name} = 's';
 }
 sub make_array_from
 {
  my ($a_name,@a_data) = @_;
  $SESREG{$a_name} = \@a_data;
+ $SESREG_TYPES{$a_name} = 'a';
 }
 sub make_hash_from
 {
- my ($h_name,@h_data) = @_;
- $SESREG{$h_name} = \@h_data;
+ my ($h_name,%h_data) = @_;
+ $SESREG{$h_name} = \%h_data;
+ $SESREG_TYPES{$h_name} = 'h';
 }
 sub save_session_data   # ($session_ID,$buffer,$database_handler) // Save into DB DATA field
 {
@@ -1351,7 +1354,8 @@ sub ExecuteHTMLfile
     chomp($sys_l_N001);
     if($sys_l_N001 ne '')
       {
-       $sys_all_code_in_one .= '$sys_l_N001 =~ s/\|/\\\|/sgo; if ($var_printing_mode eq "buffered"){$print_flush_buffer .= q|'.$sys_l_N001.'|;} else {print q|'.$sys_l_N001.'|;}'."\n";
+       $sys_l_N001 =~ s/\|/\\\|/sgo;
+       $sys_all_code_in_one .= 'if ($var_printing_mode eq "buffered"){$print_flush_buffer .= q|'.$sys_l_N001.'|;} else {print q|'.$sys_l_N001.'|;}'."\n";
       }
     my $cd_N001 = $code_N001[$i_N001]; $i_N001++;
     $sys_all_code_in_one .= $cd_N001;
@@ -1695,6 +1699,48 @@ sub onLockedFileErrorEvent
  print "<br><font color='red'><h3>Error: Server is too busy! Please press Ctrl+R after few seconds (20-30)</h3></font>";
  onExit();
  exit;
+}
+
+##########################################################
+# Case insensetive list function "exists"
+# PROTO: ($status,[$key,$value]) = exists_insensetive(
+#        $lookup_key,%hash);
+##########################################################
+sub exists_insensetive
+{
+ my $lookup = uc(shift);
+ my @data = @_;
+ my %hash = @_;
+ my $i = 0;
+ my $k;
+ foreach $k (@data)
+  {
+   $i++;
+   if($i % 2)
+    {
+     if($lookup eq uc($k))
+      {
+       return(('1',$k,$hash{$k}));  # Return '1',$key,$value
+      }
+    }
+  }
+ return((0,'','')); # Not found
+}
+
+sub set_variables_dump
+{
+ my $dmp = shift(@_);
+ my $style = shift(@_) || 'layer';
+ if ($dmp =~ m/^(YES|ON|OK|Y|TRUE|DONE|1)$/si)
+  {
+   $webtools::global_variables_dump = 1;
+   eval 'require "dump.pl";';
+  }
+ else
+  {
+   $webtools::global_variables_dump = 0;
+  }
+ $webtools::global_variables_dump_style = $style;
 }
 
 # Follow code process all supported INLINE tags for fast code writings!

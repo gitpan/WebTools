@@ -33,9 +33,10 @@ require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.22";
+    $VERSION = "1.23";
     @ISA = qw(Exporter);
-    $sys_askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa @multipart_headers $parsedform $sys_globvars $contenttype $query';
+    $sys_askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa '.
+                         '%global_hashes @multipart_headers $parsedform $sys_globvars $contenttype $query';
     
  $query = '';
  $n = 0;
@@ -92,7 +93,7 @@ if(!$parsedform){
  $parsedform = 1;
  
  %sys_ported_hashes = ();
- 
+ %global_hashes = ();
  $sys_askqwvar_bstr = '';
  $sys_globvars = '';
 
@@ -132,7 +133,13 @@ if(!$parsedform){
      }
   }
  } 
-
+ my $sys_keys;
+ foreach $sys_keys (keys %sys_ported_hashes)
+  {
+   $sys_keys =~ s/^\%(.*)$/$1/si;
+   my $sys_keys_h = 'inputhash_'.$sys_keys;
+   eval '$global_hashes{$sys_keys_h} = \%inputhash_'.$sys_keys.';';
+  }
  my %sess_cookies = ();
  GetCookies();
  %sess_cookies = %Cookies;
@@ -177,6 +184,21 @@ if(!$parsedform){
  
   $sys_askqwvar_evexp = '@EXPORT = qw('."$sys_askqwvar_bstr$sys_askqwvar_locv);";
   eval $sys_askqwvar_evexp;
+  
+  # Clear vars
+  my $sys_keys;
+  my @sys_delete = ();
+  foreach $sys_keys (%formdatah)
+   {
+    if($sys_keys =~ m/^\%(.*)$/si)
+     {
+      push(@sys_delete,$sys_keys);
+     }
+   }
+  foreach $sys_keys (@sys_delete)
+   {
+    delete $formdatah{$sys_keys};
+   }
 }
 
 1;

@@ -282,6 +282,9 @@ sub PrintHtml
 #     creating new session!)
 # 'incorect' - That mean, that your data are wrong i.e. User and/or
 #     password are incorect!
+# Note: $pass,$ID and $DATA will have empty values if user is 
+#   already loged (i.e. user has opened session), so these values
+#   will have empty values when $action has value 'menu'!!!
 ##################################################################
 sub UserPassword
 {

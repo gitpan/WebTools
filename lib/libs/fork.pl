@@ -29,13 +29,13 @@ sub ForkScript
  ###################################
  # Making fork (this may be needful)
  ###################################
- local $PIT = 0;
+ local $sys_PID = 0;
  if(!($^O =~ m/Win/is))
    {
-    eval {$PIT = fork();};
+    eval {$sys_PID = fork();};
     if ($@ eq '')
      {
-      if ($PIT)
+      if ($sys_PID)
         {
          exit;  # All doubts must disapear here!
         }

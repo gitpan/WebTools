@@ -74,3 +74,13 @@ Revision history for Perl sub system "WebTools"
 1.22   19 Feb 2002
         - Fixed bug with simultaneous work of different databases
           (fixed through load_database_driver() function)
+
+1.23   25 Feb 2002
+        - Debug capability added (via html, popup and layer)
+        - Fixed bug with database creation in install.cgi
+        - Fixed bug with session cookies
+        - Fixed bug in mail.pl (with some DNS queries)
+        - Fixed bug related to pipe '|' in webtools.pm
+        - Fixed bug in global export module
+        (All these bugs are made in last versions because,
+         of new features and internal reconstructions!)

@@ -1,4 +1,4 @@
-       WebTools HELP File
+      WebTools HELP File
 
        Contents: 
 
@@ -297,7 +297,7 @@
          session_set_id_name ($new_sid_label); 
 
       session_id_name 
-         Get current name of sesson (exmpl: 'pid','sid';) 
+         Get current name of sesson (exmpl: 'pid','sid'&#8230;) 
          session_id_name (); 
 
       session_expiration 
@@ -317,9 +317,9 @@
           attach_var($var_name,$var_value);
 
 
-      disattach_var
-         Disattach variable, attached with attach_var()
-         disattach_var($var_name);
+      detach_var
+         Detach variable, attached with attach_var()
+         detach_var($var_name);
       ________________________________________________
 
 
@@ -391,7 +391,7 @@
 
       flush_print 
            At the end of script this function automatically flush all header's 
-      and body`s data!!! (automatically session, cookies and so on)
+      and body`s data!!! (automatically session, cookies and so on&#8230;)
         If you call function with parameter "1" you will use function in false 
       mode! This mode is proper when your script use downloader.pl (module for 
       cgi downloads)
@@ -406,7 +406,7 @@
 
       read_var 
            Read one scalar from browser (via cookie or just via link/form... 
-           - no mater :-))) (Well I sad not need anymore :-) 
+           - no mater :-))) (Well I sad&#8230;not need anymore :-) 
       ________________________________________________ 
         
       RunScript 
@@ -417,6 +417,19 @@
            That function set script's timeout (in seconds), after which scripts 
            terminate automatically! This prevent from infinitive scripts!
            $res = set_script_timeout ($time_out_in_sec); 
+      set_variables_dump
+           That function force dump of get/post, cookies, session variables 
+           and uploaded files at the end of result html page. If you want to use
+           this feature call this function wherever you want before end of 
+      script.
+           Call function with parameter '1' if you want to use this feature or 
+      '0' 
+           to turn it off!
+           Note: However, you also need to be in debug mode (see config.pl)
+           before this feature to be useful!
+           Second parameter is debug style view, it can take
+           follow values: 'html', 'popup' and 'layer'. Try it!
+           set_variables_dump (1,'popup'); 
 
       r_str 
       rand_srand 
@@ -539,10 +552,11 @@ yet.
 
       #[DataBase] 
 
-      $webtools::sql_database_sessions = $webtools::projectname.'db'; # !!! 
+      $webtools::sql_database_sessions = $webtools::projectname.'db';  # !!! 
       # Database name (name some like project!?!?!). If need change it! 
 
-      $webtools::sql_sessions_table = $webtools::projectname.'_sessions'; # !!! 
+      $webtools::sql_sessions_table = $webtools::projectname.'_sessions';  # !!! 
+
       # Name of session table. 
 
       $webtools::sql_user_table = $webtools::projectname.'_users'; # !!! 
@@ -739,7 +753,7 @@ yet.
 
       To prevent security problems, you should follow next rules: 
       -         Never leave anyone directory variable empty! (like 'htmls', 
-      'db', 'tmp') 
+      'db', 'tmp'&#8230;) 
       -         Never set in these variable ROOT directory. 
 
 
@@ -755,7 +769,7 @@ yet.
 
 
       However you can use queries like: 
-      /process.cgi?file=/some_local_dir/some_script 
+      &#8230;/process.cgi?file=/some_local_dir/some_script 
       where  /some_local_dir/ is directory in your "default htmls" directory. 
       For example that could be: /home/my_htmls/some_local_dir/  
 
@@ -837,4 +851,5 @@ yet.
       9. AUTHOR: 
       Julian Lishev 
       email: julian@proscriptum.com 
-      Sofia, Bulgaria
+      Sofia, Bulgaria      
+

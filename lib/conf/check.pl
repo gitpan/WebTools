@@ -15,7 +15,7 @@ sub check_configuration
  if($ENV{'SCRIPT_NAME'} eq '') 
   {
    print STDOUT "\n  Test Mode\n\n";
-   print STDOUT "Your variable ".'$check_module_functions'.
+   print STDOUT "Your variable ".'$webtools::check_module_functions'.
                 " (in config.pl) is turned 'on'\n";
    print STDOUT "...force CHECKING mode\n";
    print STDOUT "(to turn off this check and script run normal, please set variable to 'off'!\n\n";
@@ -24,7 +24,7 @@ sub check_configuration
    print STDOUT "Syntax Ok";
    exit;
   }
- if ($check_module_functions eq 'on')   # Script now working only in debug mode!
+ if ($webtools::check_module_functions eq 'on')   # Script now working only in debug mode!
   {
    # Eval code for speed! (this code will be compiled only if need)
    $eval_this_code = << 'EVAL_TERMINATOR';
@@ -34,7 +34,7 @@ sub check_configuration
     }
    print STDOUT '<font face="Verdana, Arial" size=2 color="#202070">';
    print STDOUT '<center><H3><p style="color:red">Test Mode</p></H3></center>';
-   print STDOUT "<B>Your variable ".'<span style="color:red">$check_module_functions</span>'.
+   print STDOUT "<B>Your variable ".'<span style="color:red">$webtools::check_module_functions</span>'.
                 " (<span style='color:red'>in config.pl</span>) is turned 'on'<BR>";
    print STDOUT "...force CHECKING mode<BR>";
    print STDOUT '<font face="Verdana, Arial" size=1>';
@@ -43,56 +43,36 @@ sub check_configuration
    
    print STDOUT "<LI>Driver path";
 
-   if(-e $driver_path) { print STDOUT "...ok"; }
+   if(-e $webtools::driver_path) { print STDOUT "...ok"; }
    else {ErrorMessage("...<span style='background:red'>NOT EXISTS...</span><BR>");}
    
    print STDOUT "<LI>Library path";
-   if(-e $library_path) { print STDOUT "...ok"; }
+   if(-e $webtools::library_path) { print STDOUT "...ok"; }
    else {ErrorMessage("...<span style='background:red'>NOT EXISTS...</span><BR>");}
    
    print STDOUT "<LI>DataBase path";
-   if(-e $db_path) { print STDOUT "...ok"; }
+   if(-e $webtools::db_path) { print STDOUT "...ok"; }
    else {ErrorMessage("...<span style='background:red'>NOT EXISTS...</span><BR>");}
    
-   print STDOUT "<LI>Test DB Engine";
-   
-   if(($db_support eq 'db_mysql') or ($db_support eq 'db_access') or ($db_support eq 'db_flat'))
-    {
-     require $driver_path.$db_support.'.pl';
-     my $dbh = test_connect();
-     my $q = "SELECT * FROM $sql_user_table";
-     my @ar = ();
-     my $r = '';
-     if($dbh)
-      {
-       $r = sql_query($q,$dbh);
-       if($r) {@ar = sql_fetchrow($r);}
-       if($#ar > 0) {print STDOUT "...looks good"; }
-       else {ErrorMessage("...<span style='background:red'>NOT WORK!</span> DB Engine sad: ".sql_errmsg()."<BR>");}
-      }
-     else {ErrorMessage("...<span style='background:red'>NOT WORK!</span> Error: Can't connect!<BR>");}
-    }
-   else {print STDOUT "...can't define (not standart DB driver?)"; }
-   
    print STDOUT "<LI> Mail path";
-   my $result = DirectoryRights($mailsender_path,3); # Read/Write
+   my $result = DirectoryRights($webtools::mailsender_path,3); # Read/Write
    if($result eq 'ok') { print STDOUT "...ok"; }
      else {ErrorMessage("...<span style='background:red'>".$result."...</span><BR>");}
       
    print STDOUT "<LI> Xreader path";
-   if(-e $xreader_path) { print STDOUT "...ok"; }
+   if(-e $webtools::xreader_path) { print STDOUT "...ok"; }
    else {ErrorMessage("...<span style='background:red'>NOT EXISTS...</span><BR>");}
    
    print STDOUT "<LI> Perl/HTML path";
-   if(-e $perl_html_dir) { print STDOUT "...ok"; }
+   if(-e $webtools::perl_html_dir) { print STDOUT "...ok"; }
    else {ErrorMessage("...<span style='background:red'>NOT EXISTS...</span><BR>");}
    
    print STDOUT "<LI> Web server htdocs (root) path";
-   if(-e $apacheshtdocs) { print STDOUT "...ok"; }
+   if(-e $webtools::apacheshtdocs) { print STDOUT "...ok"; }
    else {ErrorMessage("...<span style='background:red'>NOT EXISTS...</span><BR>");}
    
    print STDOUT "<LI> Temp path";  # Read/Write
-   my $result = DirectoryRights($tmp,3);
+   my $result = DirectoryRights($webtools::tmp,3);
    if($result eq 'ok') { print STDOUT "...ok"; }
      else {ErrorMessage("...<span style='background:red'>".$result."...</span><BR>");}
 
@@ -101,7 +81,7 @@ sub check_configuration
    my $sys_mailing = 0;
    
    print STDOUT "<LI> sendmail";
-   my $sys_res_open =  (-e $sendmail) ? 1:0;
+   my $sys_res_open =  (-e $webtools::sendmail) ? 1:0;
    if($sys_res_open) { print STDOUT "...ok"; $sys_mailing |= 1;}
    else {print STDOUT "...<font color='#C02020'>not available</font>";}
    
@@ -118,7 +98,7 @@ sub check_configuration
    if($sys_mailing == 0)
     {
      print '<BR><BR><font color="#C02020">Sorry but you can`t send emails anyway! Either sendmail and host/nslookup are not available for WebTools.</font><BR>';
-     print '<BR>Hint: <font color="#C02020">Set full path for sendmail program in config.pl ($sendmail variable) and then use send_mail() function available in mail.pl</font><BR>';
+     print '<BR>Hint: <font color="#C02020">Set full path for sendmail program in config.pl ($webtools::sendmail variable) and then use send_mail() function available in mail.pl</font><BR>';
     }
    elsif($sys_mailing == 1)
     {
@@ -135,7 +115,7 @@ sub check_configuration
     {
      print '<BR><BR><font color="#C02020">"sendmail" is not available for WebTools, so if you want to use our build-in mail client you must relay on host/nslookup</font><BR>';
      print '<BR>Hint: <font color="#C02020">Use mail() function available in mail.pl</font><BR>';
-     print '<BR>Note: <font color="#C02020">Check whether $sendmail variable (in config.pl) is set to correct full path of sendmail program!</font><BR>';
+     print '<BR>Note: <font color="#C02020">Check whether $webtools::sendmail variable (in config.pl) is set to correct full path of sendmail program!</font><BR>';
     }
     if(($sys_mailing != 7) and ($sys_mailing != 0))
      {
@@ -145,26 +125,26 @@ sub check_configuration
    print STDOUT "<HR><U><span style='color:red'>Info</span></U>:<BR><BR>";
    
    print STDOUT "<LI> Name of project:";
-   print STDOUT " $projectname";
+   print STDOUT " $webtools::projectname";
    
    print STDOUT "<LI> Name of db driver:";
-   if($db_support eq 'db_mysql' or $db_support eq 'db_access' or $db_support eq 'db_excel' or $db_support eq 'db_flat')
+   if($webtools::db_support eq 'db_mysql' or $webtools::db_support eq 'db_access' or $webtools::db_support eq 'db_excel' or $webtools::db_support eq 'db_flat')
     {
-     print STDOUT " $db_support";
+     print STDOUT " $webtools::db_support";
     }
    else
     {
-     print STDOUT " $db_support (that is not standart db driver...please check it!)";
+     print STDOUT " $webtools::db_support (that is not standart db driver...please check it!)";
     }
       
    print STDOUT "<LI> Name of database:";
-   print STDOUT " $sql_database_sessions";
+   print STDOUT " $webtools::sql_database_sessions";
    
    print STDOUT "<LI> Session time is:";
-   print STDOUT " $sess_time $sys_conf_d";
+   print STDOUT " $webtools::sess_time $webtools::sys_conf_d";
    
    print STDOUT "<LI> Session cookie expiration:";
-   if($sess_cookie eq 'sesstime')
+   if($webtools::sess_cookie eq 'sesstime')
     {
      print STDOUT " when session expire! (same as session time)";
     }
@@ -174,10 +154,10 @@ sub check_configuration
     }
    
    print STDOUT "<LI> Name of session ID:";
-   print STDOUT " $l_sid";
+   print STDOUT " $webtools::l_sid";
    
    print STDOUT "<LI> Cookie/Get/Post priority:";
-   if($cpg_priority eq 'cookie')
+   if($webtools::cpg_priority eq 'cookie')
     {
      print STDOUT " cookie has higher priority";
     }
@@ -190,7 +170,7 @@ sub check_configuration
    print STDOUT "  authomatic choice via cookies/get/post";
 
    print STDOUT "<LI> Force flat files with sessions:";
-   if($sess_force_flat eq 'on')
+   if($webtools::sess_force_flat eq 'on')
     {
      print STDOUT "  ON (store session's data in flat files)";
     }
@@ -200,10 +180,10 @@ sub check_configuration
     }
 
    print STDOUT "<LI> Maximum size of data via POST method:";
-   print STDOUT " $cgi_lib_maxdata bytes";   
+   print STDOUT " $webtools::cgi_lib_maxdata bytes";   
    
    print STDOUT "<LI> Multipart support...";
-   if($cgi_lib_forbid_mulipart eq 'off')
+   if($webtools::cgi_lib_forbid_mulipart eq 'off')
     {
      print STDOUT " on";
     }
@@ -213,7 +193,7 @@ sub check_configuration
     }
    
    print STDOUT "<LI> Restrict sessions by IP...";
-   if($ip_restrict_mode =~ m/^on$/is)
+   if($webtools::ip_restrict_mode =~ m/^on$/is)
     {
      print STDOUT " on";
     }
@@ -223,7 +203,7 @@ sub check_configuration
     }
    
    print STDOUT "<LI> Restrict script execution by IP...";
-   if($run_restrict_mode =~ m/^on$/is)
+   if($webtools::run_restrict_mode =~ m/^on$/is)
     {
      print STDOUT " on";
     }
@@ -233,7 +213,7 @@ sub check_configuration
     }
    
    print STDOUT "<LI> Printing mode...";
-   if($var_printing_mode =~ m/^buffered$/is)
+   if($webtools::var_printing_mode =~ m/^buffered$/is)
     {
      print STDOUT " buffered";
     }
@@ -244,13 +224,13 @@ sub check_configuration
    
    print STDOUT "<LI> Searching row: ";
    my $trow;
-   foreach $trow (@treat_htmls_ext)
+   foreach $trow (@webtools::treat_htmls_ext)
     {
      print $trow."&nbsp;&nbsp;";
     }
    
    print STDOUT "<LI> Debugging mode is";
-   print STDOUT "...$debugging";
+   print STDOUT "...$webtools::debugging";
 
    print STDOUT '</B></font><BR>';
    

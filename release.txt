@@ -1,4 +1,4 @@
-WebTools Version: 1.22
+WebTools Version: 1.23
 
 Platform: Unix/Linux/Win
 Compiler: Perl 5.005_03 or newer.

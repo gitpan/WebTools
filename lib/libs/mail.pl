@@ -3,11 +3,11 @@
 # Krasimir Krystev (c) Mole Software 
 #
 # Library modified by: Svetoslav Marinov and
-# rewritten by Julian Lishev
+# RE-Written by Julian Lishev
 #################################################
-# Subs: send_mail mail mx_lookup
-#       set_attached_files
-#       remove_mail_attachment
+# Subs: send_mail, mail, mx_lookup,
+#       set_attached_files,
+#       remove_mail_attachment,
 #       clear_all_mail_attachments
 # Prereqired modules:
 #       MIME::QuotedPrint and MIME::Base64
@@ -17,15 +17,22 @@
 # Note: Standart module MIME::QuotedPrint discard
 # rule 4 from RFC 2045, so "\n" is not converted
 # to CRLF. QMAIL refuse to accept HTML(quoted-
-# printable) and you can use in this case only
+# printable) and you can use in THIS case only
 # "text" e-mails with mail() function! (code: 451)
-# However you can use send_mail() function 
-# anyway! 
+# However to solve this problem, mail() function 
+# substitute "\n" with "\r\n". This seems help to
+# remove this "bug" and QMAIL accept HTML mails!
+# Other mail servers are not strict as QMAIL is!
+# Anyway try to use send_mail() function (via
+# sendmail) before using mail()!
 #################################################
 
 %mole_attached_files = ();  # Please use "set_mail_attachment" and "remove_mail_attachment"
                             # instead of direct manipulating of hash.
+$webtools::mail_count_of_iterative_loops  = 5;
+$webtools::mail_count_of_attempts_to_send = 2;
 $webtools::loaded_functions = $webtools::loaded_functions | 64;
+
 sub send_mail 
   {
     eval 'use MIME::QuotedPrint;';
@@ -40,6 +47,18 @@ sub send_mail
       die ':QUIT:';
      }
     local($from, $to, $subject, $messagebody, $is_html) = @_;
+    my %inp = @_;
+    my ($r1,$k1,$v1) = exists_insensetive('to',%inp);
+    my ($r2,$k2,$v2) = exists_insensetive('from',%inp);
+    my ($r3,$k3,$v3) = exists_insensetive('body',%inp);
+    if($r1 and $r2 and $r3)  # Force new style (hash) for this function
+     {
+      $from = $v2 || die ':QUIT:send_mail() expects "FROM" field!';
+      $to = $v1 || die ':QUIT:send_mail() expects "TO" field!';
+      $messagebody = $v3;
+      ($r2,$k2,$subject) = exists_insensetive('subject',%inp);
+      ($r2,$k2,$is_html) = exists_insensetive('html',%inp);
+     }
     local($fromuser, $fromsmtp, $touser, $tosmtp);
     my $crlf = $sys_CRLF;
     
@@ -61,7 +80,7 @@ sub send_mail
       {
        if ($debug_mail ne 'on') 
          {
-          $messagebody =encode_qp($messagebody);
+          $messagebody = encode_qp($messagebody);
          }
       }
     $fromuser = $from;
@@ -305,32 +324,47 @@ sub mail
 {
  eval {use Socket;};
  eval {use FileHandle;};
- my $iterative = 0;
+ my $iterative;
+ my $last_error = 220;  # 220 - Sent OK
+ my %inp;
+ my %backup = %mole_attached_files;
  
- my %inp = @_;
- 
- while($iterative < 5)
+ foreach (1..$mail_count_of_attempts_to_send)
   {
-   my ($code,$data) = talk_to_smpt(%inp);
-   if(($code == 251) or ($code == 551))
+   %mole_attached_files = %backup;
+   $iterative = 0;
+   %inp = @_;
+   while($iterative < $mail_count_of_iterative_loops)
     {
-     # Get e-mail and useit in mail call...
-     if($data =~ m/\<([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z0-9\_\-\.]+)?(\>|\;|\:|\ )/is)
-       {
-        $inp{'to'} = $1.'@'.$2.'.'.$3;
-       }
+     my ($code,$data) = talk_to_smpt(%inp);
+     if(($code == 251) or ($code == 551))
+      {
+       # Get e-mail and useit in mail call...
+       $last_error = $code;
+       if($data =~ m/\<([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z0-9\_\-\.]+)?(\>|\;|\:|\ )/is)
+         {
+          $inp{'to'} = $1.'@'.$2.'.'.$3;
+         }
+       else
+        {
+         $last_error = 550;
+         return(550);
+        }
+       $iterative++;
+      }
      else
       {
-       return(550);
+       if($code != 220)
+        {
+         $last_error = $code;
+         $iterative = 5;
+         next;
+        }
+       return($code);
       }
-     $iterative++;
-    }
-   else
-    {
-     return($code);
     }
   }
- return(0);
+ return($code);
 }
 
 sub talk_to_smpt
@@ -416,8 +450,8 @@ sub talk_to_smpt
   }
   
  my @ips = mx_lookup($query,$ns_lookup);
- if($#ips == -1) {@ips = ($peer);}
- 
+ if($#ips == -1) {@ips = ("10\t".$peer);}
+
  my $flag_succ = 0;
  
  foreach $ip (@ips)
@@ -674,7 +708,10 @@ sub mail_data
        $html .= 'Content-Transfer-Encoding: quoted-printable';
        $html .= $crlf;
        $html .= $crlf;
-       $html .= encode_qp($body);
+       my $val = encode_qp($body);
+       # And what's wrong with soft & hard breaks? (s/(\[^\r])\n/$1\r\n/sgi)
+       $val =~ s/\n/$crlf/sgi;
+       $html .= $val;
      if($text ne '')
       {
        #-------------------------------------------------------------------------
@@ -684,7 +721,9 @@ sub mail_data
        $html .= 'Content-Transfer-Encoding: quoted-printable';
        $html .= $crlf;
        $html .= $crlf;
-       $html .= encode_qp($text);
+       my $val = encode_qp($text);
+       $val =~ s/\n/$crlf/sgi;
+       $html .= $val;
       }
        $html .= $a_last_boundary;
        if(send(Hand,$html,0) eq undef){return(-1);} # -1 Can`t send to socket
@@ -699,7 +738,9 @@ sub mail_data
        $html .= 'Content-Transfer-Encoding: quoted-printable';
        $html .= $crlf;
        $html .= $crlf;
-       $html .= encode_qp($text);
+       my $val = encode_qp($text);
+       $val =~ s/\n/$crlf/sgi;
+       $html .= $val;
        $html .= $a_last_boundary;
        if(send(Hand,$html,0) eq undef){return(-1);} # -1 Can`t send to socket
        $html = '';
@@ -735,7 +776,9 @@ sub mail_data
     $html .= $crlf;
     while($data = <ATTCH>)
     {
-    $html .= encode_base64($data);
+      my $val = encode_base64($data);
+      $val =~ s/\n/$crlf/sgi;          # Same problem with Base64! MIME::Base64 works wrong :(
+      $html .= $val;
     if(send(Hand,$html,0) eq undef){return(-1);} # -1 Can`t send to socket
     $html = '';
     }
