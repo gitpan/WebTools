@@ -33,6 +33,7 @@ Here I want to demonstrate how you can access variables become from GET/POST
  Rule Number 5:
 
 - You can't have for name global variable that not mach regular expr: ^[A-Za-z0-9_]+$
+  Also you can't use (global) names starting with 'sys_' because they are reserved!
   If you prefer, you can fetch your data throught read_form_array(). It accept one 
   parameter: number of varible in input array. Return result is array with follow structure:
   first element is a name of variable and second element is it's value.

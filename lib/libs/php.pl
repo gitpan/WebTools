@@ -327,7 +327,8 @@ sub wordwrap
  return($res);
 }
 
-# @mail_addrs = mx_lookup($domain,[path_to_nslookup]);
+# @ips = mx_lookup($domain_or_ip, [$path_to_nslookup_or_to_host]);
+# Windows like OS should use 'nslookup' but Unix like OS should use 'host'!
 sub mx_lookup
 {
  eval {use Socket;};
@@ -337,31 +338,61 @@ sub mx_lookup
  my $line;
  my @mxrecs = ();
  my $nslookup = $_[0] ne '' ? shift(@_) : 'nslookup';
+ my $host = $_[0] ne '' ? shift(@_) : 'host';
  my $qrt = $domain;
  $qrt =~ s/\./\\\./sig;
  $nslookup .= " -q=MX $domain";
- @digout =  `$nslookup`;
+ $host .= " -t MX $domain";
+ 
+ # Try to get MX recors through 'host' program
+ @digout =  `$host`;
  foreach $line (@digout) 
-  {
-   if($line =~ m/^$qrt\x9(MX)?\ ?preference\ =\ (\d{1,5})\, mail\ exchanger\ =\ (.*?)$/si)
-    {
-     my $h = $3;
-     my $prority = $2;
-     if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
-       {
-        $h = $1;
-        push(@mxrecs,$prority."\t".$h);
-       }
-     else
-       {
-        $h =~ s/\.$//s;
-        $h =~ s/^[\ \t\r\n]*//s;
-        $h =~ s/[\ \t\r\n]*$//s;
-        (undef, undef, undef, undef, @addrs) = gethostbyname($h);
-        $h  = inet_ntoa($addrs[0]);
-        push(@mxrecs,$prority."\t".$h);
-       }
-    }
+   {
+    if($line =~ m/^$qrt\.\ mail\ is\ handled\ by\ (\d{1,})\ (.*)\./si)
+     {
+      my $h = $2;
+      my $prority = $1;
+      if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
+        {
+         $h = $1;
+         push(@mxrecs,$prority."\t".$h);
+        }
+      else
+        {
+         $h =~ s/^[\ \t\r\n]*//s;
+         $h =~ s/[\ \t\r\n]*$//s;
+         (undef, undef, undef, undef, @addrs) = gethostbyname($h);
+         $h  = inet_ntoa($addrs[0]);
+         push(@mxrecs,$prority."\t".$h);
+        }
+     }
+   }
+
+ if(scalar(@mxrecs) == 0) # If 'host' is not avalible or not work
+ { # Of course mail server can be a $domain! Anyway...
+  @digout =  `$nslookup`;  # we must try 'nslookup'!
+  foreach $line (@digout) 
+   {
+    if($line =~ m/^$qrt\x9(MX)?\ ?preference\ =\ (\d{1,5})\, mail\ exchanger\ =\ (.*?)$/si)
+     {
+      my $h = $3;
+      my $prority = $2;
+      if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
+        {
+         $h = $1;
+         push(@mxrecs,$prority."\t".$h);
+        }
+      else
+        {
+         $h =~ s/\.$//s;
+         $h =~ s/^[\ \t\r\n]*//s;
+         $h =~ s/[\ \t\r\n]*$//s;
+         (undef, undef, undef, undef, @addrs) = gethostbyname($h);
+         $h  = inet_ntoa($addrs[0]);
+         push(@mxrecs,$prority."\t".$h);
+        }
+     }
+   }
  }
  return sort(@mxrecs);
 }

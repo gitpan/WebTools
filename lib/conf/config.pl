@@ -1,5 +1,5 @@
 ###################################################################
-# Configuration file for "Web Tools" ver 1.11
+# Configuration file for "Web Tools" ver 1.12
 # Please edit here, don’t do that in Perl scripts!
 ###################################################################
 
@@ -116,6 +116,49 @@ $perl_html_dir = PathMaker($perl_html_dir,'.'.$perl_html_dir);
 @use_addition_paths = ('./db/');  # Push paths in this array to force using of these
                                   # directories from Perl
 foreach my $path (@use_addition_paths) { PathMaker($path,''); }  # Include additionls paths!
+
+# ------- Do not edit below this line -------
+
+# 
+# Determinate OS type
+# 
+
+unless ($sys_OS) 
+ {
+  unless ($sys_OS = $^O) 
+     {
+      require Config;
+      $sys_OS = $Config::Config{'osname'};
+     }
+ }
+if    ($sys_OS =~ /^MSWin/i){$sys_OS = 'WINDOWS';}
+elsif ($sys_OS =~ /^VMS/i) {$sys_OS = 'VMS';}
+elsif ($sys_OS =~ /^dos/i) {$sys_OS = 'DOS';}
+elsif ($sys_OS =~ /^MacOS/i) {$sys_OS = 'MACINTOSH';}
+elsif ($sys_OS =~ /^os2/i) {$sys_OS = 'OS2';}
+elsif ($sys_OS =~ /^epoc/i) {$sys_OS = 'EPOC';}
+else  {$sys_OS = 'UNIX'; }
+
+$needs_binmode = $sys_OS=~/^(WINDOWS|DOS|OS2|MSWin)/;
+
+# 
+# The path separator is a slash, backslash or semicolon, depending
+# on the paltform.
+# 
+
+$SL = {
+       UNIX=>'/', OS2=>'\\', EPOC=>'/', 
+       WINDOWS=>'\\', DOS=>'\\', MACINTOSH=>':', VMS=>'/'
+      }->{$sys_OS};
+
+# 
+# Define the CRLF sequence.
+# 
+
+$sys_EBCDIC = "\t" ne "\011";
+if ($sys_OS eq 'VMS') {$sys_CRLF = "\n";}
+elsif ($sys_EBCDIC)   {$sys_CRLF= "\r\n";}
+else {$sys_CRLF = "\015\012";}
 
 ##########################################################################################
 # This part check structure of script

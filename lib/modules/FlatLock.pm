@@ -1,5 +1,21 @@
 package FlatLock;
 
+# Flat lock module written by Julian Lishev
+# This module is part of WebTools package!
+# Privacy and terms are same as WebTools!
+
+# This module can "lock" one or other number.
+# In that state it will stay till somebody
+# "unlock" this number or till critical
+# timeout become (i.e. after 300sec)
+
+# You can use this module to lock and unlock
+# some critical actions of your programs.
+
+# This module create file (default) in /tmp
+# directory when you lock "fibre" and module
+# delete this file when fibre is unlocked!
+
 use strict;
 
 %FlatLock::AllMembers = ();

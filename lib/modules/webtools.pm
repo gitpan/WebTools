@@ -17,7 +17,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.11";
+    $VERSION = "1.12";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -49,8 +49,9 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
         StartUpInit RunScript set_script_timeout flush_print set_printing_mode DestroyScript 
         ClearBuffer ClearHeader $print_header_buffer $print_flush_buffer 
         r_str rand_srand b_print LoadCfgFile Parse_Form 
-        *SESSIONSTDOUT $reg_buffer $print_header_buffer $print_flush_buffer 
+        *SESSIONSTDOUT $reg_buffer   
         $sentcontent $apacheshtdocs %SIGNALS $loaded_functions 
+        $sys_OS $sys_CRLF $sys_EBCDIC 
        );
 
  #################################
@@ -549,7 +550,7 @@ if($clear == 1) { $sess_header_flushed = 1; return;}
  if(!$sess_header_flushed)                  # If Header was not flushed...
  {
   $| = 1;
-  $print_header_buffer = "X-Powered-By: WebTools/1.11\n".$print_header_buffer; # Print version of this tool.
+  $print_header_buffer = "X-Powered-By: WebTools/1.12\n".$print_header_buffer; # Print version of this tool.
   if(($sess_cpg eq 'cookie') and ($local_sess_id ne ''))
     {
      if($sess_cookie ne 'sesstime')
@@ -1297,7 +1298,7 @@ sub ExecuteHTMLfile
  my @html_N001 = split(/\n?\<\?perl/is,$p_buf_N001);
  my $a_N001;
  my $error_locator_N001 = 1;
- my $all_code_in_one = "\n"; #"$globvars"."\n";
+ my $all_code_in_one = "\n"; #"$sys_globvars"."\n";
  foreach $l_N001 (@html_N001)
   {
    $l_N001 =~ s/(.*)\?\>\n?//is;

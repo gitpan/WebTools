@@ -26,3 +26,9 @@ Revision history for Perl sub system "WebTools"
           
 1.11   31 Dec 2001
           Small bug fixes and documentation updates
+          
+1.12   04 Jan 2002
+        - Mail client now recognize 'host' (Unix/Linux) program
+          instead of 'nslookup'.
+        - Problem with simultaneous work of Flat DB and flat session support
+          was repaired.

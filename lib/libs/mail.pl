@@ -24,7 +24,7 @@ sub send_mail
     use MIME::QuotedPrint;  
     local($from, $to, $subject, $messagebody, $is_html) = @_;
     local($fromuser, $fromsmtp, $touser, $tosmtp);
-    my $crlf = "\r\n";
+    my $crlf = $sys_CRLF;
     
     if(($is_html =~ m/^YES$/si) or ($is_html =~ m/^ON$/si) or ($is_html eq '1'))
       {
@@ -111,7 +111,7 @@ sub real_send_mail
  
  use MIME::Base64;
  
- my $crlf = "\r\n";
+ my $crlf = $sys_CRLF;
  my $boundary = "MZ8dd988d1d73016OQ104bWebTools050010191".(int(rand()*1000000000)+192837460)."PE";
  my $next_boundary = $crlf.'--'.$boundary.$crlf;
  my $last_boundary = $crlf.'--'.$boundary.'--'.$crlf;
@@ -309,7 +309,7 @@ sub mail
 sub talk_to_smpt
 {
  my %inp = @_;
- my $crlf = "\r\n";
+ my $crlf = $sys_CRLF;
  my ($timeout,$from,$to,$subject,$body,$replyto,$raw,$ns_lookup,$qfrom,$text);
  my ($peer,$user,$ip,$data,$fdom,$html,$charset,$priority) = ();
  my @res = ();
@@ -453,7 +453,8 @@ sub talk_to_smpt
   return(($res[0],$res[1]));
 }
 
-# @ips = mx_lookup($domain_or_ip, [$path_to_nslookup]);
+# @ips = mx_lookup($domain_or_ip, [$path_to_nslookup_or_to_host]);
+# Windows like OS should use 'nslookup' but Unix like OS should use 'host'!
 sub mx_lookup
 {
  eval {use Socket;};
@@ -463,31 +464,61 @@ sub mx_lookup
  my $line;
  my @mxrecs = ();
  my $nslookup = $_[0] ne '' ? shift(@_) : 'nslookup';
+ my $host = $_[0] ne '' ? shift(@_) : 'host';
  my $qrt = $domain;
  $qrt =~ s/\./\\\./sig;
  $nslookup .= " -q=MX $domain";
- @digout =  `$nslookup`;
+ $host .= " -t MX $domain";
+ 
+ # Try to get MX recors through 'host' program
+ @digout =  `$host`;
  foreach $line (@digout) 
-  {
-   if($line =~ m/^$qrt\x9(MX)?\ ?preference\ =\ (\d{1,5})\, mail\ exchanger\ =\ (.*?)$/si)
-    {
-     my $h = $3;
-     my $prority = $2;
-     if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
-       {
-        $h = $1;
-        push(@mxrecs,$prority."\t".$h);
-       }
-     else
-       {
-        $h =~ s/\.$//s;
-        $h =~ s/^[\ \t\r\n]*//s;
-        $h =~ s/[\ \t\r\n]*$//s;
-        (undef, undef, undef, undef, @addrs) = gethostbyname($h);
-        $h  = inet_ntoa($addrs[0]);
-        push(@mxrecs,$prority."\t".$h);
-       }
-    }
+   {
+    if($line =~ m/^$qrt\.\ mail\ is\ handled\ by\ (\d{1,})\ (.*)\./si)
+     {
+      my $h = $2;
+      my $prority = $1;
+      if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
+        {
+         $h = $1;
+         push(@mxrecs,$prority."\t".$h);
+        }
+      else
+        {
+         $h =~ s/^[\ \t\r\n]*//s;
+         $h =~ s/[\ \t\r\n]*$//s;
+         (undef, undef, undef, undef, @addrs) = gethostbyname($h);
+         $h  = inet_ntoa($addrs[0]);
+         push(@mxrecs,$prority."\t".$h);
+        }
+     }
+   }
+
+ if(scalar(@mxrecs) == 0) # If 'host' is not avalible or not work
+ { # Of course mail server can be a $domain! Anyway...
+  @digout =  `$nslookup`;  # we must try 'nslookup'!
+  foreach $line (@digout) 
+   {
+    if($line =~ m/^$qrt\x9(MX)?\ ?preference\ =\ (\d{1,5})\, mail\ exchanger\ =\ (.*?)$/si)
+     {
+      my $h = $3;
+      my $prority = $2;
+      if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
+        {
+         $h = $1;
+         push(@mxrecs,$prority."\t".$h);
+        }
+      else
+        {
+         $h =~ s/\.$//s;
+         $h =~ s/^[\ \t\r\n]*//s;
+         $h =~ s/[\ \t\r\n]*$//s;
+         (undef, undef, undef, undef, @addrs) = gethostbyname($h);
+         $h  = inet_ntoa($addrs[0]);
+         push(@mxrecs,$prority."\t".$h);
+        }
+     }
+   }
  }
  return sort(@mxrecs);
 }
@@ -556,7 +587,7 @@ sub mail_data
  use MIME::QuotedPrint;  
  use MIME::Base64;
  
- my $crlf = "\r\n";
+ my $crlf = $sys_CRLF;
  my $boundary = "MZ8dd988d1d73016OQ104bWebTools050010191".(int(rand()*1000000000)+192837460)."PE";
  my $next_boundary = $crlf.'--'.$boundary.$crlf;
  my $last_boundary = $crlf.'--'.$boundary.'--'.$crlf;

@@ -4,7 +4,7 @@ package globexport;
 #         Global Variable Exporter 
 # This module read all variables from "form" into %formdatah - hash,
 # @formdataa - array. And all variables from cookies.
-# ALL THESE vars are placed over their respectiv GLOBAL vars!!!
+# ALL THESE vars are placed over their respective GLOBAL vars!!!
 # Example: $formdatah{'user'} is placed over global variable $user
 #          Cookie var 'sid' is placed over global variable $sid
 # Note: If there are vars with same names both into "form" and
@@ -33,9 +33,9 @@ require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.11";
+    $VERSION = "1.12";
     @ISA = qw(Exporter);
-    $askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa @multipart_headers $parsedform $globvars $contenttype $query';
+    $sys_askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa @multipart_headers $parsedform $sys_globvars $contenttype $query';
     
  $query = '';
  $n = 0;
@@ -91,21 +91,23 @@ if(!$parsedform){
  %uploaded_files = %cgi_sfn;
  $parsedform = 1;
  
- $askqwvar_bstr = '';
- $globvars = '';
+ $sys_askqwvar_bstr = '';
+ $sys_globvars = '';
 
- foreach $askqwvar_k ( keys(%formdatah))
+ foreach $sys_askqwvar_k ( keys(%formdatah))
   {
-   my $askqwvar_v = $formdatah{$askqwvar_k};
-   if(exists($formdatah{$askqwvar_k}))
+   my $sys_askqwvar_v = $formdatah{$sys_askqwvar_k};
+   if(exists($formdatah{$sys_askqwvar_k}))
      {
-      if($askqwvar_k =~ m/^[A-Za-z0-9_]+$/so)
+      if($sys_askqwvar_k =~ m/^[A-Za-z0-9_]+$/so)
         {
-         $askqwvar_bstr .= '$'.$askqwvar_k.' ';
-         $askqwvar_v =~ s/\|/\\\|/sgo;
-         $askqwvar_elval = '$'.$askqwvar_k.' = q|'.$askqwvar_v.'|;';
-         $globvars .= $askqwvar_elval."\n";
-         eval $askqwvar_elval;
+         if(!($sys_askqwvar_k =~ m/^sys\_/si))
+          {
+           $sys_askqwvar_bstr .= '$'.$sys_askqwvar_k.' ';
+           $sys_askqwvar_elval = '$'.$sys_askqwvar_k.' = $sys_askqwvar_v;';
+           $sys_globvars .= $sys_askqwvar_elval."\n";
+           eval $sys_askqwvar_elval;
+          }
         }
      }
   }
@@ -114,38 +116,41 @@ if(!$parsedform){
  my %sess_cookies = ();
  GetCookies();
  %sess_cookies = %Cookies;
- foreach my $askqwvar_l (keys %Cookies)
+ my $sys_askqwvar_l;
+ foreach $sys_askqwvar_l (keys %Cookies)
   {
-      my ($askqwvar_n,$askqwvar_v) = ($askqwvar_l,$Cookies{$askqwvar_l});
-      $askqwvar_n =~ s/ //sgo;
-      if($askqwvar_n =~ m/^[A-Za-z0-9_]+$/so)
+      my ($sys_askqwvar_n,$sys_askqwvar_v) = ($sys_askqwvar_l,$Cookies{$sys_askqwvar_l});
+      $sys_askqwvar_n =~ s/ //sgo;
+      if($sys_askqwvar_n =~ m/^[A-Za-z0-9_]+$/so)
         {
-         $askqwvar_v =~ s/\|/\\\|/sgo;
-         if($cpg_priority eq 'cookie')
-           {
-            $askqwvar_bstr .= '$'.$askqwvar_n.' ';
-            $askqwvar_elval = '$'.$askqwvar_n.' = q|'.$askqwvar_v.'|;';
-            $globvars .= $askqwvar_elval."\n";
-            eval $askqwvar_elval;
-           }
-         else
-           {
-            $sys_demo_var_value2 = 1;
-            $sys_skqwvar_elval = '$sys_demo_var_value2 = defined($'.$askqwvar_n.') ? 1 : 0;';
-            eval $sys_skqwvar_elval;
-            if(!$sys_demo_var_value2)
-              {
-               $askqwvar_bstr .= '$'.$askqwvar_n.' ';
-               $askqwvar_elval = '$'.$askqwvar_n.' = q|'.$askqwvar_v.'|;';
-               $globvars .= $askqwvar_elval."\n";
-               eval $askqwvar_elval;
-              }
-           }
+         if(!($sys_askqwvar_n =~ m/^sys\_/si))
+          {
+           if($cpg_priority eq 'cookie')
+             {
+              $sys_askqwvar_bstr .= '$'.$sys_askqwvar_n.' ';
+              $sys_askqwvar_elval = '$'.$sys_askqwvar_n.' = $sys_askqwvar_v;';
+              $sys_globvars .= $sys_askqwvar_elval."\n";
+              eval $sys_askqwvar_elval;
+             }
+           else
+             {
+              $sys_demo_var_value2 = 1;
+              $sys_skqwvar_elval = '$sys_demo_var_value2 = defined($'.$sys_askqwvar_n.') ? 1 : 0;';
+              eval $sys_skqwvar_elval;
+              if(!$sys_demo_var_value2)
+                {
+                 $sys_askqwvar_bstr .= '$'.$sys_askqwvar_n.' ';
+                 $sys_askqwvar_elval = '$'.$sys_askqwvar_n.' = $sys_askqwvar_v;';
+                 $sys_globvars .= $sys_askqwvar_elval."\n";
+                 eval $sys_askqwvar_elval;
+                }
+             }
+          }
         } 
   }
  
-  $askqwvar_evexp = '@EXPORT = qw('."$askqwvar_bstr$askqwvar_locv);";
-  eval $askqwvar_evexp;
+  $sys_askqwvar_evexp = '@EXPORT = qw('."$sys_askqwvar_bstr$sys_askqwvar_locv);";
+  eval $sys_askqwvar_evexp;
 }
 
 1;
