@@ -17,7 +17,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.002";
+    $VERSION = "1.003";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -544,7 +544,7 @@ if($clear == 1) { $sess_header_flushed = 1; return;}
  if(!$sess_header_flushed)                  # If Header is not flushed...
  {
   $| = 1;
-  $print_header_buffer = "X-Powered-By: WebTools/1.0.0\n".$print_header_buffer; # Print version of this tool.
+  $print_header_buffer = "X-Powered-By: WebTools/1.003\n".$print_header_buffer; # Print version of this tool.
   if(($sess_cpg eq 'cookie') and ($local_sess_id ne ''))
     {
      if($sess_cookie ne 'sesstime')
