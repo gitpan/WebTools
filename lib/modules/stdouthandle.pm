@@ -18,7 +18,7 @@ use Fcntl;
 use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(reset clear $var_printing_mode);
-$VERSION = "1.13";
+$VERSION = "1.14";
 $var_printing_mode = 'buffered';
 my $cnf = (-e './conf') ? './conf/' : '../conf/';
 eval "use lib \'$cnf\';";

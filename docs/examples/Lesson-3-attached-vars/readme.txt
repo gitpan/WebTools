@@ -3,7 +3,7 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                                        
 
  Hey I'm happy to see you here again. This time I want to demonstrate how you can attach variables
-throught cookies or GET/POST!
+throught cookies and/or GET/POST!
 
  Almost evrytime you need to bring some variables from page to page, so now you can attach variables
 to your script's output via links/forms and via cookies!
@@ -57,8 +57,8 @@ Example:
  if ($action eq '1') 
  
  then we going to main page i.e. the page were we can save name of our visitor (ofcource if visitor have been 
- entried it`s name). Here we can attach name of visitor to link, or to a cookie (THIS CHOICE WILL BE AUTOMATHICLY
- MADE, INDEPENDING OF VARIABLE $sess_cpg - for more please see config.pl)
+ entried it`s name). Here we can attach name of visitor to link, and/or to a cookie (THIS CHOICE WILL BE AUTOMATHICLY
+ MADE, DEPENDING OF BROWSER SETTINGS (depend of cookie accepting policy))
 
  attach_var('visitor_name',$visitor_name);
  
@@ -70,8 +70,8 @@ Example:
  When you click over link "logout", script jump to logout page ( $action eq '2'), there you have name of visitor
  because var $visitor_name has value retrieved from cookie/link/form...
 
- At the end of script you must call disattach_var('visitor_name') to clean up attached var (especialy when you 
- use cookies).
+ At the end of script you must call disattach_var('visitor_name') to clean up attached var (especialy when browser 
+ supprt cookies).
 
 
 *******************************

@@ -12,17 +12,18 @@ package webtools;
  require Exporter;
  use globexport;
  use stdouthandle;
+ 
 ###########################################
 # BEGIN Section start here
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.13";
+    $VERSION = "1.14";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
      qw(
-        $sess_cpg %sess_cookies %SESREG 
+        %sess_cookies %SESREG $sys_cookie_accepted 
         session_start session_destroy session_register 
         $session_started session_clear_expired session_id 
         read_scalar read_array read_hash register_var unregister_var exists_var 
@@ -48,10 +49,10 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
         encode_separator decode_separator 
         StartUpInit RunScript set_script_timeout flush_print set_printing_mode DestroyScript 
         ClearBuffer ClearHeader $print_header_buffer $print_flush_buffer 
-        r_str rand_srand b_print LoadCfgFile Parse_Form 
+        r_str rand_srand b_print Parse_Form 
         *SESSIONSTDOUT $reg_buffer   
         $sentcontent $apacheshtdocs %SIGNALS $loaded_functions 
-        $sys_OS $sys_CRLF $sys_EBCDIC 
+        $sys_OS $sys_CRLF $sys_EBCDIC $sys_config_pl_loaded 
        );
 
  #################################
@@ -74,6 +75,7 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
  %SIGNALS = ();
  $flag_onFlush_Event = 0;
  $syspre_process_counter = 0;
+ $sys_cookie_accepted = 0;
  
  tie(*SESSIONSTDOUT,'stdouthandle');
  select(SESSIONSTDOUT);
@@ -81,7 +83,7 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
  ################################################################
  # Needed definitions
  ################################################################
- my $local_sess_id = ''; # This is current session ID!!!
+ my $sys_local_sess_id = ''; # This is current session ID!!!
  @l_charset = ('085wOxVz1S','lZXa6M9RTk','FbHQvcjdmP','dQPpgALNqE','YDJ7CNG3yi',
                'mzk5l2F0xs','ThQPjd2OfR','G3YJK7IeWC','b4Zmol8SuM','jd9XvcHQa6',
                'sjyiDd21rB','RThpFALgNq');
@@ -113,7 +115,7 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
   	if($system_database_handle ne undef)
   	  {
   	   my $q =<<'THAT_TERM_SIG_STR';
-  	   if ($local_sess_id ne '')
+  	   if ($sys_local_sess_id ne '')
   	     {
   	      close_session_file($system_database_handle);
   	     }
@@ -152,12 +154,12 @@ sub PathMaker
 sub StartUpInit
 {
  my $cnf = PathMaker('./conf/','../conf/');
- require $cnf.'config.pl';
+ if(!$sys_config_pl_loaded) {require $cnf.'config.pl';}
  my $add = PathMaker('./modules/additionals','./additionals');
  $webtools::loaded_functions = 0;
- eval "require '$library_path"."utl.pl'";
+ eval "if(!($webtools::loaded_functions & 128)){require '$library_path"."utl.pl';}";
  if($@) {DieAlert('Error: Can`t open library utl!');}
- eval "require '$library_path"."cookie.pl'";
+ eval "require '$library_path"."cookie.pl';";
  if($@) {DieAlert('Error: Can`t open library cookie!');}
  ###################################################################
  require $driver_path.'sess_flat.pl';
@@ -188,19 +190,20 @@ sub session_start
 {
  my ($dbh,$newv) = @_;
  session_clear_expired($dbh); # Clear all expired sessions!
- my $sid = Get_Old_SID($dbh);     # Try to find old session ID!
+ my $sid = Get_Old_SID($dbh); # Try to find old session ID!
  if ($newv) {$sid = '';}
- $local_sess_id = $sid;
+ $sys_local_sess_id = $sid;
+ 
  my $sid_time;
  if ($sid eq '')              # Old sessions present?
    {
     $new_session_were_started = 1;
     $sid_time = time();       # Get current time (in ticks)
-    $sid_time -= 286520439;   # Try to hide what we doing :-)
+    $sid_time -= 286521037;   # Try to hide what we doing :-)
     $sid_time = convert_ses_time($sid_time,9);
     rand_srand();             # Reset random generator
     $sid = $sid_time.r_str($charset,$rand_sid_length);  # Create SID string!
-    $local_sess_id = $sid;
+    $sys_local_sess_id = $sid;
     if (!insert_sessions_row ($dbh)) { return (0); }
    }
  else
@@ -216,7 +219,10 @@ sub session_start
      else { return (0); }
      load_registred_vars($reg_buffer);
    }  
- $session_started = 1;  
+ $session_started = 1;
+ my $sess = $sess_cookies{$l_sid};
+ if($sess eq $sys_local_sess_id) {$sys_cookie_accepted = 1;}
+ else {$sys_cookie_accepted = 0;}
  return($sid);          # Return new(old) SID!
 }
 sub session_register
@@ -241,7 +247,7 @@ sub session_register
 sub session_destroy
 {
   my ($dbh) = @_;
-  if($sess_cpg eq 'cookie') # If we using cookies...
+  if($sys_cookie_accepted) # If browser accepts cookies...
    {
     delete_cookie($l_sid);   # That send empty cookie to broser...and browser delete it!
    }
@@ -249,14 +255,14 @@ sub session_destroy
     {
       $session_started = 0;
       my $rez = delete_sessions_row($dbh);
-      $local_sess_id = '';
+      $sys_local_sess_id = '';
       return($rez);
     }
-  else { $local_sess_id = ''; return(0); }
+  else { $sys_local_sess_id = ''; return(0); }
 }
 sub session_id
 {
-  return($local_sess_id);
+  return($sys_local_sess_id);
 }
 sub session_set_id_name
 {
@@ -292,7 +298,7 @@ sub new_session
 sub session_id_adder   # Add SID ident to all links and forms in source!
 {
  my ($source) = @_;
- my $sid = $local_sess_id;
+ my $sid = $sys_local_sess_id;
  my $src = href_sid_adder($source,$sid);
  return(action_sid_adder($src,$sid));
 }
@@ -310,10 +316,7 @@ sub disattach_var
       {
       	delete $attached_vars{$name};
       }
-     if ($sess_cpg eq 'cookie')
-       {
-       	if ( exists $sess_cookies{$name} ) { delete_cookie($name); }
-       }
+    if ( exists $sess_cookies{$name} ) { delete_cookie($name); }
     return (1); 	
   }
 
@@ -453,16 +456,16 @@ sub read_var  # Read one scalar from broser (via cookie or just via link/form...
  if(!(exists($formdatah{$name}))) { $pg = '';}
  if(!(exists($sess_cookies{$name}))) {$c = '';}
  my $r;
- if($sess_cpg eq 'cookie')
+ if($cpg_priority =~ m/^cookie$/si)
    {
      $r = $pg;
-     if ($c ne '') { return($c); }
+     if (exists($sess_cookies{$name})) { return($c); }
      return($r);
    }
   else
    {
      $r = $c;
-     if ($pg ne '') { return($pg); }
+     if (exists($formdatah{$name})) { return($pg); }
      return($r);
    }
 }
@@ -500,17 +503,6 @@ sub decode_separator
     return($enstr);
   }
 
-
-sub LoadCfgFile
- {
-  my ($a) = @_;
- ################################################################
- # Loading values from 'config.pl'
- ################################################################ 
-   require 'config.pl';
-   $Mysql::QUIET = $mysqlbequiet;
-}  
-
 sub set_printing_mode
 {
  my ($flag) = shift(@_);
@@ -532,7 +524,7 @@ sub set_printing_mode
 sub flush_print     # Flush all data (header and body), coz they are never had been printed!
 {
  my ($clear) = @_;
-if($clear == 1) { $sess_header_flushed = 1; return;}
+ if($clear == 1) { $sess_header_flushed = 1; return;}
  my $oldslcthnd = select(STDOUT);           # Select real output handler
  $i = 0;
  if ($flag_onFlush_Event == 0)
@@ -547,59 +539,47 @@ if($clear == 1) { $sess_header_flushed = 1; return;}
        $flag_onFlush_Event = 0;
       }
  }
- if(!$sess_header_flushed)                  # If Header was not flushed...
+ if(!$sess_header_flushed)      # If Header was not flushed...
  {
   $| = 1;
-  $print_header_buffer = "X-Powered-By: WebTools/1.13\n".$print_header_buffer; # Print version of this tool.
-  if(($sess_cpg eq 'cookie') and ($local_sess_id ne ''))
-    {
-     if($sess_cookie ne 'sesstime')
+  $print_header_buffer = "X-Powered-By: WebTools/1.14\n".$print_header_buffer; # Print version of this tool.
+
+  if ((!$sys_cookie_accepted) and ($sys_local_sess_id ne ''))
+   {
+    if($sess_cookie ne 'sesstime')
       {
        if(new_session()){
-         write_cookie($l_sid,$local_sess_id,'',$cookie_path_cgi);
+         write_cookie($l_sid,$sys_local_sess_id,'',$cookie_path_cgi);
         }
       }
      else
       {
        if(new_session()){
-        write_cookie($l_sid,$local_sess_id,$sesstimead,$cookie_path_cgi);
+        write_cookie($l_sid,$sys_local_sess_id,$sesstimead,$cookie_path_cgi);
        }
       }
-    }
-  if((!($print_header_buffer =~ m/Content\-type\:(.+)/is)) and (!($print_header_buffer =~ m/Status:( *?)204/is)))
-    {
-        Header(type=>'content');  # Well we forgot to send content-type
-    }
-  if ($sess_cpg ne 'cookie')
-   {
-     
-     if (scalar(%attached_vars)) # Add attached variables to get/post/cookie
+    $print_flush_buffer = session_id_adder($print_flush_buffer);
+   }
+  if (scalar(%attached_vars)) # Add attached variables to get/post/cookie
        { 
          while ( my ($name,$value) = each( %attached_vars) )
-           {           	
-             $print_flush_buffer = href_adder($print_flush_buffer,$name,$value);
-             $print_flush_buffer = action_adder($print_flush_buffer,$name,$value);
+           {      
+            if(!(exists $sess_cookies{$name}) or ($sess_cookies{$name} ne $value))
+              {
+               write_cookie($name,$value);
+               $print_flush_buffer = href_adder($print_flush_buffer,$name,$value);
+               $print_flush_buffer = action_adder($print_flush_buffer,$name,$value);
+              }
            }
-       }  
-   }    
- else
-   {
-     while ( my ($name,$value) = each( %attached_vars) )
-       {           	
-         write_cookie($name,$value);
        }
-   }  
+  if((!($print_header_buffer =~ m/Content\-type\:(.+)/is)) and (!($print_header_buffer =~ m/Status:( *?)204/is)))
+   {
+     Header(type=>'content');  # Well we forgot to send content-type
+   }
   print "$print_header_buffer\n";
   $print_header_buffer = '';
   $sess_header_flushed = 1;
  }
- if($local_sess_id ne '')
-  {
-   if ($sess_cpg ne 'cookie')
-     {                        # Well we use not cookies..so we need to add to links and forms SID!
-      $print_flush_buffer = session_id_adder($print_flush_buffer);      
-     }
-  }        
  print $print_flush_buffer;  # Just Print It!
  $print_flush_buffer = '';
  select($oldslcthnd);
@@ -1009,7 +989,7 @@ sub action_adder
 sub delete_sessions_row
 {
   my ($dbh) = @_;
-  my $sid = $local_sess_id;
+  my $sid = $sys_local_sess_id;
   my $ip = $ENV{'REMOTE_ADDR'}; # Get remote IP address
   my $r_q = '';
   if($sess_force_flat eq 'off') ###DB###
@@ -1034,7 +1014,7 @@ sub delete_sessions_row
 sub open_session_file
 {
   my ($dbh) = @_;
-  my $sid = $local_sess_id;
+  my $sid = $sys_local_sess_id;
   my $ip = $ENV{'REMOTE_ADDR'}; # Get remote IP address
   my $r_q = '';
   if($ip_restrict_mode =~ m/^on$/i)
@@ -1067,7 +1047,7 @@ sub open_session_file
 sub close_session_file 
 {
   my ($dbh) = @_;
-  my $sid = $local_sess_id;
+  my $sid = $sys_local_sess_id;
   my $ip = $ENV{'REMOTE_ADDR'}; # Get remote IP address
   my $r_q = '';
   if($ip_restrict_mode =~ m/^on$/i)
@@ -1163,7 +1143,7 @@ sub make_hash_from
 sub save_session_data   # ($session_ID,$buffer,$database_handler) // Save into DB DATA field
 {
  my ($buffer,$dbh) = @_;
- my $sid = $local_sess_id;
+ my $sid = $sys_local_sess_id;
  my $ip = $ENV{'REMOTE_ADDR'}; # Get remote IP address
  my $r_q = '';
  if($sess_force_flat eq 'off') ###DB###
@@ -1187,7 +1167,7 @@ sub save_session_data   # ($session_ID,$buffer,$database_handler) // Save into D
 sub load_session_data   # ($session_ID,$database_handler) // Load DATA from table
 {
  my ($dbh) = @_;
- my $sid = $local_sess_id;
+ my $sid = $sys_local_sess_id;
  my $ip = $ENV{'REMOTE_ADDR'}; # Get remote IP address
  my $r_q = '';
  my @arr = ();
@@ -1401,7 +1381,7 @@ sub Default_CGI_Script_ALARM_SUB
     ClearHeader();
     ClearBuffer(); 
     Header(type=>'content');
-    print "<center><B>Error: Script timeouted!</B></center>\n";
+    print "<center><B>Error: Script timeout (liftime of script run out)!</B></center>\n";
    }
   CORE::exit;
  }

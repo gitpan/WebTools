@@ -51,11 +51,11 @@ What could you say about this ???
 <?perl
   $mytable = 'webtools_users';
   <!--©INPERL©><S©L:1:"select USER,ID from $mytable where id=0;":1:1:1:1:S©L></©INPERL©-->
-  print $_;            # Result of previous (NOTE) inPERL template is save in $_ variable!
+  print $_;            # Result of previous (NOTE) inPERL template is saved in $_ variable!
 ?>
 </HTML>
 
-When I worite this I sad "WOW" :-)))
+When I wrote this I sad "WOW" :-)))
 
 Next example will be the top of icecreem:
 
@@ -86,7 +86,7 @@ memmory style however you need to shift "!" at entry of variable.
 Code above show how possitive can be INLINE and INPERL feature of WebTools, however TEMPLATES
 continue to be hard part of Web programming.
 
-At the end I would like to reference your attention to compate template's documentation at docs/templates/index.html !
+At the end I would like to reference your attention to complete template's documentation at docs/templates/index.html !
 Enjoy!
 
 

@@ -173,7 +173,7 @@ For completeness I will show you and first templete of xr.jhtml file:
 </TABLE>
 <˜©˜>
  
-At the end I would like to reference your attention to compate template's documentation at docs/templates/index.html !
+At the end I would like to reference your attention to complete template's documentation at docs/templates/index.html !
 
 *******************************
   3. Author

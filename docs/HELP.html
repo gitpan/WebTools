@@ -99,7 +99,7 @@
           all cookies received from input stream.</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#0000CC"><br>
           %uploaded_files</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp;Contain 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Contain 
           filenames of all uploaded files via multipart form!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp; 
           They are names of files on local machine (i.e. your web server)</font></b> 
@@ -112,13 +112,14 @@
           </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">after 
           your job) </font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#0000CC"><br>
-          $sess_cpg </font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> 
-          </font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp;That 
-          show type of session support and can be: &quot;cookie&quot; or &quot;get/post&quot;</font></b> 
-          <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#0000CC"><br>
-          $sentcontent</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> 
+          $cpg_priority</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Show priority of cookies and get/post 
+          global variables. This variable can<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;contain 'cookie' (cookies has higher priority) 
+          or 'get/post' (get/post<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;variables rewrite cookies values)<br>
+          <font color="#0000CC"> <br>
+          </font></font><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#0000CC">$sentcontent</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> 
           </font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp;Show 
           whether Send_Content() where called! (i.e. data were flushed to browser)</font></b> 
@@ -508,8 +509,23 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp;Get 
           current session cookie`s pat (exmpl: '/cgi-bin/')</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp;<font color="#0000CC">session_cookie_path</font> 
-          ();</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">________________________________________________<br>
+          ();</font></b> <br>
+          <br>
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">________________________________________________</font></b><br>
+          <font size="2" face="Verdana, Arial, Helvetica, sans-serif"><b><br>
+          <font color="#FF0000">attach_var</font><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Attach one variable(scalar) with output HTML 
+          page.<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Variable is 'moving' page to page via cookies 
+          (or via links <br>
+          &nbsp;&nbsp;&nbsp;&nbsp;and 'action' if cookies are not accepted)<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<font color="#0000CC">attach_var</font>($var_name,$var_value);<br>
+          <br>
+          </b></font>
+        <p align="left"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000">disattach_var</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
+          &nbsp;&nbsp;&nbsp;Disattach variable, attached with attach_var()<br>
+          &nbsp;&nbsp;&nbsp;<font color="#0000CC">disattach_var</font>($var_name);<BR>
+          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">________________________________________________<br>
           <br>
           </font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000">delete_cookie</font></b> 
@@ -1054,13 +1070,8 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># 'cookie' 
           means that cookie's variable has higher priority!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sess_cpg = 'cookie';</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Type 
-          of session support: (It can be 'cookie' or Session ID can be moved by 
-          links or forms ('get/post')</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sess_force_flat = 'on'; <font color="#FF0000"># !!!</font></font></b> 
-          <BR>
+          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$sess_force_flat 
+          = 'on'; <font color="#FF0000"># !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Session 
           support via DB or via file! (possible values are: 'on' and 'off')</font></b> 
           <BR>

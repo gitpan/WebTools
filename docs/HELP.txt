@@ -1,4 +1,4 @@
-       WebTools HELP File
+      WebTools HELP File
 
        Contents: 
 
@@ -49,14 +49,18 @@
          Contain all cookies received from input stream. 
 
       %uploaded_files 
-         Contain filenames of all uploaded files via multipart form! 
+           Contain filenames of all uploaded files via multipart form! 
            They are names of files on local machine (i.e. your web server) 
            You can open and read these files from your server's tmp directory! 
            Note that you must to clean up by yourself (please delete these files 
       after your job)  
 
-      $sess_cpg  
-         That show type of session support and can be: "cookie" or "get/post" 
+      $cpg_priority
+           Show priority of cookies and get/post global variables. This variable 
+      can
+           contain 'cookie' (cookies has higher priority) or 'get/post' 
+(get/post
+           variables rewrite cookies values)
 
       $sentcontent 
          Show whether Send_Content() where called! (i.e. data were flushed to 
@@ -298,6 +302,19 @@
       session_cookie_path 
          Get current session cookie`s pat (exmpl: '/cgi-bin/') 
          session_cookie_path (); 
+
+      ________________________________________________
+
+      attach_var
+          Attach one variable(scalar) with output HTML page.
+          Variable is 'moving' page to page via cookies (or via links 
+          and 'action' if cookies are not accepted)
+          attach_var($var_name,$var_value);
+
+
+      disattach_var
+         Disattach variable, attached with attach_var()
+         disattach_var($var_name);
       ________________________________________________
 
 
@@ -646,10 +663,6 @@ yet.
       # Show order of value fetching! There is 2 values: 'cookie' and 
       'get/post'. 
       # 'cookie' means that cookie's variable has higher priority! 
-
-      $sess_cpg = 'cookie'; 
-      # Type of session support: (It can be 'cookie' or Session ID can be moved 
-      by links or forms ('get/post') 
 
       $sess_force_flat = 'on'; # !!! 
       # Session support via DB or via file! (possible values are: 'on' and 

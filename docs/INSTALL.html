@@ -39,7 +39,7 @@ you need </font><font color="#000000"><a href="http://cpan.valueclick.com/author
 </font></b></p><p><b><font size="2"><i><font size="4">INSTALL NOTES</font></i><font size="4">:</font></font></b></p><p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">First 
 of all you must have webtools package. It must be packed into one tar.gz file.<br> 
 Please copy this .gz file into some directory and run follow commands:</font></b></p><p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">tar 
--zxvf WebTools-1.13.tar.gz<br> cd WebTools-1.13</font></b></p><p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">perl 
+-zxvf WebTools-1.14.tar.gz<br> cd WebTools-1.14</font></b></p><p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">perl 
 Makefile.PL</font></b></p><p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">make<br> 
 make install<br> make permissions<br> make clean</font></b></p><p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">If 
 you are under Win, you must use 'nmake'. In this case please change 'make' with 
@@ -100,7 +100,7 @@ some good free host(newald.proscriptum.com) :-)))<br> Let 'july' user has home
 directory: &nbsp;<font color="#000099">/home/july</font> (we use virtual host: 
 july.newald.proscriptum.com)<br> His full cgi-bin directory is: <font color="#000099">/home/july/public_html/cgi-bin</font><br> 
 So &nbsp;his webtools directory can be: <font color="#000099">/home/july/public_html/cgi-bin/webtools<br> 
-<font color="#000000">Now we can upload WebTools-1.13.tar.gz to our home directory 
+<font color="#000000">Now we can upload WebTools-1.14.tar.gz to our home directory 
 and after that to install script.<br> After installation our process.cgi has permission 
 mode set to 0755, directories have permission modes: 0755 and any other files: 
 0444<br> Features: <br> - Our host is virtual, so Apache change user to 'july' 
@@ -206,10 +206,10 @@ current configuration. Please check it for problems/errors.<br> Clear them all
 and then set variable $check_module_functions to '<font color="#009900">off</font>'<br> 
 Now you are ready to lear webtools and run all examples into docs/examples directory!</font></font></font></b></p><p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#000000">Enjoy!!!</font></b></p><p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#FF6633">#-----------------------------------------------------------------------------------------<br> 
 # Step by Step Installation example:<br> #-----------------------------------------------------------------------------------------</font></b></p><p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#000099">tar 
--zxvf WebTools-1.13.tar.gz<br> cd WebTools-1.13<br> perl Makefile.pl</font><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#000000"><br> 
+-zxvf WebTools-1.14.tar.gz<br> cd WebTools-1.14<br> perl Makefile.pl</font><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#000000"><br> 
 <font color="#006600">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt; /usr/local/apache/cgi-bin/webtools/</font><br> 
 <font color="#000099">make<br> make install<br> make permissions<br> make clean<br> 
-cd ..<br> rm -rf WebTools-1.13<br> cd /usr/local/apache/cgi-bin/webtools<br> ls 
+cd ..<br> rm -rf WebTools-1.14<br> cd /usr/local/apache/cgi-bin/webtools<br> ls 
 -l -a<br> perl -c process.cgi &nbsp;&nbsp;&nbsp;&nbsp;# Must be &quot;ok&quot;<br> 
 lynx www.your_server.com/cgi-bin/webtools/process.cgi</font><br> <font color="#FF6633"># 
 Should see webtools in check mode...see your current configuration and edit where 

@@ -185,7 +185,8 @@ sub SetCookies {
         if ($cookie_path_cgi) {
             $cd .= ' path=' . $cookie_path_cgi . ';';
         }
-
+        else {$cd .= ' path=/;';}
+        
         if ($cookie_domain_cgi) {
             $cd .= ' domain=' . $cookie_domain_cgi . ';';
         }

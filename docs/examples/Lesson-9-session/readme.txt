@@ -5,6 +5,10 @@
 These days the heart of web applications are sessions. Almost in any case you can't do anything
 without session support in your web pages. Now you will see how easy is that to be done with
 webtools module.
+WebTools use Php-like mechanism when it deals with cookies. I.e. at first time WebTools send 
+"session id" via cookie and through links/actions. If cookie not accpted, next time WebTools send 
+session id on same way! But, if cookie was accepted then WebTools stop to send "session id"
+(till session id is correct and has not expired!)
 
 Example:
 

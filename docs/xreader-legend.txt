@@ -1,3 +1,6 @@
+This document is DEPRICATED,
+PLESE SEE complete template's documentation at docs/templates/index.html
+
 <㎞甶ncremental_number甦ata_come_from_file?畁ame_of_file>
 <㎞񬬿甪ile>  Begin of new part, where first "1" is a serial number, and second one show
                  whether data must be fetch from this file or from another!

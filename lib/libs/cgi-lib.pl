@@ -59,7 +59,7 @@ sub ReadParse {
   local ($perlwarn);
   $perlwarn = $^W;
   $^W = 0;
-  require 'config.pl';
+  if(!$sys_config_pl_loaded) {require 'config.pl';}
   $cgi_lib_writefiles = $tmp;
   my $cgi_lib_maxd    = $cgi_lib_maxdata; # maximum bytes to accept via POST
   local (*in) = shift if @_;    # CGI input
