@@ -19,7 +19,7 @@
   print "<I>Done!</I>";
   print "<HR>Insert row into admin table: ";
   $mypass = sql_quote('mytestpass',$hnd);
-  my $q = "insert into $sql_user_table values(MAXVAL('ID|$sql_user_table'),'test',$mypass,'')";
+  my $q = "insert into $sql_user_table values(MAXVAL('ID|$sql_user_table'),'test',$mypass,'N','','1','Test','','')";
   my $u = '';
   if($res = sql_query($q, $hnd))
    {

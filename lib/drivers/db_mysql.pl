@@ -28,13 +28,39 @@ if($@ ne '')
 
 $Mysql::QUIET = $mysqlbequiet;
 
-sub DB_OnExit
+$webtools::sys__subs__->{'DB_OnExit'} = \&mysql_DB_OnExit;
+$webtools::sys__subs__->{'hideerror'} = \&mysql_hideerror;
+$webtools::sys__subs__->{'sql_connect'} = \&mysql_sql_connect;
+$webtools::sys__subs__->{'test_connect'} = \&mysql_test_connect;
+$webtools::sys__subs__->{'sql_disconnect'} = \&mysql_sql_disconnect;
+$webtools::sys__subs__->{'sql_query'} = \&mysql_sql_query;
+$webtools::sys__subs__->{'sql_fetchrow'} = \&mysql_sql_fetchrow;
+$webtools::sys__subs__->{'sql_affected_rows'} = \&mysql_sql_affected_rows;
+$webtools::sys__subs__->{'sql_inserted_id'} = \&mysql_sql_inserted_id;
+$webtools::sys__subs__->{'sql_create_db'} = \&mysql_sql_create_db;
+$webtools::sys__subs__->{'sql_drop_db'} = \&mysql_sql_drop_db;
+$webtools::sys__subs__->{'sql_select_db'} = \&mysql_sql_select_db;
+$webtools::sys__subs__->{'sql_num_fields'} = \&mysql_sql_num_fields;
+$webtools::sys__subs__->{'sql_num_rows'} = \&mysql_sql_num_rows;
+$webtools::sys__subs__->{'sql_data_seek'} = \&mysql_sql_data_seek;
+$webtools::sys__subs__->{'sql_errmsg'} = \&mysql_sql_errmsg;
+$webtools::sys__subs__->{'sql_errno'} = \&mysql_sql_errno;
+$webtools::sys__subs__->{'sql_quote'} = \&mysql_sql_quote;
+$webtools::sys__subs__->{'unsupported_types'} = \&mysql_sql_unsupported_types;
+$webtools::sys__subs__->{'session_clear_expired'} = \&mysql_session_clear_expired;
+$webtools::sys__subs__->{'session_expire_update'} = \&mysql_session_expire_update;
+$webtools::sys__subs__->{'insert_sessions_row'} = \&mysql_insert_sessions_row;
+$webtools::sys__subs__->{'DB_OnDestroy'} = \&mysql_DB_OnDestroy;
+$webtools::sys__subs__->{'SignUpUser'} = \&mysql_SignUpUser;
+$webtools::sys__subs__->{'SignInUser'} = \&mysql_SignInUser;
+
+sub mysql_DB_OnExit
    {
     my ($system_database_handle) = @_;
     undef($system_database_handle);
     return(1);
    }
-sub hideerror 
+sub mysql_hideerror
      {
       ClearBuffer();
       flush_print();
@@ -51,12 +77,12 @@ sub hideerror
       print "<br><BR><font color='black'><h3>Please be nice and send e-mail to: $support_email </h3></font>";
       exit;
      }
-sub sql_connect   # No params needed!
+sub mysql_sql_connect   # No params needed!
     {
      if($#_ == -1)
       {
        $oldh = $SIG{'__WARN__'};
-       $SIG{'__WARN__'} = "hideerror";
+       $SIG{'__WARN__'} = "mysql_hideerror";
        my $port = $sql_port eq '' ? '' : ';port='.$sql_port;
        my $OurSQL = Mysql->connect($sql_host.$port,$sql_database_sessions,$sql_user,$sql_pass);
        $SIG{'__WARN__'} = $oldh;
@@ -71,7 +97,7 @@ sub sql_connect   # No params needed!
        $user = $user || $sql_user;
 
        $oldh = $SIG{'__WARN__'};
-       $SIG{'__WARN__'} = "hideerror";
+       $SIG{'__WARN__'} = "mysql_hideerror";
        my $port = $port eq '' ? '' : ';port='.$port;
        my $uOurSQL = Mysql->connect($host.$port,$database,$user,$pass);
        $SIG{'__WARN__'} = $oldh;
@@ -79,7 +105,7 @@ sub sql_connect   # No params needed!
        return($uOurSQL);
       }
     }
-sub test_connect
+sub mysql_test_connect
    {
      $oldh = $SIG{'__WARN__'};
      $SIG{'__WARN__'} = '';
@@ -89,19 +115,19 @@ sub test_connect
      $system_database_handle = $OurSQL;   # That is current opened DB Handler!
      return($OurSQL);
    }
-sub sql_disconnect # Only db handler is required!
+sub mysql_sql_disconnect # Only db handler is required!
    {
     my ($DBH) = @_;
     undef($DBH);
     return (1);
    }
-sub sql_query   # ($query,$db_handler)
+sub mysql_sql_query   # ($query,$db_handler)
     {
      my ($q,$DBH) = @_;
-     $q = sql_unsupported_types($q,$DBH);
+     $q = mysql_sql_unsupported_types($q,$DBH);
      return ($DBH->query($q));   
     }
-sub sql_fetchrow    # ($result_handler)
+sub mysql_sql_fetchrow    # ($result_handler)
     {
      my ($resdb) = @_;
      if($resdb)
@@ -111,7 +137,7 @@ sub sql_fetchrow    # ($result_handler)
       }
      return(0);
     }
-sub sql_affected_rows   # ($result_handler)
+sub mysql_sql_affected_rows   # ($result_handler)
     {    
      my ($resdb) = @_;
      if($resdb)
@@ -121,7 +147,7 @@ sub sql_affected_rows   # ($result_handler)
       }
      return(0);
     }
-sub sql_inserted_id   # ($result_handler)
+sub mysql_sql_inserted_id   # ($result_handler)
     {    
      my ($resdb) = @_;
      if($resdb)
@@ -131,25 +157,25 @@ sub sql_inserted_id   # ($result_handler)
       }
      return(0);
     }    
-sub sql_create_db   # ($db_name,$db_handler)
+sub mysql_sql_create_db   # ($db_name,$db_handler)
     {    
      my ($db,$DBH) = @_;
      my $r = $DBH->createdb($db);
      return($r);
     }        
-sub sql_drop_db   # ($db_name,$db_handler)
+sub mysql_sql_drop_db   # ($db_name,$db_handler)
     {    
      my ($db,$DBH) = @_;
      my $r = $DBH->dropdb($db);
      return($r);
     } 
-sub sql_select_db   # ($db_name,$db_handler)
+sub mysql_sql_select_db   # ($db_name,$db_handler)
     {    
      my ($db,$DBH) = @_;
      my $r = $DBH->selectdb($db);
      return($r);
     }
-sub sql_num_fields   # ($result_handler)
+sub mysql_sql_num_fields   # ($result_handler)
     {    
      my ($resdb) = @_;
      if($resdb)
@@ -159,7 +185,7 @@ sub sql_num_fields   # ($result_handler)
       }
      return(0);
     }
-sub sql_num_rows   # ($result_handler)
+sub mysql_sql_num_rows   # ($result_handler)
     {    
      my ($resdb) = @_;
      if($resdb)
@@ -170,29 +196,29 @@ sub sql_num_rows   # ($result_handler)
      return(0);
     }
 
-sub sql_data_seek
+sub mysql_sql_data_seek
  {
   my ($row,$res) = @_;
   my $r = $res->dataseek($row);
   return($r);
  }
-sub sql_errmsg
+sub mysql_sql_errmsg
 {
   my ($dbh) = @_;
   return(Mysql->errmsg);
 }
 
-sub sql_errno
+sub mysql_sql_errno
 {
   my ($dbh) = @_;
   return(Mysql->err);
 }
-sub sql_quote
+sub mysql_sql_quote
 {
  my ($unquoted_string,$dbh) = @_;
  return($dbh->quote($unquoted_string));
 }
-sub sql_unsupported_types
+sub mysql_sql_unsupported_types
 {
  my ($q,$DBH) = @_;
  while ($q =~ m/MAXVAL( *?)\(.*?\)/si)
@@ -207,14 +233,14 @@ sub sql_unsupported_types
 #####################################################################
 # Session Support Functions
 #####################################################################
-sub session_clear_expired
+sub mysql_session_clear_expired
 {
  my ($dbh) = @_;
  my $i_id;
  my @my_array;
  if($sess_force_flat eq 'off') ###DB###
  {
-  my $er = sql_query("delete from $sql_sessions_table where EXPIRE < NOW();",$dbh);
+  my $er = mysql_sql_query("delete from $sql_sessions_table where EXPIRE < NOW();",$dbh);
   if ($er eq undef) { return(0); }
  }
  else
@@ -224,7 +250,7 @@ sub session_clear_expired
  }
  return(1);
 }
-sub session_expire_update
+sub mysql_session_expire_update
 {
  my ($dbh) = @_;
  my $i_id;
@@ -236,7 +262,7 @@ sub session_expire_update
     {
      $r_q = " and IP = \'$ip\'";    # Restrict session on IP!
     }
-  my $r = sql_query("update $sql_sessions_table set EXPIRE = DATE_ADD(NOW(),interval $sess_time $sess_datetype) where S_ID = \'$sys_local_sess_id\'".$r_q,$dbh);
+  my $r = mysql_sql_query("update $sql_sessions_table set EXPIRE = DATE_ADD(NOW(),interval $sess_time $sess_datetype) where S_ID = \'$sys_local_sess_id\'".$r_q,$dbh);
   if ($r eq undef) { return(0);}
  }
  else
@@ -246,7 +272,7 @@ sub session_expire_update
  }
  return (1);
 }
-sub insert_sessions_row   # ($session_id,$db_handler)
+sub mysql_insert_sessions_row   # ($session_id,$db_handler)
 {
   my ($dbh) = @_;
   my $sid = $sys_local_sess_id;
@@ -254,7 +280,7 @@ sub insert_sessions_row   # ($session_id,$db_handler)
   if($sess_force_flat eq 'off') ###DB###
   {
    my $q = "insert into $sql_sessions_table values(NULL,\'$sid\',\'$ip\',DATE_ADD(NOW(),interval $sess_time $sess_datetype),'0','');";
-   my $res = sql_query($q,$dbh);
+   my $res = mysql_sql_query($q,$dbh);
    if ($res ne undef)
      {
       return(1);
@@ -268,44 +294,44 @@ sub insert_sessions_row   # ($session_id,$db_handler)
   }
   return(0);
 }
-sub DB_OnDestroy
+sub mysql_DB_OnDestroy
  {
    return(1);        # Something like Commit!
  }
 #####################################################################
 # USER DEFINED FUNCTIONS
 #####################################################################
-sub SignUpUser
+sub mysql_SignUpUser
 {
  my ($user,$pass,$data,$active,$fname,$lname,$email,$dbh) = @_;
  $active = uc($active);
- $user = sql_quote($user,$dbh);
- $pass = sql_quote($pass,$dbh);
- $data = sql_quote($data,$dbh);
- $fname = sql_quote($fname,$dbh);
- $lname = sql_quote($lname,$dbh);
- $email = sql_quote($email,$dbh);
+ $user = mysql_sql_quote($user,$dbh);
+ $pass = mysql_sql_quote($pass,$dbh);
+ $data = mysql_sql_quote($data,$dbh);
+ $fname = mysql_sql_quote($fname,$dbh);
+ $lname = mysql_sql_quote($lname,$dbh);
+ $email = mysql_sql_quote($email,$dbh);
  my $q = "insert into $sql_user_table values(NULL,$user,$pass,\'$active\',$data,NOW(),$fname,$lname,$email);";
- my $res = sql_query($q,$dbh);
- if (($res ne undef) and (sql_affected_rows($res) > 0))
+ my $res = mysql_sql_query($q,$dbh);
+ if (($res ne undef) and (mysql_sql_affected_rows($res) > 0))
    {
     return(1);
    }
  return(0);
 }
-sub SignInUser
+sub mysql_SignInUser
 {
  my ($user,$pass,$dbh) = @_;
- $user = sql_quote($user,$dbh);
- $pass = sql_quote($pass,$dbh);
- $data = sql_quote($data,$dbh);
+ $user = mysql_sql_quote($user,$dbh);
+ $pass = mysql_sql_quote($pass,$dbh);
+ $data = mysql_sql_quote($data,$dbh);
  my $q = "select ID,DATA from $sql_user_table where USER=$user and PASSWORD=$pass and ACTIVE='Y';";
- my $res = sql_query($q,$dbh);
+ my $res = mysql_sql_query($q,$dbh);
  if ($res eq undef)
    {
     return((undef,undef));
    }
- my ($ID,$DATA) = sql_fetchrow($res);
+ my ($ID,$DATA) = mysql_sql_fetchrow($res);
  if ($ID eq '') { return((undef,undef)); }
  return(($ID,$DATA));
 }

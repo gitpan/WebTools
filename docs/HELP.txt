@@ -1,4 +1,4 @@
-     WebTool Help
+       WebTools HELP File
 
        Contents: 
 
@@ -196,6 +196,11 @@
         Move result handler to some row number. 
          $res = sql_data_seek ($row_number,$result_handler); 
 
+      load_database_driver
+        Load database driver (on runtime) 
+         $res = load_database_driver ($driver_name);
+        Where $driver_name can be 'mysql', 'flat', 'access' and 'sess_flat'! 
+
       DB_OnDestroy 
          Event on destroy DB handler! 
 
@@ -292,7 +297,7 @@
          session_set_id_name ($new_sid_label); 
 
       session_id_name 
-         Get current name of sesson (exmpl: 'pid','sid'&#8230;) 
+         Get current name of sesson (exmpl: 'pid','sid';) 
          session_id_name (); 
 
       session_expiration 
@@ -386,7 +391,7 @@
 
       flush_print 
            At the end of script this function automatically flush all header's 
-      and body`s data!!! (automatically session, cookies and so on&#8230;)
+      and body`s data!!! (automatically session, cookies and so on)
         If you call function with parameter "1" you will use function in false 
       mode! This mode is proper when your script use downloader.pl (module for 
       cgi downloads)
@@ -401,7 +406,7 @@
 
       read_var 
            Read one scalar from browser (via cookie or just via link/form... 
-           - no mater :-))) (Well I sad&#8230;not need anymore :-) 
+           - no mater :-))) (Well I sad not need anymore :-) 
       ________________________________________________ 
         
       RunScript 
@@ -511,41 +516,41 @@ yet.
 
       #[Name_Of_Project] 
 
-      $projectname = 'webtools'; # !!! 
+      $webtools::projectname = 'webtools'; # !!! 
       # This is a name of project. Also this name is a base for other parameters 
       in this configuration file 
 
       #[SQL] 
 
-      $db_support = 'db_flat'; # !!! 
+      $webtools::db_support = 'db_flat'; # !!! 
       # Name of database driver. Can be: db_mysql, db_access, db_flat 
 
-      $sql_host = 'localhost'; # !!! 
+      $webtools::sql_host = 'localhost'; # !!! 
       # host/ip to DB server (MySQL) 
 
-      $sql_port = '3306'; 
+      $webtools::sql_port = '3306'; 
       # Port of SQL server 
 
-      $sql_user = 'me'; # !!! 
+      $webtools::sql_user = 'me'; # !!! 
       # User name used to connect SQL server 
 
-      $sql_pass = 'secret_password'; # !!! 
+      $webtools::sql_pass = 'secret_password'; # !!! 
       # ... and DB password 
 
       #[DataBase] 
 
-      $sql_database_sessions = $projectname.'db'; # !!! 
+      $webtools::sql_database_sessions = $webtools::projectname.'db'; # !!! 
       # Database name (name some like project!?!?!). If need change it! 
 
-      $sql_sessions_table = $projectname.'_sessions'; # !!! 
+      $webtools::sql_sessions_table = $webtools::projectname.'_sessions'; # !!! 
       # Name of session table. 
 
-      $sql_user_table = $projectname.'_users'; # !!! 
+      $webtools::sql_user_table = $webtools::projectname.'_users'; # !!! 
       # Table that contain all users (and admin too) 
 
       #[CHECK] 
 
-      $check_module_functions = 'on'; # !!! 
+      $webtools::check_module_functions = 'on'; # !!! 
       # SCRIPTS RUN IN CHECK MODE! After first check(test), 
       # please turn this 'off'! 
       # YOU CAN ALWAYS TURN THIS ON WHEN YOU WANT TO CHECK 
@@ -553,52 +558,52 @@ yet.
 
       #[Secure] 
 
-      $wait_attempt = '4'; 
+      $webtools::wait_attempt = '4'; 
       # Count of attempts when database is flocked 
 
-      $wait_for_open = '2.0'; 
-      # Time between two attempts (in sec) 
+      $webtools::wait_for_open = '2.0'; 
+      # Time between two attempts (in sec)  
 
-      $sess_time = '2'; # !!! 
+      $webtools::sess_time = '2'; # !!! 
       # Expire time on session: 60 minutes 
 
-      $sys_conf_d = 'hour'; # !!! 
+      $webtools::sys_conf_d = 'hour'; # !!! 
       # Type of sess time dimension 
 
-      $rand_sid_length = '16'; 
+      $webtools::rand_sid_length = '16'; 
       # Length of SID string! 
 
-      $sess_cookie = 'sesstime'; 
+      $webtools::sess_cookie = 'sesstime'; 
       # 'sesstime' - cookie expire when session expired. Enter any other value 
       to expire cookie when user close browser. 
 
-      $l_sid = 'sid'; 
+      $webtools::l_sid = 'sid'; 
       # Session label ID used by module 
 
-      $cgi_lib_forbid_mulipart = 'off'; # !!! 
+      $webtools::cgi_lib_forbid_mulipart = 'off'; # !!! 
       # If you want to protect yourself from multipart spam turn this 'on' (you 
       will be no longer able to use multipart forms)! 
 
-      $cgi_lib_maxdata = 4194304; # !!! 
+      $webtools::cgi_lib_maxdata = 4194304; # !!! 
       # Set maximum bytes to accept via POST (some king of multipart 
       # protection) 
       # Please note that you can't set this to 0!!! 
 
-      $cgi_script_timeout = 120; # !!! 
+      $webtools::cgi_script_timeout = 120; # !!! 
       # Expiration time of script! (120 seconds default). After expiration 
       script 
       # will be terminated! 
       # Please note that you can't set this to 0!!! You always must know how 
       much time you need! 
 
-      $ip_restrict_mode = 'on'; 
+      $webtools::ip_restrict_mode = 'on'; 
       # Set 'on' to restrict session by IP! If you have proxy problems with 
       # restricted IPs, please set 'off' or use proper 
       # function to set mode of this variable! (see: session_ip_restrict 
       function) 
       # Allowed values are: "on" and "off". 
 
-      $run_restrict_mode = 'off'; 
+      $webtools::run_restrict_mode = 'off'; 
       # Set 'on' to restrict external web user to your scripts. 
       # If IP's of user not exists in DB/ips.pl WebTools will 
       # close script immediately! 
@@ -606,30 +611,30 @@ yet.
         
       #[Debug] 
 
-      $debugging = 'on'; 
+      $webtools::debugging = 'on'; 
       # Set debugging mode 
-      $debug_mail = 'on'; # !!! 
+      $webtools::debug_mail = 'on'; # !!! 
       # Show whether real mail must by sent or must by saved into mail 
       # directory! 
         
       #[Mail] 
 
-      $sendmail = '/usr/sbin/sendmail'; 
+      $webtools::sendmail = '/usr/sbin/sendmail'; 
       # Real full path to sendmail 
         
       #[Other] 
 
-      $charset = 
+      $webtools::charset = 
       'n5b0xzlQWdgfNXytCMAwq1TYu7SVBmUIvcOPZ2aprER9kjh3sHJKL8e4oiDFG6'; 
       # Please mix well this chars to get higher security of your session ID :-) 
 
 
-      $cpg_priority = 'cookie'; 
+      $webtools::cpg_priority = 'cookie'; 
       # Show order of value fetching! There is 2 values: 'cookie' and 
       'get/post'. 
       # 'cookie' means that cookie's variable has higher priority! 
 
-      $sess_force_flat = 'on'; # !!! 
+      $webtools::sess_force_flat = 'on'; # !!! 
       # Session support via DB or via file! (possible values are: 'on' and 
       'off') 
       # When you haven't DB support in your hand, you still can use sessions 
@@ -641,17 +646,17 @@ yet.
       # NOTE: Use flat files when you haven't 500 opened sessions in "tmp" 
       directory or more! 
 
-      $support_email = 'support@your_host.com'; 
+      $webtools::support_email = 'support@your_host.com'; 
       # Support e-mail for unexpected errors! :) 
 
-      $var_printing_mode = 'buffered'; 
+      $webtools::var_printing_mode = 'buffered'; 
       # Default output is buffered, 
       # leave this variable empty if you need output 
       # of your script to flush immediately! 
       # Other else for non buffered mode. 
       # Actually buffering depend of OS, Perl, Apache and socket! 
 
-      @treat_htmls_ext = ( 
+      @webtools::treat_htmls_ext = ( 
       # Order of html files location: Default, module first look for: 
       # "html","htm","whtml" and "cgihtml". If you specify in URL 
       # ...?file=env.html script will ignore extension and will look for 
@@ -675,37 +680,37 @@ yet.
         
       #[PATHS] 
 
-      $tmp = '/tmp/'; # !!! 
+      $webtools::tmp = '/tmp/'; # !!! 
       # Please set full path to your temp directory 
 
-      $driver_path = './drivers/'; 
+      $webtools::driver_path = './drivers/'; 
       # Path to your DB Drivers (please keep structure) 
         
-      $library_path = './libs/'; 
+      $webtools::library_path = './libs/'; 
       # Path to your Libraries (please keep structure) 
         
-      $db_path = './db/'; 
+      $webtools::db_path = './db/'; 
       # Path to your DBs and tables (please keep structure) 
         
-      $mailsender_path = './mail/'; 
+      $webtools::mailsender_path = './mail/'; 
       # Path to your DBs and tables (please keep structure) 
         
-      $xreader_path = './jhtml/'; 
+      $webtools::xreader_path = './jhtml/'; 
       # Path to your xreader files(jhtml-s) (please keep structure) 
         
-      $perl_html_dir = './htmls/'; 
+      $webtools::perl_html_dir = './htmls/'; 
       # Path to your perl's(webtools scripts) html files 
         
-      $apacheshtdocs = '/var/www/htdocs/'; 
+      $webtools::apacheshtdocs = '/var/www/htdocs/'; 
       # Path to your apache htdocs directory('/usr/local/apache/htdocs/') 
       (please keep structure) 
         
-      $cgi_home_path = Get_CGI_Directory(); 
+      $webtools::cgi_home_path = Get_CGI_Directory(); 
       # Get webtools cgi-bin directory (exmp: '/cgi-bin/webtools/') 
       # NOTE: This path is not absolute and is not an HTTP!!! (actualy part of 
       HTTP) 
         
-      $http_home_path = '/webtools/'; 
+      $webtools::http_home_path = '/webtools/'; 
       # Please change this to your http path! 
       # NOTE: This path is not absolute and is not an HTTP!!! (actually part of 
       HTTP) 
@@ -734,7 +739,7 @@ yet.
 
       To prevent security problems, you should follow next rules: 
       -         Never leave anyone directory variable empty! (like 'htmls', 
-      'db', 'tmp'&#8230;) 
+      'db', 'tmp') 
       -         Never set in these variable ROOT directory. 
 
 
@@ -750,7 +755,7 @@ yet.
 
 
       However you can use queries like: 
-      &#8230;/process.cgi?file=/some_local_dir/some_script 
+      /process.cgi?file=/some_local_dir/some_script 
       where  /some_local_dir/ is directory in your "default htmls" directory. 
       For example that could be: /home/my_htmls/some_local_dir/  
 
@@ -832,6 +837,4 @@ yet.
       9. AUTHOR: 
       Julian Lishev 
       email: julian@proscriptum.com 
-      Sofia, Bulgaria 
-        
-
+      Sofia, Bulgaria

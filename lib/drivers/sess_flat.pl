@@ -320,24 +320,28 @@ sub csetflag_SF_File
 #####################################################################
 
 my $sys_sess_flat_eval = << 'SYS_FLAT_EVAL_TERMINATOR';
-sub session_clear_expired
+sub sess_flat_session_clear_expired
 {
  remove_SF_OldSessions($tmp,time()-$sys_time_for_flat_sess);
  return(1);
 }
-sub session_expire_update
+sub sess_flat_session_expire_update
 {
  return(update_SF_File($tmp,$sys_local_sess_id));
 }
-sub insert_sessions_row   # ($session_id,$db_handler)
+sub sess_flat_insert_sessions_row   # ($session_id,$db_handler)
 {
  write_SF_File($tmp,$sys_local_sess_id,'');
  return(1);
 }
-sub DB_OnDestroy
+sub sess_flat_DB_OnDestroy
 {
  return(1);
 }
+$webtools::sys__subs__->{'session_clear_expired'} = \&sess_flat_session_clear_expired;
+$webtools::sys__subs__->{'session_expire_update'} = \&sess_flat_session_expire_update;
+$webtools::sys__subs__->{'insert_sessions_row'} = \&sess_flat_insert_sessions_row;
+$webtools::sys__subs__->{'DB_OnDestroy'} = \&sess_flat_DB_OnDestroy;
 SYS_FLAT_EVAL_TERMINATOR
 
 if($sess_force_flat =~ m/^on$/i){eval $sys_sess_flat_eval;}

@@ -1,4 +1,3 @@
-use lib './conf/';
 ##################################################################
 # That script was modified by Julian Lishev. All rights reserved!
 ##################################################################
@@ -59,10 +58,9 @@ sub ReadParse {
   local ($perlwarn);
   $perlwarn = $^W;
   $^W = 0;
-  if(!$sys_config_pl_loaded) {require 'config.pl';}
-  $cgi_lib_writefiles = $tmp;
+  $cgi_lib_writefiles = $webtools::tmp;
   $cgi_lib_writefiles =~ s/\/$//si;
-  my $cgi_lib_maxd    = $cgi_lib_maxdata; # maximum bytes to accept via POST
+  my $cgi_lib_maxd    = $webtools::cgi_lib_maxdata; # maximum bytes to accept via POST
   local (*in) = shift if @_;    # CGI input
   local (*incfn,                # Client's filename (may not be provided)
 	 *inct,                 # Client's content-type (may not be provided)
@@ -129,7 +127,7 @@ sub ReadParse {
       $in_ar[$n] = $key."\0".$val;
       $n++;
       }
-  }elsif (($ENV{'CONTENT_TYPE'} =~ m#^multipart/form-data#) and ($cgi_lib_forbid_mulipart eq 'off')) {
+  }elsif (($ENV{'CONTENT_TYPE'} =~ m#^multipart/form-data#) and ($webtools::cgi_lib_forbid_mulipart eq 'off')) {
     # for efficiency, compile multipart code only if needed
      $in = $ENV{'QUERY_STRING'};
      @in = split(/[&;]/,$in); 

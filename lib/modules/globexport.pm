@@ -33,7 +33,7 @@ require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.20";
+    $VERSION = "1.21";
     @ISA = qw(Exporter);
     $sys_askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa @multipart_headers $parsedform $sys_globvars $contenttype $query';
     
@@ -44,16 +44,16 @@ use vars qw($VERSION @ISA @EXPORT);
  
  my $cnf = (-e './conf') ? './conf' : '../conf';
  eval "use lib \'$cnf\';";
- require 'config.pl';
+ if($webtools::sys_config_pl_loaded ne 1) {require 'config.pl';}
 
- my $lib = (-e $library_path) ? $library_path : '.'.$library_path;
- my $drv = (-e $driver_path) ? $driver_path : '.'.$driver_path;
+ my $lib = (-e $webtools::library_path) ? $webtools::library_path : '.'.$webtools::library_path;
+ my $drv = (-e $webtools::driver_path) ? $webtools::driver_path : '.'.$webtools::driver_path;
   
  use lib './';
  eval "use lib \'$lib\';";
  eval "use lib \'$drv\';";
  
- if($run_restrict_mode =~ m/^on$/si)
+ if($webtools::run_restrict_mode =~ m/^on$/si)
   {
    eval "require 'allowed.pl';";
    if($@ eq '')
@@ -105,10 +105,13 @@ if(!$parsedform){
         {
          if(!($sys_askqwvar_k =~ m/^sys\_/si))
           {
-           $sys_askqwvar_bstr .= '$'.$sys_askqwvar_k.' ';
-           $sys_askqwvar_elval = '$'.$sys_askqwvar_k.' = $sys_askqwvar_v;';
-           $sys_globvars .= $sys_askqwvar_elval."\n";
-           eval $sys_askqwvar_elval;
+           if(!(eval 'defined($webtools::'.$sys_askqwvar_k.') ? 1 : 0;'))
+            {
+             $sys_askqwvar_bstr .= '$'.$sys_askqwvar_k.' ';
+             $sys_askqwvar_elval = '$'.$sys_askqwvar_k.' = $sys_askqwvar_v;';
+             $sys_globvars .= $sys_askqwvar_elval."\n";
+             eval $sys_askqwvar_elval;
+            }
           }
         }
      }
@@ -142,12 +145,15 @@ if(!$parsedform){
         {
          if(!($sys_askqwvar_n =~ m/^sys\_/si))
           {
-           if($cpg_priority eq 'cookie')
+           if($webtools::cpg_priority eq 'cookie')
              {
-              $sys_askqwvar_bstr .= '$'.$sys_askqwvar_n.' ';
-              $sys_askqwvar_elval = '$'.$sys_askqwvar_n.' = $sys_askqwvar_v;';
-              $sys_globvars .= $sys_askqwvar_elval."\n";
-              eval $sys_askqwvar_elval;
+              if(!(eval 'defined($webtools::'.$sys_askqwvar_n.') ? 1 : 0;'))
+               {
+                $sys_askqwvar_bstr .= '$'.$sys_askqwvar_n.' ';
+                $sys_askqwvar_elval = '$'.$sys_askqwvar_n.' = $sys_askqwvar_v;';
+                $sys_globvars .= $sys_askqwvar_elval."\n";
+                eval $sys_askqwvar_elval;
+               }
              }
            else
              {
@@ -156,10 +162,13 @@ if(!$parsedform){
               eval $sys_skqwvar_elval;
               if(!$sys_demo_var_value2)
                 {
-                 $sys_askqwvar_bstr .= '$'.$sys_askqwvar_n.' ';
-                 $sys_askqwvar_elval = '$'.$sys_askqwvar_n.' = $sys_askqwvar_v;';
-                 $sys_globvars .= $sys_askqwvar_elval."\n";
-                 eval $sys_askqwvar_elval;
+                 if(!(eval 'defined($webtools::'.$sys_askqwvar_n.') ? 1 : 0;'))
+                  {
+                   $sys_askqwvar_bstr .= '$'.$sys_askqwvar_n.' ';
+                   $sys_askqwvar_elval = '$'.$sys_askqwvar_n.' = $sys_askqwvar_v;';
+                   $sys_globvars .= $sys_askqwvar_elval."\n";
+                   eval $sys_askqwvar_elval;
+                  }
                 }
              }
           }

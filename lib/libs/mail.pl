@@ -22,7 +22,6 @@
 # However you can use send_mail() function 
 # anyway! 
 #################################################
-if(!$sys_config_pl_loaded) {require './conf/config.pl';}
 
 %mole_attached_files = ();  # Please use "set_mail_attachment" and "remove_mail_attachment"
                             # instead of direct manipulating of hash.

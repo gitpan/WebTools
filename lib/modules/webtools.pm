@@ -8,13 +8,13 @@ package webtools;
 # This code is free software; you can redistribute
 # it and/or modify it under the same terms 
 # as Perl itself.
- 
+
 ###########################################
 # BEGIN Section start here
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.20";
+    $VERSION = "1.21";
     $INTERNALVERSION = "1";
     $webtools::sys_ERROR = 'error';
     @ISA = qw(Exporter);
@@ -38,7 +38,7 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
         
         sql_query sql_fetchrow sql_affected_rows sql_inserted_id hideerror sql_select_db 
         sql_num_rows sql_quote sql_connect sql_disconnect $sql_host $sql_user test_connect 
-        sql_data_seek sql_errmsg sql_errno $sql_pass $sql_database_sessions 
+        sql_data_seek sql_errmsg sql_errno load_database_driver $sql_pass $sql_database_sessions 
         $sql_sessions_table DB_OnDestroy DB_OnExit $system_database_handle 
         
         Header read_form read_form_array read_var href_adder action_adder 
@@ -64,24 +64,25 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
  # PLEASE DO NOT MODIFY ANYTHING!
  # Please see file config.pl !!!
  #################################
- $| = 1;                     # Flush imediatly!   
- $sentcontent = 0;           # Show whether Send_Content() where called!
- $session_started = 0;       # Show whether session_start were started!
- %attached_vars = ();        # The variables that we will store
- $reg_buffer = '';           # Contain register session file!
- %SESREG = ();
- %SESREG_VAR = ();
- $print_flush_buffer = '';
- $print_header_buffer = '';
- $new_session_were_started = 0; # Default we are in old session!
- $sess_header_flushed = 0;      # Header Is not still flushed!
- $cookie_path_cgi = '/';
- $secure_cookie_cgi = '0';
- %SIGNALS = ();
- $flag_onFlush_Event = 0;
- $syspre_process_counter = 0;
- $sys_cookie_accepted = 0;
+ $| = 1;                               # Flush imediatly!   
+ $webtools::sentcontent = 0;           # Show whether Send_Content() where called!
+ $webtools::session_started = 0;       # Show whether session_start were started!
+ %webtools::attached_vars = ();        # The variables that we will store
+ $webtools::reg_buffer = '';           # Contain register session file!
+ %webtools::SESREG = ();
+ %webtools::SESREG_VAR = ();
+ $webtools::print_flush_buffer = '';
+ $webtools::print_header_buffer = '';
+ $webtools::new_session_were_started = 0; # Default we are in old session!
+ $webtools::sess_header_flushed = 0;      # Header Is not still flushed!
+ $webtools::cookie_path_cgi = '/';
+ $webtools::secure_cookie_cgi = '0';
+ %webtools::SIGNALS = ();
+ $webtools::flag_onFlush_Event = 0;
+ $webtools::syspre_process_counter = 0;
+ $webtools::sys_cookie_accepted = 0;
  $webtools::sys_header_warnings = 0;
+ $webtools::sys__subs__ = {};
  
  tie(*SESSIONSTDOUT,'stdouthandle');
  select(SESSIONSTDOUT);
@@ -90,12 +91,12 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
  # Needed definitions
  ################################################################
  my $sys_local_sess_id = ''; # This is current session ID!!!
- @l_charset = ('085wOxVz1S','lZXa6M9RTk','FbHQvcjdmP','dQPpgALNqE','YDJ7CNG3yi',
+ @webtools::l_charset = ('085wOxVz1S','lZXa6M9RTk','FbHQvcjdmP','dQPpgALNqE','YDJ7CNG3yi',
                'mzk5l2F0xs','ThQPjd2OfR','G3YJK7IeWC','b4Zmol8SuM','jd9XvcHQa6',
                'sjyiDd21rB','RThpFALgNq');
  ################################################################
- $id = $ENV{HTTP_COOKIE} || $ENV{COOKIE};
-  my @cookies = split(/;/s,$id);
+ my $sys_w_id = $ENV{HTTP_COOKIE} || $ENV{COOKIE};
+  my @cookies = split(/;/s,$sys_w_id);
   my $l;
   foreach $l (@cookies)
    {
@@ -103,15 +104,15 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
       {
        my ($n,$v) = split(/=/s,$l);
        $n =~ s/ //sg;
-       if (!exists($sess_cookies{$n}))
+       if (!exists($webtools::sess_cookies{$n}))
          {
-          $sess_cookies{$n} = $v;
+          $webtools::sess_cookies{$n} = $v;
           }
       }
    }
 
 ###########################################        
-  $system_database_handle = undef;   # That is current opened DB Handler!
+  $webtools::system_database_handle = undef;   # That is current opened DB Handler!
   
   $webtools::sys_ERROR->install('onTerm',\&On_Term_Event);
 
@@ -121,15 +122,15 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
       my $err   = shift;
       my $name  = shift;
       # User hit STOP button or...admin shutdown Apache server :-)
-  	if($system_database_handle ne undef)
+  	if($webtools::system_database_handle ne undef)
   	  {
   	   my $q =<<'THAT_TERM_SIG_STR';
   	   if ($sys_local_sess_id ne '')
   	     {
-  	      close_session_file($system_database_handle);
+  	      close_session_file($webtools::system_database_handle);
   	     }
-  	   DB_OnExit($system_database_handle);
-  	   $system_database_handle = undef;
+  	   DB_OnExit($webtools::system_database_handle);
+  	   $webtools::system_database_handle = undef;
   	   $usystem_database_handle = undef;
            onExit();
 THAT_TERM_SIG_STR
@@ -144,6 +145,19 @@ THAT_TERM_SIG_STR
           }
    CORE::exit;
   }
+}
+
+sub AUTOLOAD
+{
+ my $name = $webtools::AUTOLOAD;
+ $name =~ s/.*://;   # Strip fully-qualified portion
+ unless (exists $webtools::sys__subs__->{$name})
+   {
+    print "<font face='Verdana' size='2'><B>Error: Can't access function '$name' in ".__PACKAGE__." module!</B></font>";
+    exit;
+   }
+my $ref = $webtools::sys__subs__->{$name};
+&$ref(@_);
 }
 
 ###########################################
@@ -162,8 +176,6 @@ sub PathMaker
 ###########################################
 sub StartUpInit
 {
- my $cnf = PathMaker('./conf/','../conf/');
- if(!$sys_config_pl_loaded) {require $cnf.'config.pl';}
  my $add = PathMaker('./modules/additionals','./additionals');
  $webtools::loaded_functions = 0;
  eval "if(!($webtools::loaded_functions & 128)){require '$library_path"."utl.pl';}";
@@ -190,7 +202,7 @@ sub StartUpInit
 ##########################################
 sub DestroyScript
 {
- my $sys_destroy_db_code = 'DB_OnExit($system_database_handle);';
+ my $sys_destroy_db_code = 'DB_OnExit($webtools::system_database_handle);';
  eval $sys_destroy_db_code;
  1;
 }
@@ -560,7 +572,7 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
   $| = 1;
   if(!$is and !($sys_stdouthandle_header and $sys_stdouthandle_content_ok))
    {
-    $print_header_buffer = "X-Powered-By: WebTools/1.20\n".$print_header_buffer; # Print version of this tool.
+    $print_header_buffer = "X-Powered-By: WebTools/1.21\n".$print_header_buffer; # Print version of this tool.
    }
   if ((!$sys_cookie_accepted) and ($sys_local_sess_id ne ''))
    {
@@ -1439,6 +1451,145 @@ TIME_EVAL_TERMINATOR
   }
 }
 ##########################################################################
+# Load (reload) database driver
+# PROTO: load_database_driver($driver);
+# where: $driver can be: 'mysql','flat','access' and 'sess_flat'
+##########################################################################
+sub load_database_driver
+{
+ my $new_driver = shift;
+ 
+ if($new_driver =~ m/^flat$/si)
+  {
+   if(!($webtools::loaded_functions & 4))
+    {
+     require $driver_path.'db_flat.pl';
+     $webtools::loaded_functions = $webtools::loaded_functions | 4;
+    }
+   else
+    {
+     $webtools::sys__subs__->{'DB_OnExit'} = \&flat_DB_OnExit;
+     $webtools::sys__subs__->{'hideerror'} = \&flat_hideerror;
+     $webtools::sys__subs__->{'sql_connect'} = \&flat_sql_connect;
+     $webtools::sys__subs__->{'sql_connect2'} = \&flat_sql_connect2;
+     $webtools::sys__subs__->{'test_connect'} = \&flat_test_connect;
+     $webtools::sys__subs__->{'sql_disconnect'} = \&flat_sql_disconnect;
+     $webtools::sys__subs__->{'sql_query'} = \&flat_sql_query;
+     $webtools::sys__subs__->{'sql_fetchrow'} = \&flat_sql_fetchrow;
+     $webtools::sys__subs__->{'sql_affected_rows'} = \&flat_sql_affected_rows;
+     $webtools::sys__subs__->{'sql_inserted_id'} = \&flat_sql_inserted_id;
+     $webtools::sys__subs__->{'sql_create_db'} = \&flat_sql_create_db;
+     $webtools::sys__subs__->{'sql_drop_db'} = \&flat_sql_drop_db;
+     $webtools::sys__subs__->{'sql_select_db'} = \&flat_sql_select_db;
+     $webtools::sys__subs__->{'sql_num_fields'} = \&flat_sql_num_fields;
+     $webtools::sys__subs__->{'sql_num_rows'} = \&flat_sql_num_rows;
+     $webtools::sys__subs__->{'sql_data_seek'} = \&flat_sql_data_seek;
+     $webtools::sys__subs__->{'sql_errmsg'} = \&flat_sql_errmsg;
+     $webtools::sys__subs__->{'sql_errno'} = \&flat_sql_errno;
+     $webtools::sys__subs__->{'sql_quote'} = \&flat_sql_quote;
+     $webtools::sys__subs__->{'unsupported_types'} = \&flat_sql_unsupported_types;
+     $webtools::sys__subs__->{'session_clear_expired'} = \&flat_session_clear_expired;
+     $webtools::sys__subs__->{'session_expire_update'} = \&flat_session_expire_update;
+     $webtools::sys__subs__->{'insert_sessions_row'} = \&flat_insert_sessions_row;
+     $webtools::sys__subs__->{'DB_OnDestroy'} = \&flat_DB_OnDestroy;
+     $webtools::sys__subs__->{'SignUpUser'} = \&flat_SignUpUser;
+     $webtools::sys__subs__->{'SignInUser'} = \&flat_SignInUser;
+    }
+  }
+ if($new_driver =~ m/^mysql$/si)
+  {
+   if(!($webtools::loaded_functions & 1))
+    {
+     require $driver_path.'db_mysql.pl';
+     $webtools::loaded_functions = $webtools::loaded_functions | 1;
+    }
+   else
+    {
+     $webtools::sys__subs__->{'DB_OnExit'} = \&mysql_DB_OnExit;
+     $webtools::sys__subs__->{'hideerror'} = \&mysql_hideerror;
+     $webtools::sys__subs__->{'sql_connect'} = \&mysql_sql_connect;
+     $webtools::sys__subs__->{'test_connect'} = \&mysql_test_connect;
+     $webtools::sys__subs__->{'sql_disconnect'} = \&mysql_sql_disconnect;
+     $webtools::sys__subs__->{'sql_query'} = \&mysql_sql_query;
+     $webtools::sys__subs__->{'sql_fetchrow'} = \&mysql_sql_fetchrow;
+     $webtools::sys__subs__->{'sql_affected_rows'} = \&mysql_sql_affected_rows;
+     $webtools::sys__subs__->{'sql_inserted_id'} = \&mysql_sql_inserted_id;
+     $webtools::sys__subs__->{'sql_create_db'} = \&mysql_sql_create_db;
+     $webtools::sys__subs__->{'sql_drop_db'} = \&mysql_sql_drop_db;
+     $webtools::sys__subs__->{'sql_select_db'} = \&mysql_sql_select_db;
+     $webtools::sys__subs__->{'sql_num_fields'} = \&mysql_sql_num_fields;
+     $webtools::sys__subs__->{'sql_num_rows'} = \&mysql_sql_num_rows;
+     $webtools::sys__subs__->{'sql_data_seek'} = \&mysql_sql_data_seek;
+     $webtools::sys__subs__->{'sql_errmsg'} = \&mysql_sql_errmsg;
+     $webtools::sys__subs__->{'sql_errno'} = \&mysql_sql_errno;
+     $webtools::sys__subs__->{'sql_quote'} = \&mysql_sql_quote;
+     $webtools::sys__subs__->{'unsupported_types'} = \&mysql_sql_unsupported_types;
+     $webtools::sys__subs__->{'session_clear_expired'} = \&mysql_session_clear_expired;
+     $webtools::sys__subs__->{'session_expire_update'} = \&mysql_session_expire_update;
+     $webtools::sys__subs__->{'insert_sessions_row'} = \&mysql_insert_sessions_row;
+     $webtools::sys__subs__->{'DB_OnDestroy'} = \&mysql_DB_OnDestroy;
+     $webtools::sys__subs__->{'SignUpUser'} = \&mysql_SignUpUser;
+     $webtools::sys__subs__->{'SignInUser'} = \&mysql_SignInUser;
+    }
+  }
+ if($new_driver =~ m/^access$/si)
+  {
+   if(!($webtools::loaded_functions & 2))
+    {
+     require $driver_path.'db_access.pl';
+     $webtools::loaded_functions = $webtools::loaded_functions | 2;
+    }
+   else
+    {
+     $webtools::sys__subs__->{'DB_OnExit'} = \&access_DB_OnExit;
+     $webtools::sys__subs__->{'hideerror'} = \&access_hideerror;
+     $webtools::sys__subs__->{'sql_connect'} = \&access_sql_connect;
+     $webtools::sys__subs__->{'sql_connect2'} = \&access_sql_connect2;
+     $webtools::sys__subs__->{'test_connect'} = \&access_test_connect;
+     $webtools::sys__subs__->{'sql_disconnect'} = \&access_sql_disconnect;
+     $webtools::sys__subs__->{'sql_query'} = \&access_sql_query;
+     $webtools::sys__subs__->{'sql_fetchrow'} = \&access_sql_fetchrow;
+     $webtools::sys__subs__->{'sql_affected_rows'} = \&access_sql_affected_rows;
+     $webtools::sys__subs__->{'sql_inserted_id'} = \&access_sql_inserted_id;
+     $webtools::sys__subs__->{'sql_create_db'} = \&access_sql_create_db;
+     $webtools::sys__subs__->{'sql_drop_db'} = \&access_sql_drop_db;
+     $webtools::sys__subs__->{'sql_select_db'} = \&access_sql_select_db;
+     $webtools::sys__subs__->{'sql_num_fields'} = \&access_sql_num_fields;
+     $webtools::sys__subs__->{'sql_num_rows'} = \&access_sql_num_rows;
+     $webtools::sys__subs__->{'sql_data_seek'} = \&access_sql_data_seek;
+     $webtools::sys__subs__->{'sql_errmsg'} = \&access_sql_errmsg;
+     $webtools::sys__subs__->{'sql_errno'} = \&access_sql_errno;
+     $webtools::sys__subs__->{'sql_quote'} = \&access_sql_quote;
+     $webtools::sys__subs__->{'unsupported_types'} = \&access_sql_unsupported_types;
+     $webtools::sys__subs__->{'session_clear_expired'} = \&access_session_clear_expired;
+     $webtools::sys__subs__->{'session_expire_update'} = \&access_session_expire_update;
+     $webtools::sys__subs__->{'insert_sessions_row'} = \&access_insert_sessions_row;
+     $webtools::sys__subs__->{'DB_OnDestroy'} = \&access_DB_OnDestroy;
+     $webtools::sys__subs__->{'SignUpUser'} = \&access_SignUpUser;
+     $webtools::sys__subs__->{'SignInUser'} = \&access_SignInUser;
+    }
+  }
+ if($new_driver =~ m/^sess_flat$/si)
+  {
+   if(!($webtools::loaded_functions & 16))
+    {
+     require $driver_path.'sess_flat.pl';
+     $webtools::loaded_functions = $webtools::loaded_functions | 16;
+    }
+   else
+    {
+     if($sess_force_flat =~ m/^on$/si)
+      {
+       $webtools::sys__subs__->{'session_clear_expired'} = \&sess_flat_session_clear_expired;
+       $webtools::sys__subs__->{'session_expire_update'} = \&sess_flat_session_expire_update;
+       $webtools::sys__subs__->{'insert_sessions_row'} = \&sess_flat_insert_sessions_row;
+       $webtools::sys__subs__->{'DB_OnDestroy'} = \&sess_flat_DB_OnDestroy;
+      }
+    }
+   }
+ return(1);
+}
+##########################################################################
 sub base_rand_maker
 {
  my ($n) = @_;
@@ -1586,7 +1737,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\<XREADER:.+?\:(.*?)\:(.*?)\>/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($system_database_handle eq undef)
+     if($webtools::system_database_handle eq undef)
         {
           $rztl_sconn = sql_connect(); 
         }
@@ -1604,7 +1755,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\<S\©L\:\d{1,}\:(.*?)\:.+?\:.+?\:.+?\:.+?\:S\©L\>/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($system_database_handle eq undef)
+     if($webtools::system_database_handle eq undef)
         {
           $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
@@ -1623,7 +1774,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\<S\©LVAR\:(.+?)\:S\©L\>/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($system_database_handle eq undef)
+     if($webtools::system_database_handle eq undef)
         {
           $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
@@ -1642,7 +1793,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\<MENUSELECT\:\$(.*?)\:(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\>/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($system_database_handle eq undef)
+     if($webtools::system_database_handle eq undef)
         {
           $rztl_sconn = sql_connect();
         }
@@ -1801,7 +1952,7 @@ sub sys_run_time_process_menuselect
    eval $sys_my_pre_process_tmp;
 
    if(($sys_my_pre_process_dbh eq '') or ($sys_my_pre_process_dbh eq undef))
-      {$sys_my_pre_process_dbh = $system_database_handle;}
+      {$sys_my_pre_process_dbh = $webtools::system_database_handle;}
    
    my @sys_my_pre_process_dbv_a  = @$sys_my_pre_process_dbv;
    my @sys_my_pre_process_tem_a  = @$sys_my_pre_process_tem;

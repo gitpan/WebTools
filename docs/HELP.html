@@ -327,6 +327,16 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp;$res 
           = <font color="#0000CC">sql_data_seek</font> ($row_number,$result_handler);</font></b> 
           <BR>
+          
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000"><br>
+          load_database_driver</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
+          &nbsp;&nbsp;Load database driver (on runtime)</font></b> <BR>
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> &nbsp;&nbsp;$res 
+          = <font color="#0000CC">load_database_driver</font> ($driver_name);<BR>
+          &nbsp;&nbsp;Where $driver_name can be 'mysql', 'flat', 'access' and 'sess_flat'!
+          </font></b> 
+          <BR>
+          
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#FF0000"><br>
           DB_OnDestroy</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> 
           </font></b> <BR>
@@ -837,7 +847,7 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
           <font color="#006633">#[Name_Of_Project]</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $projectname = 'webtools'; <font color="#FF0000"># !!!</font></font></b> 
+          $webtools::projectname = 'webtools'; <font color="#FF0000"># !!!</font></font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># This 
           is a name of project. Also this name is a base for other parameters 
@@ -845,50 +855,50 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
           <font color="#006633">#[SQL]</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $db_support = 'db_flat'; <font color="#FF0000"># !!!</font></font></b> 
+          $webtools::db_support = 'db_flat'; <font color="#FF0000"># !!!</font></font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Name 
           of database driver. Can be: db_mysql, db_access, db_flat</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sql_host = 'localhost'; <font color="#FF0000"># !!!</font></font></b> 
+          $webtools::sql_host = 'localhost'; <font color="#FF0000"># !!!</font></font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># host/ip 
           to DB server (MySQL)</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sql_port = '3306';</font></b> <BR>
+          $webtools::sql_port = '3306';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Port 
           of SQL server</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sql_user = 'me';<font color="#FF0000"> # !!!</font></font></b> <BR>
+          $webtools::sql_user = 'me';<font color="#FF0000"> # !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># User 
           name used to connect SQL server</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sql_pass = 'secret_password'; <font color="#FF0000"># !!!</font></font></b> 
+          $webtools::sql_pass = 'secret_password'; <font color="#FF0000"># !!!</font></font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># ... 
           and DB password</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
           <font color="#006633">#[DataBase]</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sql_database_sessions = $projectname.'db';<font color="#FF0000"> # 
+          $webtools::sql_database_sessions = $webtools::projectname.'db';<font color="#FF0000"> # 
           !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Database 
           name (name some like project!?!?!). If need change it!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sql_sessions_table = $projectname.'_sessions'; <font color="#FF0000"># 
+          $webtools::sql_sessions_table = $webtools::projectname.'_sessions'; <font color="#FF0000"># 
           !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Name 
           of session table.</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sql_user_table = $projectname.'_users'; <font color="#FF0000"># !!!</font></font></b> 
+          $webtools::sql_user_table = $webtools::projectname.'_users'; <font color="#FF0000"># !!!</font></font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Table 
           that contain all users (and admin too)</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
           <font color="#006633">#[CHECK]</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $check_module_functions = 'on';<font color="#FF0000"> # !!!</font></font></b> 
+          $webtools::check_module_functions = 'on';<font color="#FF0000"> # !!!</font></font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># SCRIPTS 
           RUN IN CHECK MODE! After first check(test),</font></b> <BR>
@@ -902,45 +912,45 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><font color="#006633">#</font></font><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#006633">[Secure]</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $wait_attempt = '4';</font></b> <BR>
+          $webtools::wait_attempt = '4';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Count 
           of attempts when database is flocked</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $wait_for_open = '2.0';</font></b> <BR>
+          $webtools::wait_for_open = '2.0';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Time 
           between two attempts (in sec)</font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sess_time = '2'; <font color="#FF0000"># !!!</font></font></b> <BR>
+          $webtools::sess_time = '2'; <font color="#FF0000"># !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Expire 
           time on session: 60 minutes</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$sys_conf_d 
+          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::sys_conf_d 
           = 'hour'; <font color="#FF0000"># !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Type 
           of sess time dimension</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$rand_sid_length 
+          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::rand_sid_length 
           = '16';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Length 
           of SID string!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $sess_cookie = 'sesstime';</font></b> <BR>
+          $webtools::sess_cookie = 'sesstime';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># 'sesstime' 
           - cookie expire when session expired. Enter any other value to expire 
           cookie when user close browser.</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $l_sid = 'sid';</font></b> <BR>
+          $webtools::l_sid = 'sid';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Session 
           label ID used by module</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $cgi_lib_forbid_mulipart = 'off';<font color="#FF0000"> # !!!</font></font></b> 
+          $webtools::cgi_lib_forbid_mulipart = 'off';<font color="#FF0000"> # !!!</font></font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># If 
           you want to protect yourself from multipart spam turn this 'on' (you 
           will be no longer able to use multipart forms)!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $cgi_lib_maxdata = 4194304; <font color="#FF0000"># !!!</font></font></b> 
+          $webtools::cgi_lib_maxdata = 4194304; <font color="#FF0000"># !!!</font></font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Set 
           maximum bytes to accept via POST (some king of multipart </font></b> 
@@ -950,7 +960,7 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Please 
           note that you can't set this to 0!!!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $cgi_script_timeout = 120;<font color="#FF0000"> # !!!</font></font></b> 
+          $webtools::cgi_script_timeout = 120;<font color="#FF0000"> # !!!</font></font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Expiration 
           time of script! (120 seconds default). After expiration script </font></b> 
@@ -961,7 +971,7 @@
           note that you can't set this to 0!!! You always must know how much time 
           you need!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $ip_restrict_mode = 'on';</font></b> <BR>
+          $webtools::ip_restrict_mode = 'on';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Set 
           'on' to restrict session by IP! If you have proxy problems with </font></b> 
           <BR>
@@ -973,7 +983,7 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Allowed 
           values are: &quot;on&quot; and &quot;off&quot;.</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $run_restrict_mode = 'off';</font></b> <BR>
+          $webtools::run_restrict_mode = 'off';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Set 
           'on' to restrict external web user to your scripts.</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># If 
@@ -987,11 +997,11 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><font color="#006633">#</font></font><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#006633">[Debug]</font></b> 
           <br>
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$debugging 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::debugging 
           = 'on';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Set 
           debugging mode</font></b> <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$debug_mail 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::debug_mail 
           = 'on'; <font color="#FF0000"># !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Show 
           whether real mail must by sent or must by saved into mail </font></b> 
@@ -1003,7 +1013,7 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><font color="#006633">#</font></font><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#006633">[Mail]</font></b> 
           <br>
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$sendmail 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::sendmail 
           = '/usr/sbin/sendmail';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Real 
           full path to sendmail</font></b> <BR>
@@ -1012,21 +1022,21 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><font color="#006633">#</font></font><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#006633">[Other]</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$charset 
+          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::charset 
           = 'n5b0xzlQWdgfNXytCMAwq1TYu7SVBmUIvcOPZ2aprER9kjh3sHJKL8e4oiDFG6';</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Please 
           mix well this chars to get higher security of your session ID :-)</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $cpg_priority = 'cookie';</font></b> <BR>
+          $webtools::cpg_priority = 'cookie';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Show 
           order of value fetching! There is 2 values: 'cookie' and 'get/post'.</font></b> 
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># 'cookie' 
           means that cookie's variable has higher priority!</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$sess_force_flat 
+          </font></b><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::sess_force_flat 
           = 'on'; <font color="#FF0000"># !!!</font></font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Session 
           support via DB or via file! (possible values are: 'on' and 'off')</font></b> 
@@ -1045,12 +1055,12 @@
           Use flat files when you haven't 500 opened sessions in &quot;tmp&quot; 
           directory or more!</font></b> <br>
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$support_email 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::support_email 
           = 'support@your_host.com';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"> # Support 
           e-mail for unexpected errors! :)</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><br>
-          $var_printing_mode = 'buffered';</font></b> <BR>
+          $webtools::var_printing_mode = 'buffered';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Default 
           output is buffered,</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># leave 
@@ -1062,7 +1072,7 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Actually 
           buffering depend of OS, Perl, Apache and socket!</font></b> <br>
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">@treat_htmls_ext 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">@webtools::treat_htmls_ext 
           = (</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Order 
           of html files location: Default, module first look for:</font></b> <BR>
@@ -1114,56 +1124,56 @@
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><font color="#006633">#</font></font><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#006633">[PATHS]</font></b> 
           <br>
           <br>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$tmp 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::tmp 
           = '/tmp/';<font color="#FF0000"> # !!!</font></font></b> <br>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Please 
           set full path to your temp directory</font></b> <br>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"></font></b> 
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$driver_path 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::driver_path 
           = './drivers/';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Path 
           to your DB Drivers (please keep structure)</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$library_path 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::library_path 
           = './libs/';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Path 
           to your Libraries (please keep structure)</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$db_path 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::db_path 
           = './db/';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Path 
           to your DBs and tables (please keep structure)</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$mailsender_path 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::mailsender_path 
           = './mail/';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Path 
           to your DBs and tables (please keep structure)</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$xreader_path 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::xreader_path 
           = './jhtml/';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Path 
           to your xreader files(jhtml-s) (please keep structure)</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$perl_html_dir 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::perl_html_dir 
           = './htmls/';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Path 
           to your perl's(webtools scripts) html files</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$apacheshtdocs 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::apacheshtdocs 
           = '/var/www/htdocs/';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Path 
           to your apache htdocs directory('/usr/local/apache/htdocs/') (please 
           keep structure)</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$cgi_home_path 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::cgi_home_path 
           = Get_CGI_Directory();</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Get 
           webtools cgi-bin directory (exmp: '/cgi-bin/webtools/') </font></b> 
@@ -1173,7 +1183,7 @@
           <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;</font></b> 
           <BR>
-          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$http_home_path 
+          <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">$webtools::http_home_path 
           = '/webtools/';</font></b> <BR>
           <b><font size="2" face="Verdana, Arial, Helvetica, sans-serif"># Please 
           change this to your http path!</font></b> <BR>

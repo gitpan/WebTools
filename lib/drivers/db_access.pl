@@ -34,14 +34,41 @@ if($@ ne '')
   exit;
  }
  
-sub DB_OnExit
+$webtools::sys__subs__->{'DB_OnExit'} = \&access_DB_OnExit;
+$webtools::sys__subs__->{'hideerror'} = \&access_hideerror;
+$webtools::sys__subs__->{'sql_connect'} = \&access_sql_connect;
+$webtools::sys__subs__->{'sql_connect2'} = \&access_sql_connect2;
+$webtools::sys__subs__->{'test_connect'} = \&access_test_connect;
+$webtools::sys__subs__->{'sql_disconnect'} = \&access_sql_disconnect;
+$webtools::sys__subs__->{'sql_query'} = \&access_sql_query;
+$webtools::sys__subs__->{'sql_fetchrow'} = \&access_sql_fetchrow;
+$webtools::sys__subs__->{'sql_affected_rows'} = \&access_sql_affected_rows;
+$webtools::sys__subs__->{'sql_inserted_id'} = \&access_sql_inserted_id;
+$webtools::sys__subs__->{'sql_create_db'} = \&access_sql_create_db;
+$webtools::sys__subs__->{'sql_drop_db'} = \&access_sql_drop_db;
+$webtools::sys__subs__->{'sql_select_db'} = \&access_sql_select_db;
+$webtools::sys__subs__->{'sql_num_fields'} = \&access_sql_num_fields;
+$webtools::sys__subs__->{'sql_num_rows'} = \&access_sql_num_rows;
+$webtools::sys__subs__->{'sql_data_seek'} = \&access_sql_data_seek;
+$webtools::sys__subs__->{'sql_errmsg'} = \&access_sql_errmsg;
+$webtools::sys__subs__->{'sql_errno'} = \&access_sql_errno;
+$webtools::sys__subs__->{'sql_quote'} = \&access_sql_quote;
+$webtools::sys__subs__->{'unsupported_types'} = \&access_sql_unsupported_types;
+$webtools::sys__subs__->{'session_clear_expired'} = \&access_session_clear_expired;
+$webtools::sys__subs__->{'session_expire_update'} = \&access_session_expire_update;
+$webtools::sys__subs__->{'insert_sessions_row'} = \&access_insert_sessions_row;
+$webtools::sys__subs__->{'DB_OnDestroy'} = \&access_DB_OnDestroy;
+$webtools::sys__subs__->{'SignUpUser'} = \&access_SignUpUser;
+$webtools::sys__subs__->{'SignInUser'} = \&access_SignInUser;
+ 
+sub access_DB_OnExit
    {
     my ($system_database_handle) = @_;
-    sql_disconnect($system_database_handle);
+    access_sql_disconnect($system_database_handle);
     undef($system_database_handle);
     return(1);
    }
-sub hideerror 
+sub access_hideerror 
      {
       eval
        {
@@ -64,14 +91,14 @@ sub hideerror
       print "<br><BR><font color='black'><h3>Please be nice and send e-mail to: $support_email </h3></font>";
       exit;
      }
-sub sql_connect   # No params needed!
+sub access_sql_connect   # No params needed!
     {
      if($#_ == -1)
       {
        my $oldslcthnd = select(STDOUT);
        $oldh = $SIG{'__WARN__'};
-       $SIG{'__WARN__'} = "hideerror";
-       my $OurSQL = DBI->connect("DBI:ODBC:"."$sql_database_sessions",$sql_user,$sql_pass,{RaiseError => 0, PrintError => 1, AutoCommit => 1}) or hideerror();
+       $SIG{'__WARN__'} = "access_hideerror";
+       my $OurSQL = DBI->connect("DBI:ODBC:"."$sql_database_sessions",$sql_user,$sql_pass,{RaiseError => 0, PrintError => 1, AutoCommit => 1}) or access_hideerror();
        $OurSQL->{LongReadLen} = $db_access_read_size_limit;
        $SIG{'__WARN__'} = $oldh;
        $system_database_handle = $OurSQL;   # That is current opened DB Handler!
@@ -85,14 +112,14 @@ sub sql_connect   # No params needed!
        $user = $user || $sql_user;
  
        $oldh = $SIG{'__WARN__'};
-       $SIG{'__WARN__'} = "hideerror";
-       my $uOurSQL = DBI->connect("DBI:ODBC:"."$database",$user,$pass,{RaiseError => 0, PrintError => 1, AutoCommit => 1}) or hideerror();
+       $SIG{'__WARN__'} = "access_hideerror";
+       my $uOurSQL = DBI->connect("DBI:ODBC:"."$database",$user,$pass,{RaiseError => 0, PrintError => 1, AutoCommit => 1}) or access_hideerror();
        $SIG{'__WARN__'} = $oldh;
        $usystem_database_handle = $uOurSQL;   # That is current opened DB Handler!
        return($uOurSQL);
       }
     }
-sub test_connect
+sub access_test_connect
    {
      my $oldslcthnd = select(STDOUT);
      $oldh = $SIG{'__WARN__'};
@@ -104,31 +131,31 @@ sub test_connect
      select($oldslcthnd);
      return($OurSQL);     
    }
-sub sql_connect2
+sub access_sql_connect2
     {
      my ($db) = @_;
      my $oldslcthnd = select(STDOUT);
      $oldh = $SIG{'__WARN__'};
-     $SIG{'__WARN__'} = "hideerror";
-     my $OurSQL = DBI->connect("DBI:ODBC:"."$db",$sql_user,$sql_pass) or hideerror();
+     $SIG{'__WARN__'} = "access_hideerror";
+     my $OurSQL = DBI->connect("DBI:ODBC:"."$db",$sql_user,$sql_pass) or access_hideerror();
      $OurSQL->{LongReadLen} = $db_access_read_size_limit;
      $SIG{'__WARN__'} = $oldh;
      $system_database_handle = $OurSQL;   # That is current opened DB Handler!
      select($oldslcthnd);
      return($OurSQL);     
     }
-sub sql_disconnect # Only db handler is required!
+sub access_sql_disconnect # Only db handler is required!
    {
     my ($DBH) = @_;
     $DBH->disconnect();
     undef($DBH);
     return (1);
    }
-sub sql_query   # ($query,$db_handler)
+sub access_sql_query   # ($query,$db_handler)
     {
      my ($q,$DBH) = @_;
      $q =~ s/;$//s;
-     $q = sql_unsupported_types($q,$DBH);
+     $q = access_sql_unsupported_types($q,$DBH);
      my $hSt = $DBH->prepare($q);
      if($hSt)
       {
@@ -138,41 +165,41 @@ sub sql_query   # ($query,$db_handler)
       }
      else {return $DBH->errstr();}
     }
-sub sql_fetchrow    # ($result_handler)
+sub access_sql_fetchrow    # ($result_handler)
     {
      my ($resdb) = @_;
      my $raRes = $resdb->fetchrow_arrayref();
      my @arr = @$raRes;
      return(@arr);
     }
-sub sql_affected_rows   # ($result_handler)
+sub access_sql_affected_rows   # ($result_handler)
     {    
      my ($resdb) = @_;
      my $number = $resdb->rows;
      return($number);
     }
-sub sql_inserted_id   # ($result_handler)
+sub access_sql_inserted_id   # ($result_handler)
     {    
      my ($resdb) = @_;
      my $number = undef;
      return($number);
     }    
-sub sql_create_db   # ($table_description,$db_handler) -> Not DB! This is TABLE!
+sub access_sql_create_db   # ($table_description,$db_handler) -> Not DB! This is TABLE!
     {    
      my ($db,$DBH) = @_;
      $db =~ s/;$//s;
      return($DBH->do('CREATE TABLE '.$db));
     }        
-sub sql_drop_db   # ($db_name,$db_handler) -> Not DB! This is TABLE!
+sub access_sql_drop_db   # ($db_name,$db_handler) -> Not DB! This is TABLE!
     {    
      my ($db,$DBH) = @_;
      $db =~ s/;$//s;
      return($DBH->do('DROP TABLE '.$db));
     } 
-sub sql_select_db
+sub access_sql_select_db
  {
     my($db, $self) = @_;
-    my $dbh = sql_connect('localhost',$db,$sql_user, $sql_pass, 0, '');
+    my $dbh = access_sql_connect('localhost',$db,$sql_user, $sql_pass, 0, '');
     if (!$dbh) 
      {
       return(undef);
@@ -181,47 +208,46 @@ sub sql_select_db
      {
       if ($self) 
         {
-	 sql_disconnect($self);
+	 access_sql_disconnect($self);
    	}
      }
     return($dbh);
  }
-sub sql_num_fields   # ($result_handler)
+sub access_sql_num_fields   # ($result_handler)
     {    
      my ($resdb) = @_;
      my $number = $resdb->{NUM_OF_FIELDS};
      return($number);
     }
-sub sql_num_rows   # ($result_handler)
+sub access_sql_num_rows   # ($result_handler)
     {    
      my ($resdb) = @_;
-     my $number = sql_affected_rows($resdb);
+     my $number = access_sql_affected_rows($resdb);
      return($number);
     }
-sub sql_insert_id
-{
-  my ($res) = @_;
-  return(-1);
-}
-sub sql_errmsg
+sub access_sql_data_seek
+    {    
+     return(-1);
+    }
+sub access_sql_errmsg
 {
   my ($dbh) = @_;
   return($DBI::errstr);
 }
 
-sub sql_errno
+sub access_sql_errno
 {
   my ($dbh) = @_;
   return($DBI::err);
 }
-sub sql_quote
+sub access_sql_quote
 {
  my ($unquoted_string,$dbh) = @_;
  my $str = $dbh->quote($unquoted_string);
  return($str);
 
 }
-sub sql_unsupported_types
+sub access_sql_unsupported_types
 {
  my ($q,$DBH) = @_;
  while ($q =~ m/MAXVAL( *?)\(.*?\)/si)
@@ -236,7 +262,7 @@ sub sql_unsupported_types
 #####################################################################
 # Session Support Functions
 #####################################################################
-sub session_clear_expired
+sub access_session_clear_expired
 {
  my ($dbh) = @_;
  my $i_id;
@@ -244,7 +270,7 @@ sub session_clear_expired
  my @my_array;
  if($sess_force_flat eq 'off') ###DB###
  {
-  my $er = sql_query("delete from $sql_sessions_table where EXPIRE < $ctime;",$dbh);
+  my $er = access_sql_query("delete from $sql_sessions_table where EXPIRE < $ctime;",$dbh);
   if ($er eq undef) { return(0); }
  }
  else
@@ -254,7 +280,7 @@ sub session_clear_expired
  }
  return(1);
 }
-sub session_expire_update
+sub access_session_expire_update
 {
  my ($dbh) = @_;
  my %calmin  = ('second',1,'minute',60,'hour',3600,'day',86400,'month',2678400,'year',31536000);
@@ -270,7 +296,7 @@ if($sess_force_flat eq 'off') ###DB###
     {
      $r_q = " and IP = \'$ip\'";    # Restrict session on IP!
     }
-  my $r = sql_query("update $sql_sessions_table set EXPIRE = $inter where S_ID = \'$sys_local_sess_id\'".$r_q,$dbh);
+  my $r = access_sql_query("update $sql_sessions_table set EXPIRE = $inter where S_ID = \'$sys_local_sess_id\'".$r_q,$dbh);
   if ($r eq undef) { return(0);}
  }
  else
@@ -280,7 +306,7 @@ if($sess_force_flat eq 'off') ###DB###
  }
  return (1);
 }
-sub insert_sessions_row   # ($session_id,$db_handler)
+sub access_insert_sessions_row   # ($session_id,$db_handler)
 {
   my ($dbh) = @_;
   my %calmin  = ('second',1,'minute',60,'hour',3600,'day',86400,'month',2678400,'year',31536000);
@@ -307,19 +333,14 @@ sub insert_sessions_row   # ($session_id,$db_handler)
   }
   return(0);
 }
-sub sql_data_seek
-{
- my ($row,$res) = @_;
- return(-1);
-}
-sub DB_OnDestroy
+sub access_DB_OnDestroy
  {
    return(1);        # Something like Commit!
  }
 #####################################################################
 # USER DEFINED FUNCTIONS
 #####################################################################
-sub SignUpUser
+sub access_SignUpUser
 {
  my ($user,$pass,$data,$active,$fname,$lname,$email,$dbh) = @_;
  my $ut = "SELECT USER FROM $sql_user_table WHERE USER=?";
@@ -330,7 +351,7 @@ sub SignUpUser
  $rut->execute($user);
 
  my @arr = ();
- eval {@arr = sql_fetchrow($rut);};
+ eval {@arr = access_sql_fetchrow($rut);};
  if ($arr[0] ne '') { return(0);}
  else
   {
@@ -343,18 +364,18 @@ sub SignUpUser
   } 
  return(0); 
 }
-sub SignInUser
+sub access_SignInUser
 {
  my ($user,$pass,$dbh) = @_;
- $user = sql_quote($user,$dbh);
- $pass = sql_quote($pass,$dbh);
+ $user = access_sql_quote($user,$dbh);
+ $pass = access_sql_quote($pass,$dbh);
  my $q = "SELECT ID,DATA FROM $sql_user_table WHERE USER=$user and PASSWORD=$pass and ACTIVE=\'Y\';";
- my $res = sql_query($q,$dbh);
+ my $res = access_sql_query($q,$dbh);
  if ($res eq undef)
    {
     return((undef,undef));
    }
- my ($ID,$DATA) = sql_fetchrow($res);
+ my ($ID,$DATA) = access_sql_fetchrow($res);
  if ($ID eq '') {return((undef,undef)); }
  return(($ID,$DATA));
 }

@@ -514,7 +514,7 @@ sub fetchValue
  my ($name) = shift(@_);
  my ($src) = shift(@_);
  
- if($src =~ m/\$$name\ *?\=\ *?(\'|\")(.*?)(\'|\")\;/s)
+ if($src =~ m/\$webtools\:\:$name\ *?\=\ *?(\'|\")(.*?)(\'|\")\;/s)
   {
    return($2);
   }
@@ -527,7 +527,7 @@ sub setValue
  my ($val) = shift(@_);
  my ($src) = shift(@_);
  
- if($src =~ s/(\$$name\ *?\=\ *?)(\'|\")(.*?)(\'|\")\;/$1$2$val$4\;/sg)
+ if($src =~ s/(\$webtools\:\:$name\ *?\=\ *?)(\'|\")(.*?)(\'|\")\;/$1$2$val$4\;/sg)
   {
    return($src);
   }

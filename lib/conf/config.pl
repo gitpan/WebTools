@@ -1,75 +1,75 @@
 ###################################################################
-# Configuration file for "Web Tools" ver 1.20
+# Configuration file for "Web Tools" ver 1.21
 # Please edit here, don’t do that in Perl scripts!
 # For Web based configurator script see install.cgi
 ###################################################################
 
 #[Name_Of_Project]
-$projectname = 'webtools';   # Name of project!
+$webtools::projectname = 'webtools';   # Name of project!
 
 #[SQL]
-$db_support = 'db_flat';     # Can be: db_mysql, db_access, db_flat
-$sql_host = 'localhost';     # Script will connect to MySQL Server
-$sql_port = '3306';          # Port of SQL server
-$sql_user = 'user';          # using user
-$sql_pass = 'pass';          # and password
+$webtools::db_support = 'db_flat';     # Can be: db_mysql, db_access, db_flat
+$webtools::sql_host = 'localhost';     # Script will connect to MySQL Server
+$webtools::sql_port = '3306';          # Port of SQL server
+$webtools::sql_user = 'user';          # using user
+$webtools::sql_pass = 'pass';          # and password
 
 #[DataBase]
-$sql_database_sessions =  $projectname.'db';         # Database name (name some like project!!!)
-$sql_sessions_table =  $projectname.'_sessions';     # Session table (name: project_sessions)!
-$sql_user_table = $projectname.'_users';             # Contain all users (and admin too)
+$webtools::sql_database_sessions =  $webtools::projectname.'db';      # Database name (name some like project!!!)
+$webtools::sql_sessions_table =  $webtools::projectname.'_sessions';  # Session table (name: project_sessions)!
+$webtools::sql_user_table = $webtools::projectname.'_users';          # Contain all users (and admin too)
 
 #[CHECK]
-$check_module_functions = 'on';       # After first check, please turn this 'off'!
+$webtools::check_module_functions = 'on';       # After first check, please turn this 'off'!
 
 #[Secure]
-$site_is_down = 'off';                # Set to 'on' to prevent execution of scripts
-$wait_attempt = '4';                  # Count of attempts when database is flocked
-$wait_for_open = '2.0';               # Time between two attempts (in sec)
-$sess_time = '2';                     # Expire time on session(2 hours)
-$sys_conf_d = 'hour';                 # time dimenstion (lower case only) and can be:
-                                      # second,minute,hour,day,month and year
-$rand_sid_length = '32';              # Length of random SID string!
-$sess_cookie = 'sesstime';            # 'sesstime'(i.e. expire after $sess_time) or
-                                      # '0' (i.e. expire when user close browser)
+$webtools::site_is_down = 'off';                # Set to 'on' to prevent execution of scripts
+$webtools::wait_attempt = '4';                  # Count of attempts when database is flocked
+$webtools::wait_for_open = '2.0';               # Time between two attempts (in sec)
+$webtools::sess_time = '2';                     # Expire time on session(2 hours)
+$webtools::sys_conf_d = 'hour';                 # time dimenstion (lower case only) and can be:
+                                                # second,minute,hour,day,month and year
+$webtools::rand_sid_length = '32';              # Length of random SID string!
+$webtools::sess_cookie = 'sesstime';            # 'sesstime'(i.e. expire after $sess_time) or
+                                                # '0' (i.e. expire when user close browser)
 
-$l_sid = 'sid';                       # Session ID label used by module
+$webtools::l_sid = 'sid';                       # Session ID label used by module
 
-$cgi_lib_forbid_mulipart = 'off';     # If you want to protect yourself from multipart spam
-                                      # turn this 'on' (you will be no longer able to use 
-                                      # multipart forms)!
-$cgi_lib_maxdata    = '4194304';      # maximum bytes to accept via POST (4MB)
-$cgi_script_timeout = '120';          # Expiration time of script! (120 seconds default)
-$ip_restrict_mode   = 'off';          # Set 'on' to restrict session on IP! If you get proxy
-                                      # problems with restricted IPs, please set 'off' or use
-                                      # proper function to set mode of this variable!
-$run_restrict_mode  = 'off';          # Set 'on' to restrict external web user to your scripts.
-                                      # If IP's of user not exists in DB/ips.pl WebTools will
-                                      # close script immediately!
+$webtools::cgi_lib_forbid_mulipart = 'off';     # If you want to protect yourself from multipart spam
+                                                # turn this 'on' (you will be no longer able to use 
+                                                # multipart forms)!
+$webtools::cgi_lib_maxdata    = '4194304';      # maximum bytes to accept via POST (4MB)
+$webtools::cgi_script_timeout = '120';          # Expiration time of script! (120 seconds default)
+$webtools::ip_restrict_mode   = 'off';          # Set 'on' to restrict session on IP! If you get proxy
+                                                # problems with restricted IPs, please set 'off' or use
+                                                # proper function to set mode of this variable!
+$webtools::run_restrict_mode  = 'off';          # Set 'on' to restrict external web user to your scripts.
+                                                # If IP's of user not exists in DB/ips.pl WebTools will
+                                                # close script immediately!
                                       
 #[Debug]
-$debugging = 'on';                    # Debugging mode
-$debug_mail = 'on';                   # Show whether real mail must by send
-                                      # or must by saved into mail directory!
+$webtools::debugging = 'on';                    # Debugging mode
+$webtools::debug_mail = 'on';                   # Show whether real mail must by send
+                                                # or must by saved into mail directory!
 
 #[Mail]
-$sendmail = '/usr/sbin/sendmail';     # sendmail path
+$webtools::sendmail = '/usr/sbin/sendmail';     # sendmail path
 
 #[Other]
-$charset = 'TYn5b0xzlQu7SVBh3sHJKL8mUIvcOPZ2aWytCMAwq1prEe4oiDFG6R9kjdgfNX';
+$webtools::charset = 'TYn5b0xzlQu7SVBh3sHJKL8mUIvcOPZ2aWytCMAwq1prEe4oiDFG6R9kjdgfNX';
                                            # Please mix well this chars
 					   # to get higher security of your session ID :-)
 
-$cpg_priority = 'cookie';                  # Show order of value fetching! There is 2 values: 'cookie' and 'get/post'.
+$webtools::cpg_priority = 'cookie';        # Show order of value fetching! There is 2 values: 'cookie' and 'get/post'.
                                            # 'cookie' means that cookie's variable has higher priority!
-$sess_force_flat = 'on';                   # Session support via DB or via file! (possible values are: 'on' and 'off')
+$webtools::sess_force_flat = 'on';         # Session support via DB or via file! (possible values are: 'on' and 'off')
 
-$support_email = 'support@your_host.com';  # Support e-mail
-$var_printing_mode = 'buffered';           # Default output is buffered,
+$webtools::support_email = 'support@your_host.com';  # Support e-mail
+$webtools::var_printing_mode = 'buffered';           # Default output is buffered,
                                            # leave this variable empty if you need output
                                            # of your script to flush 
                                            # immediately!
-@treat_htmls_ext = (                       # Order of html files location: Default, module first look for:
+@webtools::treat_htmls_ext = (             # Order of html files location: Default, module first look for:
 	            'whtml',               # "whtml","html","htm","cgihtml" and "cgi". If you specify in URL
 	            'html',                # ...?file=env.html script will ignore extension and will look for
 	            'htm',                 # file with extension orderd in @treat_htmls_ext array
@@ -77,7 +77,7 @@ $var_printing_mode = 'buffered';           # Default output is buffered,
 	            'cgi',                 # Please read carefull documentation (HELP.html) for additional info.
 	           );
 # Example:
-# @treat_htmls_ext = (                     # If Apache return as plain text your "whtml" file in cgi-bin
+# @webtools::treat_htmls_ext = (           # If Apache return as plain text your "whtml" file in cgi-bin
 #                     'whtml',             # directory, then you can rename your "whtml" file to "cgi"!
 #     	              'cgihtml'            # So process.cgi will be able to handle your query:
 #                     'html',              # ...?file=test.whtml despite that real name is test.cgi !
@@ -86,20 +86,20 @@ $var_printing_mode = 'buffered';           # Default output is buffered,
 #  	             );
 
 #[PATHS]
-$tmp = '/tmp/';                            # Temp directory
-$driver_path = './drivers/';               # Driver`s path
-$library_path = './libs/';                 # Librarie`s path
-$db_path = './db/';                        # DB`s path
-$mailsender_path = './mail/';              # Mail`s path
-$xreader_path = './jhtml/';                # Path of xreader files(jhtml-s)
-$perl_html_dir = './htmls/';               # Directory were peril’s html files are (/usr/local/apache/perlhtml/)
-$apacheshtdocs = '/var/www/htdocs/';       # '/usr/local/apache/htdocs/'
-$cgi_home_path = Get_CGI_Directory();      # Get webtools cgi-bin directory (exam: '/cgi-bin/webtools/')
-					   # NOTE: This path is not absolute and is not an HTTP!!!
-$http_home_path = '/webtools/';            # Please change this to your http path!
+$webtools::tmp = '/tmp/';                        # Temp directory
+$webtools::driver_path = './drivers/';           # Driver`s path
+$webtools::library_path = './libs/';             # Librarie`s path
+$webtools::db_path = './db/';                    # DB`s path
+$webtools::mailsender_path = './mail/';          # Mail`s path
+$webtools::xreader_path = './jhtml/';            # Path of xreader files(jhtml-s)
+$webtools::perl_html_dir = './htmls/';           # Directory were peril’s html files are (/usr/local/apache/perlhtml/)
+$webtools::apacheshtdocs = '/var/www/htdocs/';   # '/usr/local/apache/htdocs/'
+$webtools::cgi_home_path = Get_CGI_Directory();  # Get webtools cgi-bin directory (exam: '/cgi-bin/webtools/')
+					         # NOTE: This path is not absolute and is not an HTTP!!!
+$webtools::http_home_path = '/webtools/';        # Please change this to your http path!
 
-@use_addition_paths = ('./db/');  # Push paths in this array to force using of these
-                                  # directories from Perl
+@webtools::use_addition_paths = ('./db/');       # Push paths in this array to force using of these
+                                                 # directories from Perl
 
 ###################################################################
 # ------- DO NOT EDIT BELOW THIS LINE!!! -------
@@ -109,68 +109,69 @@ $http_home_path = '/webtools/';            # Please change this to your http pat
 # Determinate OS type
 # 
 
-unless ($sys_OS) 
+unless ($webtools::sys_OS) 
  {
-  unless ($sys_OS = $^O) 
+  unless ($webtools::sys_OS = $^O) 
      {
       require Config;
-      $sys_OS = $Config::Config{'osname'};
+      $webtools::sys_OS = $Config::Config{'osname'};
      }
  }
-if    ($sys_OS =~ /^MSWin/i){$sys_OS = 'WINDOWS';}
-elsif ($sys_OS =~ /^VMS/i) {$sys_OS = 'VMS';}
-elsif ($sys_OS =~ /^dos/i) {$sys_OS = 'DOS';}
-elsif ($sys_OS =~ /^MacOS/i) {$sys_OS = 'MACINTOSH';}
-elsif ($sys_OS =~ /^os2/i) {$sys_OS = 'OS2';}
-elsif ($sys_OS =~ /^epoc/i) {$sys_OS = 'EPOC';}
-else  {$sys_OS = 'UNIX'; }
+if    ($webtools::sys_OS =~ /^MSWin/i){$webtools::sys_OS = 'WINDOWS';}
+elsif ($webtools::sys_OS =~ /^VMS/i) {$webtools::sys_OS = 'VMS';}
+elsif ($webtools::sys_OS =~ /^dos/i) {$webtools::sys_OS = 'DOS';}
+elsif ($webtools::sys_OS =~ /^MacOS/i) {$webtools::sys_OS = 'MACINTOSH';}
+elsif ($webtools::sys_OS =~ /^os2/i) {$webtools::sys_OS = 'OS2';}
+elsif ($webtools::sys_OS =~ /^epoc/i) {$webtools::sys_OS = 'EPOC';}
+else  {$webtools::sys_OS = 'UNIX'; }
 
-$needs_binmode = $sys_OS=~/^(WINDOWS|DOS|OS2|MSWin)/;
+$webtools::needs_binmode = $webtools::sys_OS=~/^(WINDOWS|DOS|OS2|MSWin)/;
 
 # 
 # The path separator is a slash, backslash or semicolon, depending
 # on the paltform.
 # 
 
-$SL = {
+$webtools::SL = {
        UNIX=>'/', OS2=>'\\', EPOC=>'/', 
        WINDOWS=>'\\', DOS=>'\\', MACINTOSH=>':', VMS=>'/'
-      }->{$sys_OS};
+      }->{$webtools::sys_OS};
 
 # 
 # Define the CRLF sequence.
 # 
 
-$sys_EBCDIC = "\t" ne "\011";
-if ($sys_OS eq 'VMS') {$sys_CRLF = "\n";}
-elsif ($sys_EBCDIC)   {$sys_CRLF= "\r\n";}
-else {$sys_CRLF = "\015\012";}
+$webtools::sys_EBCDIC = "\t" ne "\011";
+if ($webtools::sys_OS eq 'VMS') {$webtools::sys_CRLF = "\n";}
+elsif ($webtools::sys_EBCDIC)   {$webtools::sys_CRLF= "\r\n";}
+else {$webtools::sys_CRLF = "\015\012";}
 
-$mysqlbequiet = '1';
-%dts = ('second' => 's','minute' => 'm', 'hour' => 'h', 'day' => 'd', 'month' => 'M', 'year' => 'y');
-%dts_flat = ('second' => 1,'minute' => 60, 'hour' => 3600, 'day' => 86400, 'month' => 2678400, 'year' => 31536000);
-$sys_c_d_h = $dts{$sys_conf_d};
-$sesstimead = '+'.$sess_time.$sys_c_d_h;
-$sess_datetype = $sys_conf_d;
-$sys_time_for_flat_sess = $dts_flat{$sys_conf_d} * $sess_time;
-$uni_sep = '©';                            # Col separator
-$uni_sep_t = '\©';                         # Col separator (slashed)
-$uni_gr_sep = ':';                         # Row separator
-$uni_gr_sep_t = '\:';                      # Row separator (slashed)
-$uni_esc = '%';                            # Escape char
-$config_path   = PathMaker('./conf/','../conf/');
-$library_path  = PathMaker($library_path,'.'.$library_path);
-$db_path       = PathMaker($db_path,'.'.$db_path);
-$driver_path   = PathMaker($driver_path,'.'.$driver_path);
-$xreader_path  = PathMaker($xreader_path,'.'.$xreader_path);
-$perl_html_dir = PathMaker($perl_html_dir,'.'.$perl_html_dir);
+$webtools::mysqlbequiet = '1';
+%webtools::dts = ('second' => 's','minute' => 'm', 'hour' => 'h', 'day' => 'd', 'month' => 'M', 'year' => 'y');
+%webtools::dts_flat = ('second' => 1,'minute' => 60, 'hour' => 3600, 'day' => 86400, 'month' => 2678400, 'year' => 31536000);
+$webtools::sys_c_d_h = $webtools::dts{$webtools::sys_conf_d};
+$webtools::sesstimead = '+'.$webtools::sess_time.$webtools::sys_c_d_h;
+$webtools::sess_datetype = $webtools::sys_conf_d;
+$webtools::sys_time_for_flat_sess = $webtools::dts_flat{$webtools::sys_conf_d} * $webtools::sess_time;
+$webtools::uni_sep = '©';                            # Col separator
+$webtools::uni_sep_t = '\©';                         # Col separator (slashed)
+$webtools::uni_gr_sep = ':';                         # Row separator
+$webtools::uni_gr_sep_t = '\:';                      # Row separator (slashed)
+$webtools::uni_esc = '%';                            # Escape char
+$webtools::config_path   = PathMaker('./conf/','../conf/');
+$webtools::library_path  = PathMaker($webtools::library_path,'.'.$webtools::library_path);
+$webtools::db_path       = PathMaker($webtools::db_path,'.'.$webtools::db_path);
+$webtools::driver_path   = PathMaker($webtools::driver_path,'.'.$webtools::driver_path);
+$webtools::xreader_path  = PathMaker($webtools::xreader_path,'.'.$webtools::xreader_path);
+$webtools::perl_html_dir = PathMaker($webtools::perl_html_dir,'.'.$webtools::perl_html_dir);
 
-foreach my $path (@use_addition_paths) { PathMaker($path,$path); }
+my $path;
+foreach $path (@webtools::use_addition_paths) { PathMaker($path,$path); }
 
 ####################################################################################
 # Stop execution of scripts till site is down
 ####################################################################################
-if (($site_is_down =~ m/^on$/si) and !($ENV{'SCRIPT_NAME'} =~ m/\/install\.cgi$/si))
+if (($webtools::site_is_down =~ m/^on$/si) and !($ENV{'SCRIPT_NAME'} =~ m/\/install\.cgi$/si))
  {
   CORE::print STDOUT "Content-type: text/html\n\n";
   CORE::print STDOUT "<B><font style='font-size:11pt' face='Verdana'>Dear Visitors,<BR><BR></B>";
@@ -186,13 +187,13 @@ if (($site_is_down =~ m/^on$/si) and !($ENV{'SCRIPT_NAME'} =~ m/\/install\.cgi$/
 # If $check_module_functions equal on 'true' then this check is performed always!!!
 # If you have already checked structure please turn this feature off!!!
 ####################################################################################
-if ($check_module_functions =~ m/^on$/si)
+if ($webtools::check_module_functions =~ m/^on$/si)
  {
   require 'check.pl';
   check_configuration();
  }
 
-$loading_cfg_fail = 0;
+$webtools::loading_cfg_fail = 0;
 
 sub PathMaker                 # Make paths to your base webtools files!
  {
@@ -214,5 +215,6 @@ sub Get_CGI_Directory
    }
   return('');
  }
-$sys_config_pl_loaded = 1;
+$webtools::sys_config_pl_loaded = 1;
+
 1;

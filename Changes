@@ -63,3 +63,10 @@ Revision history for Perl sub system "WebTools"
         - Problem with INLINE/INPERL templates solved.
         - "User support" extended: DB structure extended.
         - Improved install.cgi (use session cookies)
+
+1.21   18 Feb 2002
+        - Runtime (pre)configure of config.pl (load config.pl once)
+        - Runtime choice of active DB driver and dynamic selection of
+          DB functions, using AUTOLOAD method.
+        - All "config" variables now "belongs" to webtools module!
+        - Install.cgi now catch $webtools:: variables in config.pl
