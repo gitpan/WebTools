@@ -50,14 +50,14 @@
         MySQL server<br>
         <br>
         Prerequirements:<br>
-        Only </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/TIMB/DBI-1.20.tar.gz">DBI</a></font><font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
+        Only </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/TIMB/DBI-1.21.tar.gz">DBI</a></font><font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
         (for SQL access, respectively for Session/Users support)<br>
         <br>
-        If you want to use MySQL you also need: </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/JWIED/Msql-Mysql-modules-1.2216.tar.gz">MySQL</a> 
+        If you want to use MySQL you also need: </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/JWIED/Msql-Mysql-modules-1.2219.tar.gz">MySQL</a> 
         </font><font face="Verdana, Arial, Helvetica, sans-serif" size="2">module</font><font color="#000000"> 
         <br>
         </font><font size="2" face="Verdana, Arial, Helvetica, sans-serif">For 
-        MS-Access you need </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/J/JU/JURL/DBD-ODBC-0.28.tar.gz">DBD-ODBC</a></font><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;<br>
+        MS-Access you need </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/J/JU/JURL/DBD-ODBC-0.38.tar.gz">DBD-ODBC</a></font><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;<br>
         <br>
         If you haven't SQL server you can use our build in FLAT DB (based on DBD::Sprite)</font></b></p>
       <p></p>
@@ -69,8 +69,8 @@
         file.<br>
         Please copy this .gz file into some directory and run follow commands:</font></b></p>
       <p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">tar -zxvf 
-        WebTools-1.23.tar.gz<br>
-        cd WebTools-1.23</font></b></p>
+        WebTools-1.24.tar.gz<br>
+        cd WebTools-1.24</font></b></p>
       <p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">perl Makefile.PL</font></b></p>
       <p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">make<br>
         make install<br>
@@ -164,7 +164,7 @@
         (we use virtual host: july.newald.proscriptum.com)<br>
         His full cgi-bin directory is: <font color="#000099">/home/july/public_html/cgi-bin</font><br>
         So &nbsp;his webtools directory can be: <font color="#000099">/home/july/public_html/cgi-bin/webtools<br>
-        <font color="#000000">Now we can upload WebTools-1.23.tar.gz to our home 
+        <font color="#000000">Now we can upload WebTools-1.24.tar.gz to our home 
         directory and after that to install script.<br>
         After installation our process.cgi has permission mode set to 0755, directories 
         have permission modes: 0755 and any other files: 0444<br>
@@ -357,8 +357,8 @@
         # Step by Step Installation example:<br>
         #-----------------------------------------------------------------------------------------</font></b></p>
       <p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#000099">tar 
-        -zxvf WebTools-1.23.tar.gz<br>
-        cd WebTools-1.23<br>
+        -zxvf WebTools-1.24.tar.gz<br>
+        cd WebTools-1.24<br>
         perl Makefile.pl</font><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#000000"><br>
         <font color="#006600">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt; 
         /usr/local/apache/cgi-bin/webtools/</font><br>
@@ -367,7 +367,7 @@
         make permissions<br>
         make clean<br>
         cd ..<br>
-        rm -rf WebTools-1.23<br>
+        rm -rf WebTools-1.24<br>
         cd /usr/local/apache/cgi-bin/webtools<br>
         ls -l -a<br>
         perl -c process.cgi &nbsp;&nbsp;&nbsp;&nbsp;# Must be &quot;ok&quot;<br>

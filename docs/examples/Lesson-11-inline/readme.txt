@@ -37,8 +37,8 @@ or even using scalar variables!:
 
 <HTML>
 <?perl
-my $width = 200;
-my $text = 'July';
+  my $width = 200;
+  my $text = 'July';
 ?>
 <!--©INLINE©><XREADER:1:xread/xr.jhtml:$width,$text></©INLINE©-->
 </HTML>

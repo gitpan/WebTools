@@ -17,10 +17,10 @@ require Exporter;
 use Fcntl;
 use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter);
-@EXPORT = qw(reset clear $var_printing_mode $sys_stdouthandle_print_text $sys_stdouthandle_content_ok 
+@EXPORT = qw(reset clear $sys_stdouthandle_print_text $sys_stdouthandle_content_ok 
              $sys_stdouthandle_header $sys_stdouthandle_header_up_to_now);
-$VERSION = "1.23";
-$var_printing_mode = 'buffered';
+$VERSION = "1.24";
+
 $sys_stdouthandle_print_text = 0;
 $sys_stdouthandle_header = 0;
 $sys_stdouthandle_content_ok = 0;
@@ -36,7 +36,7 @@ sub WRITE
  {
   my $this = shift;
   $sys_stdouthandle_print_text = 1;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     my ($buf,$len,$ofs) = @_;
     my $sclr = '';
@@ -58,12 +58,13 @@ sub WRITE
        {
        	CORE::print "Content-type: text/html\n";
        }
-      CORE::print "X-Powered-By: WebTools/1.23\n\n";
+      CORE::print "X-Powered-By: WebTools/1.24\n\n";
       $sys_stdouthandle_content_ok = 1;
       $sys_stdouthandle_header = 1;
      }
-    CORE::write($_[0],$_[1],$_[2]);
+    my $sys_res_code = CORE::write($_[0],$_[1],$_[2]);
     select($oldHand);
+    return($sys_res_code);
    }
  }
 
@@ -71,7 +72,7 @@ sub PRINT
  {
   my $this = shift;
   $sys_stdouthandle_print_text = 1;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    { 	
     my @data = @_;
     my $sclr = join('',@data);
@@ -89,12 +90,13 @@ sub PRINT
        {
        	CORE::print "Content-type: text/html\n";
        }
-      CORE::print "X-Powered-By: WebTools/1.23\n\n";
+      CORE::print "X-Powered-By: WebTools/1.24\n\n";
       $sys_stdouthandle_content_ok = 1;
       $sys_stdouthandle_header = 1;
      }
-    CORE::print(@_);
+    my $sys_res_code = CORE::print(@_);
     select($oldHand);
+    return($sys_res_code);
    }
  }
 
@@ -102,7 +104,7 @@ sub PRINTF
  {
   my $this = shift;
   $sys_stdouthandle_print_text = 1;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     my $frmt = shift;
     my $r = sprintf($frmt,@_);
@@ -120,12 +122,13 @@ sub PRINTF
        {
        	CORE::print "Content-type: text/html\n";
        }
-      CORE::print "X-Powered-By: WebTools/1.23\n\n";
+      CORE::print "X-Powered-By: WebTools/1.24\n\n";
       $sys_stdouthandle_content_ok = 1;
       $sys_stdouthandle_header = 1;
      }
-    CORE::print(@_);
+    my $sys_res_code = CORE::print(@_);
     select($oldHand);
+    return($sys_res_code);
    }
  }
 
@@ -134,7 +137,7 @@ sub READ
   my $this = shift;
   my $buf = \$_[0];
   my (undef,$len,$ofs) = @_;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     my $sclr = $this->{'body'};
     my $bufr = substr($sclr,$ofs);
@@ -144,15 +147,16 @@ sub READ
   else
    {
     local $oldHand = select(STDOUT);
-    CORE::read($buf,$len,$ofs);
+    my $sys_res_code = CORE::read($buf,$len,$ofs);
     select($oldHand);
+    return($sys_res_code);
    }
 }
  
 sub READLINE
  {
   my $this = shift;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     my $buf = '';
     my $sclr = $this->{'body'};
@@ -163,15 +167,16 @@ sub READLINE
   else
    {
     local $oldHand = select(STDOUT);
-    CORE::readline($_[0]);
+    my $sys_res_code = CORE::readline($_[0]);
     select($oldHand);
+    return($sys_res_code);
    }
  }
  
 sub GETC
  {
   my $this = shift;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     my $buf;
     my $sclr = $this->{'body'};
@@ -182,15 +187,16 @@ sub GETC
  else
    {
     local $oldHand = select(STDOUT);
-    CORE::getc(@_);
+    my $sys_res_code = CORE::getc(@_);
     select($oldHand);
+    return($sys_res_code);
    }
  }
  
 sub SEEK
  {
   my $this = shift;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     my $where = shift;
     my $whence = shift;
@@ -202,30 +208,32 @@ sub SEEK
  else
    {
     local $oldHand = select(STDOUT);
-    CORE::seek($_[0],$_[1],$_[2]);
+    my $sys_res_code = CORE::seek($_[0],$_[1],$_[2]);
     select($oldHand);
+    return($sys_res_code);
    }
  }
 
 sub TELL
  {
   my $this = shift;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     return ($this->{'offset'});
    }
   else
    {
     local $oldHand = select(STDOUT);
-    CORE::tell(@_);
+    my $sys_res_code = CORE::tell(@_);
     select($oldHand);
+    return($sys_res_code);
    }
  }
  
 sub EOF
  {
   my $this = shift;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     if(length($this->{'body'}) <= $this->{'offset'}) { return(1); }
     return(0);
@@ -233,23 +241,25 @@ sub EOF
   else
    {
     local $oldHand = select(STDOUT);
-    CORE::eof(@_);
+    my $sys_res_code = CORE::eof(@_);
     select($oldHand);
+    return($sys_res_code);
    }
  }
 
 sub BINMODE
  {
   my $this = shift;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     return(1);
    }
  else
    {
     local $oldHand = select(STDOUT);
-    CORE::binmode(@_);
+    my $sys_res_code = CORE::binmode(@_);
     select($oldHand);
+    return($sys_res_code);
    }
  }
 
@@ -272,7 +282,7 @@ sub clear
 sub OPEN
  {
   my $this = shift;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     my $filename = shift;
     $this->{'header'} = '';
@@ -283,15 +293,16 @@ sub OPEN
  else
    {
     local $oldHand = select(STDOUT);
-    CORE::open(@_);
+    my $sys_res_code = CORE::open(@_);
     select($oldHand);
+    return($sys_res_code);
    }
  }
 
 sub CLOSE
  {
   my $this = shift;
-  if ($var_printing_mode eq 'buffered')
+  if ($webtools::var_printing_mode eq 'buffered')
    {
     eval {webtools::flush_print();};
     $this->{'header'} = '';
@@ -302,8 +313,9 @@ sub CLOSE
   else
    {
     local $oldHand = select(STDOUT);
-    CORE::close(@_);
+    my $sys_res_code = CORE::close(@_);
     select($oldHand);
+    return($sys_res_code);
    }
  }
 

@@ -8,6 +8,8 @@ could use it when other mail program is not available. The only one prerequireme
 Windows(NT/XP) :-)
 Note: 'nslookup' is depricated, so for Unix/Linux system we support 'host' program, but Windows
 still use 'nslookup'!
+From version 1.23 and later our mail client support RAW queries to DNS server, so you don't need
+dns lookup programs!
 
 Example:
 

@@ -3,13 +3,13 @@
 #################################################
 
 my @allowed_IPs = ();
-open (IPF, $db_path.'ips.pl');
+open (IPF, $webtools::db_path.'ips.pl');
 my @IPs = <IPF>;  # Load allowed IPs
 close IPF;
 foreach my $ip (@IPs)
  { 
   $ip =~ s/^(.*?)(#.*)$/$1/si;
-  $ip =~ s/(\ |\n|\r|\t)//sg;
+  $ip =~ s/(\n|\r|\t)//sg;
   if($ip) {push(@allowed_IPs,$ip);}
  }
 
@@ -21,18 +21,39 @@ foreach my $ip (@IPs)
 sub Check_Remote_IP
 {
  my $ip = shift(@_);
-
+ my ($act,$addr,$url,$l) = ();
+ my @a = ('0','');
  foreach $l (@allowed_IPs)
   {
-   $l =~ s/\./\\./sg;
-   $l =~ s/\*/\\d{0,3}/sig;
-   $l = '^'.$l.'$';
-   if($ip =~ m/$l/s)
+   $l =~ /^(\!)?([^\ ]+)(\ {0,})(.*)$/s;
+   ($act,$addr,$url) = ($1,$2,$3.$4);
+
+   $addr =~ s/^\ {1,}//s; $addr =~ s/\ {1,}$//s;
+   $url  =~ s/^\ {1,}//s; $url  =~ s/\ {1,}$//s;
+   
+   $addr =~ s/\./\\./sg;
+   $addr =~ s/\*/\\d{0,3}/sig;
+   $addr =~ s/\?/\\d{1}/sig;
+   $addr = '^'.$addr.'$';
+   if($ip =~ m/$addr/s)
      {
-      return(1);
+      @a = ('1',$url);
+      if($act eq '!')
+       {
+        @a = ('0',$url);
+       }
+      return(@a);
+     }
+    else
+     {
+      if($act eq '!')
+       {
+        @a = ('1',$url);
+        return(@a);
+       }
      }
   }
- return(0);
+ return(@a);
 }
 
 1;

@@ -97,8 +97,9 @@ sub check_configuration
 
    if($sys_mailing == 0)
     {
-     print '<BR><BR><font color="#C02020">Sorry but you can`t send emails anyway! Either sendmail and host/nslookup are not available for WebTools.</font><BR>';
-     print '<BR>Hint: <font color="#C02020">Set full path for sendmail program in config.pl ($webtools::sendmail variable) and then use send_mail() function available in mail.pl</font><BR>';
+     print '<BR><BR><font color="#C02020">Sorry but you can`t send emails through standart way! (Either sendmail and host/nslookup are not available for WebTools).</font><BR>';
+     print '<BR>Hint1: <font color="#C02020">Set full path for sendmail program in config.pl ($webtools::sendmail variable) and then use send_mail() function available in mail.pl</font>';
+     print '<BR>Hint2: <font color="green">Rely on our build-in DNS lookup you can use mail() function available in mail.pl</font><BR>';
     }
    elsif($sys_mailing == 1)
     {

@@ -1,7 +1,7 @@
 #####################################################################
 # eXternal Reader
 # eXtended Reader
-# eXcelant Reader
+# eXcellent Reader
 #####################################################################
 
 # Copyright (c) 2001, Julian Lishev, Sofia 2001
@@ -69,7 +69,6 @@ sub xreader
  else
   {
    undef $/;
-   #print $xreader_path.$filename; 
    open(XFILE,$xreader_path.$filename) or return(0);
    binmode(XFILE);
    $data = <XFILE>;

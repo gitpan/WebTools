@@ -1,18 +1,22 @@
 #################################################
-# This lib was originally written by
-# Krasimir Krystev (c) Mole Software 
-#
-# Library modified by: Svetoslav Marinov and
-# RE-Written by Julian Lishev
+# Author: Julian Lishev, All rights reserved!
+# Helpers: Krasimir Krystev & Svetoslav Marinov
 #################################################
 # Subs: send_mail, mail, mx_lookup,
+#       raw_mx_lookup, raw_dns_record_lookup
 #       set_attached_files,
 #       remove_mail_attachment,
 #       clear_all_mail_attachments
+#       get_mime_encoding
+#       set_mime_encoding
 # Prereqired modules:
 #       MIME::QuotedPrint and MIME::Base64
 #################################################
 # send_mail(FROM,TO,SUBJECT,BODY,AS_HTML);
+#################################################
+# This version of "mail" is capable to fetch
+# MX records, using UDP datagrams sent direct
+# to DNS server.
 #################################################
 # Note: Standart module MIME::QuotedPrint discard
 # rule 4 from RFC 2045, so "\n" is not converted
@@ -26,12 +30,25 @@
 # Anyway try to use send_mail() function (via
 # sendmail) before using mail()!
 #################################################
+use Socket;
+use IO::Socket;
+use FileHandle;
 
 %mole_attached_files = ();  # Please use "set_mail_attachment" and "remove_mail_attachment"
                             # instead of direct manipulating of hash.
 $webtools::mail_count_of_iterative_loops  = 5;
 $webtools::mail_count_of_attempts_to_send = 2;
 $webtools::loaded_functions = $webtools::loaded_functions | 64;
+
+%sys_mime_encoding = ();
+%sys_mail_original_names = ();
+
+%sys_dns_mx_cache = ();
+%sys_mail_bad_mx_hosts_cache = ();
+
+my $sys_dns_lookup_respsize;
+my $sys_dns_lookup_buf;
+my $sys_dns_lookup_id = 0;
 
 sub send_mail 
   {
@@ -114,17 +131,21 @@ sub set_mail_attachment
   $original_file_name =~ s/.*(\/|\\)(.*)$/$2/s;
   if($original_file_name eq '') {$original_file_name = 'webtools_upload_'.(rand()*1000);}
   $mole_attached_files{$original_file_name} = $server_file_name;
+  $sys_mail_original_names{$original_file_name} = $original_file_name;
 }
 
 sub remove_mail_attachment 
 {
   my ($original_file_name) = @_;
   delete($mole_attached_files{$original_file_name});
+  delete($sys_mail_original_names{$original_file_name});
 }
 
 sub clear_all_mail_attachments
 {
   %mole_attached_files = ();
+  %sys_mime_encoding = ();
+  %sys_mail_original_names = ();
 }
 
 sub real_send_mail 
@@ -158,15 +179,23 @@ sub real_send_mail
   }
  
  my $crlf = $sys_CRLF;
- my $boundary = "MZ8dd988d1d73016OQ104bWebTools050010191".(int(rand()*1000000000)+192837460)."PE";
+ my $boundary = "=_MZ8dd988d1d73016OQ104bWebTools050010191".(int(rand()*1000000000)+192837460)."PE";
  my $next_boundary = $crlf.'--'.$boundary.$crlf;
  my $last_boundary = $crlf.'--'.$boundary.'--'.$crlf;
- my $a_boundary = "ZM".(int(rand()*1000000000)+192837460)."0018104bd730WebTools0598dd16OQ8d10191"."EP";
+ my $a_boundary = "=_ZM".(int(rand()*1000000000)+192837460)."0018104bd730WebTools0598dd16OQ8d10191"."EP";
  my $a_next_boundary = $crlf.'--'.$a_boundary.$crlf;
  my $a_last_boundary = $crlf.'--'.$a_boundary.'--'.$crlf;
- my $charset = 'Content-type: text/html; charset=us-ascii';
+ my $charset;
  my $html  = 'Message-ID: <'.(int(rand()*1000000000)+83649814).'.cae99500.2e0aa8c0@localhost>'.$crlf;
- 
+ if(!$is_html)
+  {
+   if($charset eq '') {$charset = 'Content-type: text/plain; charset=us-ascii';}
+   if($charset ne '') {$html .= $charset.$crlf;}
+  }
+ else
+  {
+   if($charset eq '') {$charset = 'Content-type: text/html; charset=us-ascii';}
+  }
  $html .= "From: ".$fromuser.$crlf;
  $html .= "To: ".$touser.$crlf;
  $html .= 'X-Priority: 2'.$crlf;
@@ -252,6 +281,8 @@ sub real_send_mail
     
  close (MAIL);
  %mole_attached_files = ();   # Attachments are now cleared.
+ %sys_mime_encoding = ();
+ %sys_mail_original_names = ();
  return(1);
 }
 
@@ -319,59 +350,140 @@ sub readAttach
     
     return $data;
   }
-
+################################################
+# This is a direct MAIL client
+# It can send e-mails without external
+# software (like sendmail,host,nslookup)
+################################################
 sub mail
 {
- eval {use Socket;};
- eval {use FileHandle;};
- my $iterative;
- my $last_error = 220;  # 220 - Sent OK
- my %inp;
- my %backup = %mole_attached_files;
- 
- foreach (1..$mail_count_of_attempts_to_send)
+ my %input = @_;
+
+ # Parse all TO,CC and BCC mails!
+ # Note that CC and BCC fields are not visible
+ # from recipient!
+ my $cc  = $input{'cc'};
+ my $bcc = $input{'bcc'};
+ my $to = $input{'to'};
+ my @all = ();
+ my @results = ();
+ my @mails = ();
+ push(@mails,split(/\,/s,$to));
+ push(@mails,split(/\,/s,$cc));
+ push(@mails,split(/\,/s,$bcc));
+ foreach $to (@mails)
   {
-   %mole_attached_files = %backup;
-   $iterative = 0;
-   %inp = @_;
-   while($iterative < $mail_count_of_iterative_loops)
+   $to =~ s/^\ {1,}//s;
+   $to =~ s/\ {1,}$//s;
+   if($to =~ m/\@/s)
     {
-     my ($code,$data) = talk_to_smpt(%inp);
-     if(($code == 251) or ($code == 551))
-      {
-       # Get e-mail and useit in mail call...
-       $last_error = $code;
-       if($data =~ m/\<([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z0-9\_\-\.]+)?(\>|\;|\:|\ )/is)
-         {
-          $inp{'to'} = $1.'@'.$2.'.'.$3;
-         }
-       else
-        {
-         $last_error = 550;
-         return(550);
-        }
-       $iterative++;
-      }
-     else
-      {
-       if($code != 220)
-        {
-         $last_error = $code;
-         $iterative = 5;
-         next;
-        }
-       return($code);
-      }
+     push(@all,$to);
     }
   }
- return($code);
+ delete $input{'to'};
+ delete $input{'cc'};
+ delete $input{'bcc'};
+ 
+ my $from = $input{'from'};
+ $from =~ s/^\ {1,}//s;
+ $from =~ s/\ {1,}$//s;
+ $input{'from'} = $from;
+ 
+ my $replyto = $input{'replyto'};
+ $replyto =~ s/^\ {1,}//s;
+ $replyto =~ s/\ {1,}$//s;
+ $input{'replyto'} = $replyto;
+ 
+ # Send e-mails to all valid e-mail adresses
+ foreach $to (@all)
+ {
+  my $sending_counter = 1;
+  if ($to =~ m/^(.*?)\ {1,}(\d{1,})$/s) {$sending_counter = $2; $to = $1;}
+  foreach (1..$sending_counter)
+  {
+  my $pure_to = $to;
+  if($to =~ m/^(.*)\<(.*?)\>(.*)$/si)
+   {
+    $pure_to = $2;
+   }
+  $pure_to =~ m/\@(.*)$/s;
+  if(exists($sys_mail_bad_mx_hosts_cache{$1}))  # Is this mail server in "bad" list?
+    {push(@results,'-1'."\t".$to."\t"."FATAL:Can't resolve host (invalid email)"); next;}
+  next_mail:{
+  $input{'to'} = $to;
+  my $iterative;
+  my $last_error = 220;  # 220 - Sent OK
+  my $last_data  = '';
+  my $mcas;
+  my %inp;
+  my %backup = %mole_attached_files;
+  my $mail__count_of_attempts_to_send = $inp{'counts'} || $mail_count_of_attempts_to_send;
+  foreach $mcas (1..$mail__count_of_attempts_to_send)
+   {
+    %mole_attached_files = %backup;
+    $iterative = 0;
+    %inp = %input;
+    while($iterative < $mail_count_of_iterative_loops)       # proceed next mail redirect?
+     {
+      my ($code,$data) = talk_to_smpt(%inp);
+      if(($code eq '-1') and ($data =~ m/^FATAL\:(.*)$/si))  # Fatal error for this mail transaction!
+       {
+        push(@results,'-1'."\t".$input{'to'}."\t".$data);
+        my $to = $input{'to'};
+        my $pure_to = $to;
+        if($to =~ m/^(.*)\<(.*?)\>(.*)$/si)
+          {
+           $pure_to = $2;
+          }
+        $pure_to =~ m/\@(.*)$/s;
+        $sys_mail_bad_mx_hosts_cache{$1} = '1';     # Cache fall mail server...do not send mails
+        next next_mail;                             # Try to send next mail...
+       }
+      if(($code == 251) or ($code == 551))
+       {
+        # Get e-mail and use it in next mail pass...
+        $last_error = $code;
+        $last_data  = $data;
+        if($data =~ m/\<([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z0-9\_\-\.]+)?(\>|\;|\:|\ )/is)
+          {
+           $inp{'to'} = $1.'@'.$2.'.'.$3;
+          }
+        else
+         {
+          push(@results,'550'."\t".$input{'to'}."\t".$data); # Mail server reject this mail
+          next next_mail;
+         }
+        $iterative++;
+       }
+      else
+       {
+        if($code != 220)
+         {
+          $last_error = $code;
+          $last_data  = $data;
+          $iterative = 5;
+          if($mcas == $mail__count_of_attempts_to_send)
+           {
+            push(@results,$last_error."\t".$input{'to'}."\t".$last_data);
+           }
+          next;
+         }
+         push(@results,$code."\t".$input{'to'}."\t".$last_data);
+         next next_mail;
+       }
+      }
+     }
+    }
+   }
+  }
+ return(@results);
 }
 
 sub talk_to_smpt
 {
  my %inp = @_;
  my $crlf = $sys_CRLF;
- my ($timeout,$from,$to,$subject,$body,$replyto,$raw,$ns_lookup,$qfrom,$text);
+ my ($timeout,$from,$to,$subject,$body,$replyto,$raw,$ns_lookup,$qfrom,$text,$dns);
  my ($peer,$user,$ip,$data,$fdom,$html,$charset,$priority) = ();
  my @res = ();
  
@@ -382,7 +494,7 @@ sub talk_to_smpt
  else {$from = ''; $qfrom = '';}
  
  if(exists($inp{'to'})) {$to = 'To: '.$inp{'to'}.$crlf;}
- else {return(-1);}                                   # No receiver!
+ else {return((-1,'FATAL:Empty TO'));}                                   # No receiver!
  
  if(exists($inp{'subject'})) {$subject = 'Subject: '.$inp{'subject'}.$crlf;}
  else {$subject = '';}
@@ -397,7 +509,7 @@ sub talk_to_smpt
  else {$text = '';}
  
  if(exists($inp{'date'})) {$date = 'Date: '.$inp{'date'}.$crlf;}
- else {$date = '';}
+ else {$date = 'Date: '.&mail_default_DATE().$crlf;}
  
  if(exists($inp{'raw'})) {$raw = $inp{'raw'};}
  else {$raw = '';}
@@ -405,8 +517,11 @@ sub talk_to_smpt
  if(exists($inp{'nslookup'})) {$ns_lookup = $inp{'nslookup'};}
  else {$ns_lookup = '';}
  
+ if(exists($inp{'dns'})) {$dns = $inp{'dns'};}
+ else {$dns = '';}
+ 
  if(exists($inp{'charset'})) {$charset = $inp{'charset'};}
- else {$charset = 'Content-type: text/html; charset=us-ascii';}
+ else {$charset = '';}
  
  if(exists($inp{'priority'})) 
    {
@@ -425,11 +540,20 @@ sub talk_to_smpt
    }
  else {$html = 0;}
  
- $to =~ m/^To\: ([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z0-9\_\-\.]+)\r\n$/is;
+ my $pure_to = $inp{'to'};
+ if($pure_to =~ m/^(.*)\<(.*?)\>(.*)$/si)
+  {
+   $pure_to = $2;
+  }
+ $pure_to =~ m/^([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z0-9\_\-\.]+)$/is;
  $peer = $2.'.'.$3;
  $user = $1;
- 
- $qfrom =~ m/^([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z0-9\_\-\.]+)$/is;
+ my $pure_from = $inp{'from'};
+ if($pure_from =~ m/^(.*)\<(.*?)\>(.*)$/si)
+  {
+   $pure_from = $2;
+  }
+ $pure_from =~ m/^([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z0-9\_\-\.]+)$/is;
  $fdom  = $2.'.'.$3;
  
  my $proto = getprotobyname('tcp');
@@ -443,14 +567,32 @@ sub talk_to_smpt
  
  if($query =~ m/^\d{1,3}\./s)
   {
-   $query = gethostbyaddr(inet_aton($query), AF_INET);
+   my $inet_res = inet_aton($query);
+   if($inet_res eq undef) {return((-1,"FATAL:Can't resolve host (invalid email)"));}
+   $query = gethostbyaddr($inet_res, AF_INET);
    $query =~ s/^.*\.(.*)\.(.*)^/$1\.$2/s;
    my @host = split(/\./,$query);
    if($#host > 1) {$query = $host[-2].'.'.$host[-1];}
   }
-  
- my @ips = mx_lookup($query,$ns_lookup);
- if($#ips == -1) {@ips = ("10\t".$peer);}
+ 
+ my @ips = ();
+ if(exists($sys_dns_mx_cache{$query}))   # Lookup in temp cache
+ {
+  my $ptr = $sys_dns_mx_cache{$query};   # ...use found MX records
+  @ips = @$ptr;
+ }
+else
+ {
+  @ips = mx_lookup($query,$ns_lookup,$dns); # fetch MX records
+  if(scalar(@ips) == 0) {@ips = ("10\t".$peer);}
+  elsif(($ips[0] == -1) or ($ips[0] == 0))
+    {
+      my @res = (0,"Can't connect to DNS server");                  # Can't connect to DNS server
+      return(@res);
+    }
+  my @mxs = @ips;
+  $sys_dns_mx_cache{$query} = \@mxs;     # Save in cache found records
+ }
 
  my $flag_succ = 0;
  
@@ -458,7 +600,11 @@ sub talk_to_smpt
   {
    $ip =~ m/^\d{1,5}\t(.*?)$/s;
    $ip = $1;
-   my $sin = sockaddr_in($port,inet_aton($ip));
+   
+   my $inet_res = inet_aton($ip);
+   if($inet_res eq undef) {return((-1,"FATAL:Can't resolve host (invalid email)"));}
+   
+   my $sin = sockaddr_in($port,$inet_res);
    $isconnected = connect(Sock,$sin);
    if ($isconnected)
      {					       # ?Mail server? not responding!?
@@ -471,24 +617,24 @@ sub talk_to_smpt
      }
    else
     {
-     @res = (0,'');                            # Can't connect.
+     @res = (0,"Can't connect to mail host");                            # Can't connect.
     }
   }
   if($flag_succ)
    {
-    if(send(Sock,"HELO $fdom".$crlf,0) eq undef){return(-1);} # -1 Can`t send to socket
+    if(send(Sock,"HELO $fdom".$crlf,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 250) {return(($res[0],$res[1]));}
 
-    if(send(Sock,"MAIL FROM:<$qfrom>".$crlf,0) eq undef){return(-1);} # -1 Can`t send to socket
+    if(send(Sock,"MAIL FROM:<$qfrom>".$crlf,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 250) {return(($res[0],$res[1]));}
     
-    if(send(Sock,"RCPT TO:<$user\@$peer>".$crlf,0) eq undef){return(-1);} # -1 Can`t send to socket
+    if(send(Sock,"RCPT TO:<$user\@$peer>".$crlf,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 250) {return(($res[0],$res[1]));}     # 251,551 (redirect) ?
-    
-    if(send(Sock,"DATA".$crlf,0) eq undef){return(-1);} # -1 Can`t send to socket
+
+    if(send(Sock,"DATA".$crlf,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 354) {return(($res[0],$res[1]));}
     if($raw eq '')
@@ -501,11 +647,11 @@ sub talk_to_smpt
      {
       $data = $raw;      # $raw should contain all data that needed for DATA command to smpt!!!
                          # don't forget to put "CRLF.CRLF" sequence!
-      if(send(Sock,$data,0) eq undef){return(-1);} # -1 Can`t send to socket
+      if(send(Sock,$data,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
      }
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 250) {return(($res[0],$res[1]));}
-    if(send(Sock,"QUIT".$crlf.'.'.$crlf,0) eq undef){return(-1);} # -1 Can`t send to socket
+    if(send(Sock,"QUIT".$crlf.'.'.$crlf,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 221) {return(($res[0],$res[1]));}
     close (Sock);
@@ -516,72 +662,96 @@ sub talk_to_smpt
 
 # @ips = mx_lookup($domain_or_ip, [$path_to_nslookup_or_to_host]);
 # Windows like OS should use 'nslookup' but Unix like OS should use 'host'!
+# If you haven't one of these programs, script will make raw query to DNS server.
 sub mx_lookup
 {
- eval {use Socket;};
  my $result;
  my $domain = shift;
  my @digout;
  my $line;
  my @mxrecs = ();
- my $nslookup = $_[0] ne '' ? shift(@_) : 'nslookup';
- my $host = $_[0] ne '' ? shift(@_) : 'host';
+ my $nslookup = $_[0] ne '' ? $_[0] : 'nslookup';
+ my $host     = $_[0] ne '' ? $_[0] : 'host';
+ if($_[1] ne '') {shift;}
+ my $dns      = shift;
  my $qrt = $domain;
  $qrt =~ s/\./\\\./sig;
  $nslookup .= " -q=MX $domain";
  $host .= " -t MX $domain";
- 
- # Try to get MX recors through 'host' program
- @digout =  `$host`;
- foreach $line (@digout) 
-   {
-    if($line =~ m/^$qrt\.\ mail\ is\ handled\ by\ (\d{1,})\ (.*)\./si)
-     {
-      my $h = $2;
-      my $prority = $1;
-      if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
-        {
-         $h = $1;
-         push(@mxrecs,$prority."\t".$h);
-        }
-      else
-        {
-         $h =~ s/^[\ \t\r\n]*//s;
-         $h =~ s/[\ \t\r\n]*$//s;
-         (undef, undef, undef, undef, @addrs) = gethostbyname($h);
-         $h  = inet_ntoa($addrs[0]);
-         push(@mxrecs,$prority."\t".$h);
-        }
-     }
-   }
 
- if(scalar(@mxrecs) == 0) # If 'host' is not avalible or not work
- { # Of course mail server can be a $domain! Anyway...
-  @digout =  `$nslookup`;  # we must try 'nslookup'!
-  foreach $line (@digout) 
-   {
-    if($line =~ m/^$qrt\x9(MX)?\ ?preference\ =\ (\d{1,5})\, mail\ exchanger\ =\ (.*?)$/si)
+ if(!($dns =~ m/^[0-9\.]+$/)) {
+ # Try to get MX recors through 'host' program
+ $! = 0;
+ @digout =  `$host`;
+ if($! eq '')
+  {
+   foreach $line (@digout) 
      {
-      my $h = $3;
-      my $prority = $2;
-      if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
-        {
-         $h = $1;
-         push(@mxrecs,$prority."\t".$h);
-        }
-      else
-        {
-         $h =~ s/\.$//s;
-         $h =~ s/^[\ \t\r\n]*//s;
-         $h =~ s/[\ \t\r\n]*$//s;
-         (undef, undef, undef, undef, @addrs) = gethostbyname($h);
-         $h  = inet_ntoa($addrs[0]);
-         push(@mxrecs,$prority."\t".$h);
-        }
+      if($line =~ m/^$qrt\.\ mail\ is\ handled\ by\ (\d{1,})\ (.*)\./si)
+       {
+        my $h = $2;
+        my $prority = $1;
+        if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
+          {
+           $h = $1;
+           push(@mxrecs,$prority."\t".$h);
+          }
+        else
+          {
+           $h =~ s/^[\ \t\r\n]*//s;
+           $h =~ s/[\ \t\r\n]*$//s;
+           (undef, undef, undef, undef, @addrs) = gethostbyname($h);
+           if(scalar(@addrs) == 0) {next;}
+           $h  = inet_ntoa($addrs[0]);
+           push(@mxrecs,$prority."\t".$h);
+          }
+       }
      }
+    if(scalar(@mxrecs) == 0) {return();} # Mail server is $peer!
    }
+   
+ if(scalar(@mxrecs) == 0) # If 'host' is not avalible or not work
+ {
+  $! = 0;
+  @digout =  `$nslookup`;  # we must try 'nslookup'!
+  if($! eq '')
+   {
+    foreach $line (@digout) 
+     {
+      if($line =~ m/^$qrt\x9(MX)?\ ?preference\ =\ (\d{1,5})\, mail\ exchanger\ =\ (.*?)$/si)
+       {
+        my $h = $3;
+        my $prority = $2;
+        if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
+         {
+          $h = $1;
+          push(@mxrecs,$prority."\t".$h);
+         }
+        else
+         {
+          $h =~ s/\.$//s;
+          $h =~ s/^[\ \t\r\n]*//s;
+          $h =~ s/[\ \t\r\n]*$//s;
+          (undef, undef, undef, undef, @addrs) = gethostbyname($h);
+          if(scalar(@addrs) == 0) {next;}
+          $h  = inet_ntoa($addrs[0]);
+          push(@mxrecs,$prority."\t".$h);
+         }
+       }
+     }
+    if(scalar(@mxrecs) == 0) {return();} # Mail server is $peer!
+   }
+  }
  }
- return sort(@mxrecs);
+ # Still can't find working software :))?
+ if(scalar(@mxrecs) == 0) # If 'nslookup' and 'host' is not avalible
+ {
+  my @mx = raw_mx_lookup($domain,$dns);
+  
+  if(scalar(@mx) == 0) {return();}
+  if(($mx[0] != -1) and ($mx[0] != 0)) {@mxrecs = @mx;}
+ }
+ return dns_sort_mx_records(@mxrecs);
 }
 
 # $code = ReadFromSocket(SOCK, $timeout);
@@ -669,38 +839,156 @@ sub mail_data
   }
  
  my $crlf = $sys_CRLF;
- my $boundary = "MZ8dd988d1d73016OQ104bWebTools050010191".(int(rand()*1000000000)+192837460)."PE";
+ my $boundary = "=_MZ8dd988d1d73016OQ104bWebTools050010191".(int(rand()*1000000000)+192837460)."PE";
  my $next_boundary = $crlf.'--'.$boundary.$crlf;
  my $last_boundary = $crlf.'--'.$boundary.'--'.$crlf;
- my $a_boundary = "ZM".(int(rand()*1000000000)+192837460)."0018104bd730WebTools0598dd16OQ8d10191"."EP";
+ my $a_boundary = "=_ZM".(int(rand()*1000000000)+192837460)."0018104bd730WebTools0598dd16OQ8d10191"."EP";
  my $a_next_boundary = $crlf.'--'.$a_boundary.$crlf;
  my $a_last_boundary = $crlf.'--'.$a_boundary.'--'.$crlf;
 
- my $html  = 'Message-ID: <'.(int(rand()*1000000000)+83649814).'.cae99500.2e0aa8c0@localhost>'.$crlf;
- $html .= $replyto;
- $html .= $from;
- $html .= $to;
- $html .= 'X-Priority: '.$priority.$crlf;
- $html .= 'X-MSMail-Priority: '.$priority_level.$crlf;
-
- $html .= $subject;
- $html .= $date;
- $html .= 'User-Agent: WebTools mail client'.$crlf;
- $html .= 'MIME-Version: 1.0'.$crlf;
- if(($is_html) or (%mole_attached_files))
-   {
-    #---------------------------------------------------------------------------
-    $html .= 'Content-type: multipart/mixed; boundary="'.$boundary.'"';
-    $html .= $crlf;
-    $html .= 'This message is in MIME 1.0 format.';
-    $html .= $crlf;
-    $html .= $next_boundary;
-    $html .= 'Content-type: multipart/alternative; boundary="'.$a_boundary.'"';
-    $html .= $crlf;
-    $html .= 'This alternative message is in MIME 1.0 format.';
-    $html .= $crlf;
-  if($body ne '')
+ my %sys_mail_format_types = 
+  (
+   'text'        => 'MESSAGE-ID,CHARSET,REPLYTO,FROM,TO,X-PRIORITY,X-MSMail-Priority,SUBJECT,DATE,'.
+                  'USER-AGENT,MIME-VERSION,SIMPLE',
+   'html'        => 'MESSAGE-ID,REPLYTO,FROM,TO,X-PRIORITY,X-MSMail-Priority,SUBJECT,DATE,'.
+                  'USER-AGENT,MIME-VERSION,MULTYPART-ALTERNATIVE',
+   'attachments' => 'MESSAGE-ID,REPLYTO,FROM,TO,X-PRIORITY,X-MSMail-Priority,SUBJECT,DATE,'.
+                  'USER-AGENT,MIME-VERSION,MULTYPART-MIXED',
+  );
+  
+ my %sys_mail_format_patterns = ();
+ 
+ $sys_mail_format_patterns{'MESSAGE-ID'}  = 
+      'Message-ID: <'.(int(rand()*1000000000)+83649814).'.cae99500.2e0aa8c0@localhost>';
+      
+ if(!$is_html)
+  {
+   if($charset eq '') 
      {
+      $sys_mail_format_patterns{'CHARSET'}  = 'Content-type: text/plain; charset=us-ascii';
+      $charset = $sys_mail_format_patterns{'CHARSET'};
+     }
+   if($charset ne '') 
+     {
+      $sys_mail_format_patterns{'CHARSET'}  = $charset;
+     }
+  }
+ else
+  {
+   if($charset eq '') 
+     {
+      $sys_mail_format_patterns{'CHARSET'}  = 'Content-type: text/html; charset=us-ascii';
+      $charset = $sys_mail_format_patterns{'CHARSET'};
+     }
+   if($charset ne '') 
+     {
+      $sys_mail_format_patterns{'CHARSET'}  = $charset;
+     }
+  }
+ $sys_mail_format_patterns{'REPLYTO'} = $replyto;
+ $sys_mail_format_patterns{'FROM'} = $from;
+ $sys_mail_format_patterns{'TO'} = $to;
+ $sys_mail_format_patterns{'X-PRIORITY'} = 'X-Priority: '.$priority;
+ $sys_mail_format_patterns{'X-MSMail-Priority'} = 'X-MSMail-Priority: '.$priority_level;
+ $sys_mail_format_patterns{'SUBJECT'} = $subject;
+ $sys_mail_format_patterns{'DATE'} = $date;
+ $sys_mail_format_patterns{'USER-AGENT'} = 'User-Agent: WebTools mail client';
+ $sys_mail_format_patterns{'MIME-VERSION'} = 'MIME-Version: 1.0';
+ if($is_html)
+  {
+   if(%mole_attached_files)
+    {
+     $sys_mail_format_patterns{'TYPE'} = $sys_mail_format_types{'attachments'};
+    }
+   else
+    {
+     $sys_mail_format_patterns{'TYPE'} = $sys_mail_format_types{'html'};
+    }
+  }
+ else
+  {
+   $sys_mail_format_patterns{'TYPE'} = $sys_mail_format_types{'text'};
+  }
+
+ my $html =  '';
+ my $field;
+ 
+ my @sys_mail_fields = split(/\,/,$sys_mail_format_patterns{'TYPE'});
+ foreach $field (@sys_mail_fields)
+  {
+   if($field =~ m/^MESSAGE\-ID$/i)
+    {
+     $html .= $sys_mail_format_patterns{'MESSAGE-ID'}.$crlf;
+     next;
+    }
+   if($field =~ m/^CHARSET$/i)
+    {
+     if(!$is_html) {$html .= $sys_mail_format_patterns{'CHARSET'}.$crlf;}
+     next;
+    }
+   if($field =~ m/^REPLYTO$/i)
+    {
+     $html .= $sys_mail_format_patterns{'REPLYTO'};
+     next;
+    }
+   if($field =~ m/^FROM$/i)
+    {
+     $html .= $sys_mail_format_patterns{'FROM'};
+     next;
+    }
+   if($field =~ m/^TO$/i)
+    {
+     $html .= $sys_mail_format_patterns{'TO'};
+     next;
+    }
+   if($field =~ m/^X\-PRIORITY$/i)
+    {
+     $html .= $sys_mail_format_patterns{'X-PRIORITY'}.$crlf;
+     next;
+    }
+   if($field =~ m/^X\-MSMail-Priority$/i)
+    {
+     $html .= $sys_mail_format_patterns{'X-MSMail-Priority'}.$crlf;
+     next;
+    }
+   if($field =~ m/^SUBJECT$/i)
+    {
+     $html .= $sys_mail_format_patterns{'SUBJECT'};
+     next;
+    }
+   if($field =~ m/^DATE$/i)
+    {
+     $html .= $sys_mail_format_patterns{'DATE'};
+     next;
+    }
+   if($field =~ m/^USER\-AGENT$/i)
+    {
+     $html .= $sys_mail_format_patterns{'USER-AGENT'}.$crlf;
+     next;
+    }
+   if($field =~ m/^MIME\-VERSION$/i)
+    {
+     $html .= $sys_mail_format_patterns{'MIME-VERSION'}.$crlf;
+     next;
+    }
+   if($field =~ m/^MULTYPART\-MIXED$/i)
+    {
+     # ##############################################################################################
+     # -------------------------------------- MULTYPART MIXED MAIL ----------------------------------
+     # ##############################################################################################
+
+     #---------------------------------------------------------------------------
+     $html .= 'Content-type: multipart/mixed; boundary="'.$boundary.'"';
+     $html .= $crlf;
+     $html .= 'This message is in MIME 1.0 format.';
+     $html .= $crlf;
+     $html .= $next_boundary;
+     $html .= 'Content-type: multipart/alternative; boundary="'.$a_boundary.'"';
+     $html .= $crlf;
+     $html .= 'This alternative message is in MIME 1.0 format.';
+     $html .= $crlf;
+     if($body ne '')
+      {
        #------------------------------------------------------------------------
        $html .= $a_next_boundary;
        $html .= $charset.'; name="document.html"';
@@ -709,100 +997,540 @@ sub mail_data
        $html .= $crlf;
        $html .= $crlf;
        my $val = encode_qp($body);
-       # And what's wrong with soft & hard breaks? (s/(\[^\r])\n/$1\r\n/sgi)
-       $val =~ s/\n/$crlf/sgi;
+       $val =~ s/\n/$crlf/sg;
        $html .= $val;
-     if($text ne '')
+       if($text ne '')
+        {
+         #-------------------------------------------------------------------------
+         $html .= $a_next_boundary;
+         $html .= $charset.'; name="document.txt"';
+         $html .= $crlf;
+         $html .= 'Content-Transfer-Encoding: quoted-printable';
+         $html .= $crlf;
+         $html .= $crlf;
+         my $val = encode_qp($text);
+         $val =~ s/\n/$crlf/sg;
+         $html .= $val;
+        }
+       $html .= $a_last_boundary;
+       if(send(Hand,$html,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
+       $html = '';
+       }
+      else
+       {
+        #-------------------------------------------------------------------------
+        $html .= $a_next_boundary;
+        $html .= $charset.'; name="document.txt"';
+        $html .= $crlf;
+        $html .= 'Content-Transfer-Encoding: quoted-printable';
+        $html .= $crlf;
+        $html .= $crlf;
+        my $val = encode_qp($text);
+        $val =~ s/\n/$crlf/sg;
+        $html .= $val;
+        $html .= $a_last_boundary;
+        if(send(Hand,$html,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
+        $html = '';
+       }
+     if (%mole_attached_files)
       {
-       #-------------------------------------------------------------------------
-       $html .= $a_next_boundary;
-       $html .= $charset.'; name="document.txt"';
-       $html .= $crlf;
-       $html .= 'Content-Transfer-Encoding: quoted-printable';
-       $html .= $crlf;
-       $html .= $crlf;
-       my $val = encode_qp($text);
-       $val =~ s/\n/$crlf/sgi;
-       $html .= $val;
+       my ($file,$ext,$type);
+       my $cnt = 0;
+       my $data;
+       foreach $file (keys %mole_attached_files)
+       {
+        local *ATTCH;
+        open (ATTCH,$mole_attached_files{$file}) or next;
+        binmode (ATTCH);
+        if(($file =~ m/^.*\.(.*)$/s))
+         {
+          $ext = $1;
+         }
+        else 
+         {
+          $ext = '';
+         }
+        $type = $MIMETYPES{$ext};
+     if (($type eq '') or ($ext eq '')) { $type = 'application/octet-stream'; }
+        #-----------------------------------------------------------------------------
+        $html .= $next_boundary;
+        $html .= 'Content-type: '.$type.'; name="'.$file.'"';
+        $html .= $crlf;
+        my $sys_mime_encoding = $sys_mime_encoding{$file};
+        if($sys_mime_encoding =~ m/^quoted\-printable$/si)
+         {
+          $html .= 'Content-Transfer-Encoding: quoted-printable';
+         }
+        if($sys_mime_encoding =~ m/^8bit$/si)
+         {
+          $html .= 'Content-Transfer-Encoding: 8bit';
+         }
+        if($sys_mime_encoding =~ m/^(base64|)$/si)
+         {
+          $html .= 'Content-Transfer-Encoding: base64';
+         }
+        $html .= $crlf;
+        $html .= 'Content-Disposition: attachment; filename="'.$file.'"';
+        $html .= $crlf;
+        $html .= $crlf;
+        while($data = <ATTCH>)
+        {
+          my $val;
+          if($sys_mime_encoding =~ m/^quoted\-printable$/si) {$val = encode_qp($data);}
+          if($sys_mime_encoding =~ m/^8bit$/si) {$val = $data; }
+          if($sys_mime_encoding =~ m/^(base64|)$/si) {$val = encode_base64($data);}
+          $val =~ s/\n/$crlf/sg;
+          $html .= $val;
+        if(send(Hand,$html,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
+        $html = '';
+        }
+        close (ATTCH);
+       }
       }
-       $html .= $a_last_boundary;
-       if(send(Hand,$html,0) eq undef){return(-1);} # -1 Can`t send to socket
-       $html = '';
-     }
-   else
-     {
-       #-------------------------------------------------------------------------
+      #--------------------------------------------------------------------------------------------------------
+      $html .= $last_boundary;
+      next;
+    }
+   if($field =~ m/^MULTYPART\-ALTERNATIVE$/i)
+    {
+     # ##############################################################################################
+     # -------------------------------------- MULTYPART ALTERNATIVE MAIL ----------------------------
+     # ##############################################################################################
+
+     #---------------------------------------------------------------------------
+     $html .= 'Content-type: multipart/alternative; boundary="'.$a_boundary.'"';
+     $html .= $crlf;
+     $html .= 'This message is in MIME 1.0 format.';
+     $html .= $crlf;
+     if($body ne '')
+      {
+       #------------------------------------------------------------------------
        $html .= $a_next_boundary;
-       $html .= $charset.'; name="document.txt"';
+       $html .= $charset;
        $html .= $crlf;
        $html .= 'Content-Transfer-Encoding: quoted-printable';
        $html .= $crlf;
        $html .= $crlf;
-       my $val = encode_qp($text);
-       $val =~ s/\n/$crlf/sgi;
+       my $val = encode_qp($body);
+       $val =~ s/\n/$crlf/sg;
        $html .= $val;
+       if($text ne '')
+        {
+         #-------------------------------------------------------------------------
+         $html .= $a_next_boundary;
+         $html .= $charset;
+         $html .= $crlf;
+         $html .= 'Content-Transfer-Encoding: quoted-printable';
+         $html .= $crlf;
+         $html .= $crlf;
+         my $val = encode_qp($text);
+         $val =~ s/\n/$crlf/sg;
+         $html .= $val;
+        }
        $html .= $a_last_boundary;
-       if(send(Hand,$html,0) eq undef){return(-1);} # -1 Can`t send to socket
+       if(send(Hand,$html,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
        $html = '';
+       }
+      else
+       {
+        #-------------------------------------------------------------------------
+        $html .= $a_next_boundary;
+        $html .= $charset.'; name="document.txt"';
+        $html .= $crlf;
+        $html .= 'Content-Transfer-Encoding: quoted-printable';
+        $html .= $crlf;
+        $html .= $crlf;
+        my $val = encode_qp($text);
+        $val =~ s/\n/$crlf/sg;
+        $html .= $val;
+        $html .= $a_last_boundary;
+        if(send(Hand,$html,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
+        $html = '';
+       }
+      next;
      }
- if (%mole_attached_files)
-  {
-   my ($file,$ext,$type);
-   my $cnt = 0;
-   my $data;
-   foreach $file (keys %mole_attached_files)
-   {
-    local *ATTCH;
-    open (ATTCH,$mole_attached_files{$file}) or next;
-    binmode (ATTCH);
-    if(($file =~ m/^.*\.(.*)$/s))
-     {
-      $ext = $1;
-     }
-    else 
-     {
-      $ext = '';
-     }
-    $type = $MIMETYPES{$ext};
- if (($type eq '') or ($ext eq '')) { $type = 'application/octet-stream'; }
-    #-----------------------------------------------------------------------------
-    $html .= $next_boundary;
-    $html .= 'Content-type: '.$type.'; name="'.$file.'"';
-    $html .= $crlf;
-    $html .= 'Content-Transfer-Encoding: base64';
-    $html .= $crlf;
-    $html .= 'Content-Disposition: attachment; filename="'.$file.'"';
-    $html .= $crlf;
-    $html .= $crlf;
-    while($data = <ATTCH>)
+   if($field =~ m/^SIMPLE$/i)
     {
-      my $val = encode_base64($data);
-      $val =~ s/\n/$crlf/sgi;          # Same problem with Base64! MIME::Base64 works wrong :(
-      $html .= $val;
-    if(send(Hand,$html,0) eq undef){return(-1);} # -1 Can`t send to socket
-    $html = '';
+     # ##############################################################################################
+     # -------------------------------------- PLAIN TEXT --------------------------------------------
+     # ##############################################################################################
+     if($body ne '')
+      {
+       $body =~ s/\n/$crlf/sg;
+       $html .= $crlf.$body;
+      }
+     else
+      {
+       $text =~ s/\n/$crlf/sg;
+       $html .= $crlf.$text;
+      }
+     next;
     }
-    close (ATTCH);
    }
-  }
-  #--------------------------------------------------------------------------------------------------------
-  $html .= $last_boundary;
- }
- else
- {
- if($body ne '')
-  {
-   $html .= $crlf.$body;
-  }
- else
-  {
-   $html .= $crlf.$text;
-  }
- }
  $html .= $crlf.'.'.$crlf;
- if(send(Hand,$html,0) eq undef){return(-1);} # -1 Can`t send to socket
+ if(send(Hand,$html,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
  %mole_attached_files = ();
+ %sys_mime_encoding = ();
+ %sys_mail_original_names = ();
  return(1);
+}
+
+############################################################
+# RAW Lookup in DNS server for MX records
+# returns sorted array of mail servers ordered by preference 
+# Each line has follow format: "PREFERENCE\tMAIL_HOST"
+# Example:
+# ('5	mx1.mail.bg',
+#  '10	ns.mail.bg')
+# will return this query: raw_mx_lookup('mail.bg');
+############################################################
+sub raw_mx_lookup
+{
+ my $hostname = shift;
+ my $dns      = shift || dns_nameserver();       # DNS Server
+ my $line;
+ my @mx_recs  = ();
+ 
+ my @recs = &raw_dns_record_lookup($hostname,'MX',$dns);
+ if(($recs[0] eq '0') or ($recs[0] == -1)) {return (@recs);}
+ if(scalar(@recs) == 0) {return(@mx_recs);}
+ foreach $line (@recs)
+  {
+   if($line =~ m/^MX\t(.*?)\t(.*)$/s) # Filter only MX records
+    {
+     push(@mx_recs,$1."\t".$2);       # ...and make required structure
+    }
+  }
+
+ @mx_recs = dns_sort_mx_records(@mx_recs); # Sort found MX records
+ return(@mx_recs);
+}
+
+##############################################################
+# RAW Lookup in DNS server for:
+# 'A','NS','CNAME','SOA','PTR','HINFO','MX' and 'ANY' records
+# TYPE     MEANING (see RFC 1035)
+# A        a host address
+# NS       an authoritative name server
+# CNAME    the canonical name for an alias
+# SOA      marks the start of a zone of authority
+# PTR      a domain name pointer
+# HINFO    host information
+# MX       mail exchange
+# ANY      request for any known records
+# PROTO: raw_dns_record_lookup($host[,$record_type,$nserver]);
+# return values:
+# All queries can return array of lines with mixed RTypes,
+# in follow format:
+# Prototype for 'A' record:     "A\tIP_ADDRESS"
+# Prototype for 'MX' record:    "MX\tPREFERENCE\tMAIL_HOST"
+# Prototype for 'CNAME' record: "CNAME\tALIAS"
+# Prototype for 'SOA' record:
+# "SOA\tMNAME\tRNAME\tSERIAL\tREFRESH\tRETRY\tEXPIRE\tMINIMUM"
+# Prototype for 'NS' record:    "NS\tNAME_HOST"
+# Prototype for 'PTR' record:   "PTR\tPOINTER_HOST"
+# Prototype for 'HINFO' record: "HINFO\tMACHINE\tOS"
+# NOTE: Currently this function doesn't support DNS responeses
+# larger than 512 bytes (due UDP packet size restriction)
+##############################################################
+sub raw_dns_record_lookup
+{
+ my $hostname = shift;
+ my $r_type   = uc(shift) || 'A';
+ my $dns      = shift || dns_nameserver();       # DNS Server
+ my $proto    = getprotobyname('udp');
+ my $port     = getservbyname('domain', 'udp');  # Port 53
+ my ($lformat,$question,$sock,$flag_recv,$rin,$rout);
+ my $count    = 0;
+ my @labels   = ();
+ my @recs  = ();
+ my %records  = (A=>1, NS=>2, CNAME=>5, SOA=>6, PTR=>12, HINFO=>13, MX=>15, ANY=>255);
+ 
+ my $header = pack("n C2 n4",++$sys_dns_lookup_id,1,0,1,0,0,0);
+ for(split(/\./,$hostname))
+   {
+    $lformat .= "C a* ";
+    $labels[$count++]=length;
+    $labels[$count++]=$_;
+   }
+ $question = pack($lformat."C n2",@labels,0,$records{$r_type},1);
+ $sock = new IO::Socket::INET(PeerAddr=>$dns,PeerPort=>$port,Proto=>$proto);
+ $flag_recv = 0;
+ 
+ foreach(1..3)  # Send query up to three times
+  {
+   $sock->send($header.$question);
+   $rin = '';
+   vec($rin, fileno($sock), 1) = 1;
+   while (select($rout = $rin, undef, undef, 4.0))
+    {
+     if(recv($sock, $sys_dns_lookup_buf, 512, 0)) {$flag_recv=1;last;}
+    }
+   if($flag_recv) {last;}
+  }
+ close($sock);
+ if(!$flag_recv) {return(-1);}
+ 
+ $sys_dns_lookup_respsize = length($sys_dns_lookup_buf);
+ my ($id,$qr_opcode_aa_tc_rd,$rd_ra,
+     $qdcount,$ancount,$nscount,$arcount) = unpack("n C2 n4",$sys_dns_lookup_buf);
+
+ if(length($sys_dns_lookup_buf) == 0)
+   {
+    return(0);
+   }
+ if(!$ancount)
+   {
+    return(@recs); # Empty answare (no records available for requested host)!
+   }
+ 
+ my ($rname,$rtype,$rclass,$rttl,$rdlength);
+ my ($position,$qname) = &dns_decompress_label(12); 
+ my ($qtype,$qclass)   = unpack('@'.$position.'n2',$sys_dns_lookup_buf);
+  
+ $position += 4; 
+ # Unpack all answare records
+ @recs = ();
+ for( ;$ancount;$ancount--)
+    {
+     ($position,$rname) = &dns_decompress_label($position);
+     ($rtype,$rclass,$rttl,$rdlength) = unpack('@'.$position.'n2 N n',$sys_dns_lookup_buf);
+     $position +=10;
+     
+     # All answares are with same structure but different records need
+     # different paring!
+
+     # MX record parse
+     if($rtype eq $records{'MX'})
+      {
+       # First 16bits are "preference"
+       my $record = "MX\t";
+       $record .= unpack("n1",substr($sys_dns_lookup_buf,$position,2));
+       $position += 2;
+       # Second n-bits are domain-name label
+       $record .= "\t";
+       ($new_pos,$rname) = &dns_decompress_label($position);
+       $record .= $rname;
+       $position -= 2;
+       $position +=$rdlength;
+       $record =~ s/\.$//s;
+       push(@recs,$record);
+      }
+      
+     # A record parse
+     if($rtype eq $records{'A'})
+      {
+       # 32bits internet address
+       push(@recs,"A\t".join('.',unpack('@'.$position.'C'.$rdlength,$sys_dns_lookup_buf)));
+       $position +=$rdlength;
+      }
+      
+     # CNAME record parse
+     if($rtype eq $records{'CNAME'})
+      {
+       # Follow n-bits are domain-name label
+       ($new_pos,$rname) = &dns_decompress_label($position);
+       $record = "CNAME\t".$rname;
+       $position +=$rdlength;
+       $record =~ s/\.$//s;
+       push(@recs,$record);
+      }
+      
+     # NS record parse
+     if($rtype eq $records{'NS'})
+      {
+       # Follow n-bits are domain-name label
+       ($new_pos,$rname) = &dns_decompress_label($position);
+       $record = "NS\t".$rname;
+       $position +=$rdlength;
+       $record =~ s/\.$//s;
+       push(@recs,$record);
+      }
+    
+     # PTR record parse
+     if($rtype eq $records{'PTR'})
+      {
+       # Follow n-bits are domain-name label
+       ($new_pos,$rname) = &dns_decompress_label($position);
+       $record = "PTR\t".$rname;
+       $position +=$rdlength;
+       $record =~ s/\.$//s;
+       push(@recs,$record);
+      }
+    
+     # HINFO record parse
+     if($rtype eq $records{'HINFO'})
+      {
+       my $bkp = $position;
+       # First 8bits are length of string
+       my $size = unpack('@'.$position."C1",$sys_dns_lookup_buf);
+       $position += 1;
+       # Followed by string
+       my $record = unpack('@'.$position."a".$size,$sys_dns_lookup_buf)."\t";
+       $position += $size;
+       # Next 8bits are length of string
+       $size = unpack('@'.$position."C1",$sys_dns_lookup_buf);
+       $position += 1;
+       # Followed by string
+       $record .= unpack('@'.$position."a".$size,$sys_dns_lookup_buf);
+       
+       push(@recs,"HINFO\t".$record);
+       $position = $bkp + $rdlength;
+      }
+     
+     # SOA record parse
+     if($rtype eq $records{'SOA'})
+      {
+       my $bkp = $position;
+       ($position,$rname) = &dns_decompress_label($position);
+       $rname =~ s/\.$//s;
+       my $record = $rname;
+       ($position,$rname) = &dns_decompress_label($position);
+       $rname =~ s/\.$//s;
+       $record .= "\t".$rname;
+       $record .= "\t".unpack('@'.$position."N",$sys_dns_lookup_buf);
+       $position += 4;
+       $record .= "\t".unpack('@'.$position."N",$sys_dns_lookup_buf);
+       $position += 4;
+       $record .= "\t".unpack('@'.$position."N",$sys_dns_lookup_buf);
+       $position += 4;
+       $record .= "\t".unpack('@'.$position."N",$sys_dns_lookup_buf);
+       $position += 4;
+       $record .= "\t".unpack('@'.$position."N",$sys_dns_lookup_buf);
+       push(@recs,"SOA\t".$record);
+       $position = $bkp + $rdlength;
+      }
+    }
+ return(@recs);
+}
+
+# "Unpack" one "label", relying on RFC 1035
+sub dns_decompress_label
+ { 
+  my($start) = shift;
+  my($domain,$i,$lenoct);
+    
+ for($i=$start;$i<=$sys_dns_lookup_respsize;)
+    {
+     $lenoct=unpack('@'.$i.'C', $sys_dns_lookup_buf);
+     if(!$lenoct)
+       {
+        $i++;
+	last;
+       }
+     if($lenoct == 192) 
+       {
+	$domain.=(&dns_decompress_label((unpack('@'.$i.'n',$sys_dns_lookup_buf) & 1023)))[1];
+	$i+=2;
+	last;
+       }
+     else
+       {
+	$domain.=unpack('@'.++$i.'a'.$lenoct,$sys_dns_lookup_buf).'.';
+	$i += $lenoct;
+       }
+    }
+ return($i,$domain);
+}
+# Sort found mx records on preference value
+sub dns_sort_mx_records
+{
+ my @mxs = @_;
+ my @res = ();
+ my $i;
+ foreach $i (@mxs)
+  {
+   $i =~ m/^(\d{1,})\t(.*)$/s;
+   my $pref = int($1);
+   my $host = $2;
+   $pref = ('0' x (5 - length($pref))).$pref;
+   push(@res,$pref."\t".$host);
+  }
+ @res = sort(@res);
+ @mxs = ();
+ foreach $i (@res)
+  {
+   $i =~ m/^(.*?)\t(.*)$/s;
+   my $pref = int($1);
+   my $host = $2;
+   push(@mxs,$pref."\t".$host);
+  }
+ return(@mxs);
+}
+
+
+# Simple function for nameserver locating
+sub dns_nameserver
+{
+ my $name = '/etc/resolv.conf';   # For Unix-like systems
+ local * RESOLV;
+ my $code;
+ my @lines = ();
+ my $line;
+ my $nameserver = 'localhost';    # assume 'localhost' as default nameserver
+ eval << 'TERM_CODE';
+ use Sys::Hostname;
+ my $host = &Sys::Hostname::hostname(); # Get local host
+ $nameserver = $host || 'localhost';
+TERM_CODE
+ my $host = $nameserver;
+ 
+ if(-e $name) # If resolv.conf is available
+  {
+   if(open(RESOLV,$name))
+    {
+     local $/ = undef;
+     binmode RESOLV;
+     $code = <RESOLV>;
+     close RESOLV;
+     $code =~ s/\r//sg;
+     @lines = split(/\n/,$code);
+    }
+   foreach $line (@lines)
+    {
+     if($line =~ m/^([^\#]*?)nameserver\ {1,}(.*?)$/si) # Get all 'nameserver' lines
+      {
+       $nameserver = $2;
+       $nameserver =~ s/^(.*?)\ (.*)$/$1/s; # Filter only nameserver
+      }
+    }
+  }
+ if(!($nameserver =~ m/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)) # If nameserver is not in "IP" format
+  {
+   my (undef, undef, undef, undef, @addrs) = gethostbyname($nameserver);
+   if(scalar(@addrs) != 0)
+    {
+     $nameserver = inet_ntoa($addrs[0]);    # ...locate IP address via OS core functions
+    }
+  }
+
+ return($nameserver); # Return found IP address (or your server IP)
+}
+
+sub mail_default_DATE
+{
+ my $now_string = localtime;
+ $now_string =~ m/^(.*?)\ {1,}(.*?)\ {1,}(.*?)\ {1,}(.*?)\ {1,}(.*?)$/s;
+ my $weekDay = $1;
+ my $month   = $2;
+ my $mnthDay = $3;
+ my $time    = $4;
+ my $year    = $5;
+ return($weekDay.', '.$mnthDay.' '.$month.' '.$year.' '.$time.' GMT');
+}
+
+sub set_mime_encoding
+{
+ my $file = shift;
+ $file = $sys_mail_original_names{$file};
+ $sys_mime_encoding{$file} = shift;
+}
+
+sub get_mime_encoding
+{
+ my $file = shift;
+ $file = $sys_mail_original_names{$file};
+ return($sys_mime_encoding{$file});
 }
 
 $mail_program = find_mail_program();

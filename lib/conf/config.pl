@@ -1,5 +1,5 @@
 ###################################################################
-# Configuration file for "Web Tools" ver 1.23
+# Configuration file for "Web Tools" ver 1.24
 # Please edit here, don’t do that in Perl scripts!
 # For Web based configurator script see install.cgi
 ###################################################################

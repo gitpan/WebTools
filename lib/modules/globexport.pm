@@ -33,16 +33,21 @@ require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.23";
+    $VERSION = "1.24";
     @ISA = qw(Exporter);
     $sys_askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa '.
-                         '%global_hashes @multipart_headers $parsedform $sys_globvars $contenttype $query';
+                         '%global_hashes @multipart_headers $parsedform $sys_globvars $contenttype $query '.
+                         '$sys_script_cached_source @sys_pre_defined_vars';
     
  $query = '';
  $n = 0;
  $f_up = 0;
  $parsedform = 0;
- 
+ $globexport::sys_script_cached_source = '';
+ @globexport::sys_pre_defined_vars = ();
+ #####################################################################
+ # Load config.pl
+ #####################################################################
  my $cnf = (-e './conf') ? './conf' : '../conf';
  eval "use lib \'$cnf\';";
  if($webtools::sys_config_pl_loaded ne 1) {require 'config.pl';}
@@ -54,22 +59,169 @@ use vars qw($VERSION @ISA @EXPORT);
  eval "use lib \'$lib\';";
  eval "use lib \'$drv\';";
  
+ #####################################################################
+ # Restrict external visitors
+ #####################################################################
+ 
  if($webtools::run_restrict_mode =~ m/^on$/si)
   {
    eval "require 'allowed.pl';";
    if($@ eq '')
      {
-      if(!Check_Remote_IP($ENV{'REMOTE_ADDR'}))
-        {
-         print "Content-type: text/html\n\n";
-         print "<H3><BR><B>You are <font color='red'>not allowed</font> to see that information, due current <font color='red'>restriction policy</font> for your host!<BR><BR>IP: ".$ENV{'REMOTE_ADDR'}."</B></H3>";
-         exit();    # Exit because IP restriction!
-        }
+      my @res = Check_Remote_IP($ENV{'REMOTE_ADDR'});
+      if($res[1] ne '')
+       {
+        print "Location: ".$res[1]."\n\n";
+        exit();
+       }
+      else
+       {
+        if(!$res[0])
+         {
+          print "Content-type: text/html\n\n";
+          print "<H3><BR><B>You are <font color='red'>not allowed</font> to see that information, due current <font color='red'>restriction policy</font> for your host!<BR><BR>IP: ".$ENV{'REMOTE_ADDR'}."</B></H3>";
+          exit();    # Exit because IP restriction!
+         }
+       }
+     }
+    else
+     {
+      print "Content-type: text/html\n\n";
+      print "<H3><BR><B>You have problem with <font color='red'>alloed.pl</font> file, used to restrict external visitors!</B></H3>";
+      exit();
      }
    }
+ #####################################################################
+ # Parse cookies
+ #####################################################################
  require 'cookie.pl';
- require 'cgi-lib.pl';
  
+ #####################################################################
+ # PreLoad GET input
+ #####################################################################
+ my $sys_get = $ENV{'REQUEST_URI'};
+ $sys_get =~ s/^(.*?)\?(.*)$/$2/si;
+ my @sys_in = split(/[&;]/,$sys_get);
+ my %out = ();
+ my ($key,$val,$i) = ();
+ 
+ push(@sys_in, @ARGV) if (scalar(@ARGV)); # add command-line parameters
+
+ foreach $i (0 .. $#sys_in)
+    {
+      # Convert plus to space
+      $sys_in[$i] =~ s/\+/ /g;
+
+      # Split into key and value.  
+      ($key, $val) = split(/=/,$sys_in[$i],2); # splits on the first =.
+
+      # Convert %XX from hex numbers to alphanumeric
+      $key =~ s/%([A-Fa-f0-9]{2})/pack("c",hex($1))/ge;
+      $val =~ s/%([A-Fa-f0-9]{2})/pack("c",hex($1))/ge;
+      $key = lc($key);
+      # Associate key and value
+      $out{$key} .= "\0" if (defined($out{$key})); # \0 is the multiple separator
+      $out{$key} .= $val;
+    }
+ %webtools::sys_pre_loaded_GET_vars = %out;
+ #####################################################################
+ # PreLoad Script source
+ #####################################################################
+ my %in = %out;
+ my $sys_parsed = 0;
+ my ($file) = $out{'file'};
+ if($file ne '')
+   {
+    if(($webtools::perl_html_dir eq '') or ($webtools::perl_html_dir =~ m/^(\\|\/)$/si))
+    {
+     # Do nothing..
+    }
+    else
+    {
+     my $p_file_name_N001 = $file;
+     my $p_file_checked_done_N001 = 0;
+     if ($p_file_name_N001 =~ m/^[A-Za-z0-9-_.\/]*$/is)
+       {
+        if (!($p_file_name_N001 =~ m/\.\./i) and (!($p_file_name_N001 =~ m/\.\//i))) {
+        if (($p_file_name_N001 =~ m/\.html$/i) or ($p_file_name_N001 =~ m/\.htm$/i) or ($p_file_name_N001 =~ m/\.cgi$/i) or
+           ($p_file_name_N001 =~ m/\.whtml$/i) or ($p_file_name_N001 =~ m/\.cgihtml$/i))
+            {
+             $p_file_name_N001 =~ m/^(.*)\.(.*)$/i;
+             my $body = $1;
+             my $ext = $2;
+             my $exname;
+             if($webtools::treat_htmls_ext[0] ne '')
+              {
+               foreach $exname (@webtools::treat_htmls_ext)
+                {
+                 if(-e $webtools::perl_html_dir.$body.'.'.$exname)
+                  {
+                   $p_file_name_N001 = $body.'.'.$exname;
+                  }
+                 else
+                  {
+               	   if($exname =~ m/^$ext$/i) {last;}
+                  }
+                }
+              }
+             $p_file_checked_done_N001 = 1;
+            }      
+          }
+      }
+     if ($p_file_checked_done_N001)   
+      {
+       if(!open(FILE_H_OPEN_N001,$webtools::perl_html_dir.$p_file_name_N001))
+        {
+          # Do nothing...
+        }
+       else
+        {
+         local $/ = undef;
+         binmode(FILE_H_OPEN_N001);
+         $globexport::sys_script_cached_source = <FILE_H_OPEN_N001>;
+         close (FILE_H_OPEN_N001);
+         $sys_parsed = 1;
+        }
+      }
+    }
+  }
+ #####################################################################
+ # Parse constants in script source (only for file=name via GET)
+ #####################################################################
+ my $sys_str;
+ $globexport::sys_script_cached_source =~ s/\n[\ \t]{1,}(\<\!\-\-\#onStartUp\>)(.*?)(\<\/\#onStartUp\-\-\>)/\n$1$2$3/sig;
+ $globexport::sys_script_cached_source =~ s/(\<\!\-\-\#onStartUp\>)(.*?)(\<\/\#onStartUp\-\-\>)[\ \t]{1,}/$1$2$3/sig;
+ $globexport::sys_script_cached_source =~ s/(\r\n|\n)(\<\!\-\-\#onStartUp\>)(.*?)(\<\/\#onStartUp\-\-\>)/$2$3$4/sig;
+ $globexport::sys_script_cached_source =~ s/(\<\!\-\-\#onStartUp\>)(.*?)(\<\/\#onStartUp\-\-\>)(\r\n|\n)/$1$2$3/sig;
+ my $sys_bkp = $globexport::sys_script_cached_source;
+ $sys_bkp =~ s/(\<\!\-\-\#onStartUp\>)(.*?)(\<\/\#onStartUp\-\-\>)/do{
+   push(@sys_pre_defined_vars,$2);
+  };/sgioe;
+ # Clear tags
+ $globexport::sys_script_cached_source =~ s/(\<\!\-\-\#onStartUp\>)(.*?)(\<\/\#onStartUp\-\-\>)//sig;
+ # WARNNING: Follow iterative loop change configuration variables (in this module and required libs)!
+ foreach $sys_str (@globexport::sys_pre_defined_vars)
+    {
+      # Parse confing constants
+      $sys_str =~ s/\#(.*?)(\r\n|\n)/$2/sgi;
+      $sys_str =~ s/\bconfig[\ \t]{0,}\.[\ \t]{0,}(.*?)\;/\$webtools\:\:$1\;/sgi;
+      eval $sys_str;
+      my $codeerr = $@;
+      if($@ ne '')
+       {
+        print "Content-type: text/html\n\n";
+        print "<br><font color='red'><h3>Perl Subsystem: Syntax error in Start up section of <font color='blue'>$file</font> !</h3>";
+        $codeerr =~ s/\r\n/\n/sg;
+        $codeerr =~ s/\n/<BR>/sgi;
+        my $res = $webtools::debugging eq 'on' ? "<br>$codeerr</font>" : "";
+        print $res;
+        exit;
+       }
+    }
+ #####################################################################
+ # Parse input data
+ #####################################################################
+ require 'cgi-lib.pl';
 if(!$parsedform){
 	
  my (%cgi_data,   # The form data

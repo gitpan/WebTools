@@ -14,7 +14,7 @@ Here I want to demonstrate how you can access variables become from GET/POST
  Rule Number 2:
 
 - Cookies that have same names as variables from GET/POST rewrite this vars only if in config.pl file is set: 
-  $cpg_priority = 'cookie';    # In this case cookies has higher priority!
+  $webtools::cpg_priority = 'cookie';    # In this case cookies has higher priority!
 
   If set 'get/post' then GET/POST vars has higher priority than cookies!
 
@@ -48,7 +48,7 @@ Here I want to demonstrate how you can access variables become from GET/POST
 
 - Your variable may become global (if match previus rules) and then it will be saved
   in scalar variable!
-  >>> BUT <<<  WebTools can also export global HASHes,
+  >>> BUT <<<  WebTools can also to export global HASHes,
   if only it match follow condition:
 
   %inputhash_nameOfHash_keyOfHash

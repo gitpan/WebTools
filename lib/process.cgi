@@ -12,6 +12,5 @@
 use lib './modules/';
 use webtools;
 
-StartUpInit();
- RunScript();
+RunScript();
 DestroyScript();

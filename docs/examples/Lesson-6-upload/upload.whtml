@@ -32,7 +32,10 @@
     set_mail_attachment($orgfile2,$fn2);                      # and second one
     
     send_mail($from,$to,'Test','<font color="red"> Just a small email test in HTML format!</font>',1);
-    # mail(to=>$to,from=>$from,subject=>'Test',body=>'<font color="red"> Just a small email test in HTML format!</font>',html=>1);
+    # OR
+    # @results = mail(to=>$to,from=>$from,subject=>'Test',
+    #                 body=>'<font color="red"> Just a small email test in HTML format!</font>',html=>1);
+    # Please see "Lesson-10-mail"
     
     print "<HR>";
     print "E-mail SENT<BR>TO: $to <BR> FROM: $from<BR>\n";

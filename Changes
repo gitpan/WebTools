@@ -84,3 +84,18 @@ Revision history for Perl sub system "WebTools"
         - Fixed bug in global export module
         (All these bugs are made in last versions because,
          of new features and internal reconstructions!)
+
+1.24   03 Apr 2002
+        - Raw DNS queries (MX,A,SOA,CNAME,NS...)
+          (don't need DNS client anymore)
+        - Improved install.cgi script
+        - Dynamic change of current database engine
+        - Improved mail.pl client. It can send multiple
+          emails, support "banned" list, dns cache and more.
+        - onStartUp and onActivate events in your script.
+          You can run perl code, to change config.pl dynamicly,
+          (db drvers, path, variables...) just before script
+          to be run.
+        - Dynamicly fillout html forms using hash.
+        - Script "firewall". Set allowed IPs and restrict/redirect
+          other.

@@ -2,7 +2,7 @@
 # Perl`s Download Library
 #######################################################
 # Written by Julian Lishev - Sofia 2001
-# Ver 3.0
+# Ver 4.0
 #######################################################
 use strict;      # Perl was here...
 
@@ -39,6 +39,35 @@ sub download_file
  my $type = $sys_MIMETYPES{$ext};
  if (($type eq '') or($ext eq '')) { $type = 'application/octet-stream'; }
  if (downloader_SendFile($filename,$type,$speed))
+   {
+    return(1);                    # Done!
+   }
+ else { return (0); }             # Transfer interrupted...or Apache kill process!
+ # If Apache start killing..., Mole get exit NOW! :-))))
+}
+
+#######################################################
+# CGI based download function
+# PROTO:
+# $result = download_mem_file($filename, $buffer, $speed_limit);
+# Example:
+# $res = download_file($filename,'some message','20');
+#######################################################
+sub download_mem_file
+{
+ my ($filename,$buffer,$speed) = @_;
+ my ($name,$ext);
+ if(($filename =~ m/^.*\.(.*)$/s))
+   {
+    $ext = $1;
+   }
+ else 
+   {
+    $ext = '';
+   }
+ my $type = $sys_MIMETYPES{$ext};
+ if (($type eq '') or ($ext eq '')) { $type = 'application/octet-stream'; }
+ if (downloader_SendMemFile($filename,$buffer,$type,$speed))
    {
     return(1);                    # Done!
    }
@@ -134,7 +163,7 @@ sub downloader_SendFile
  eval '$stdouthandle::sys_stdouthandle_header = 1;';
   
  print "MIME-Type: 1.0\n";
- print "X-Powered-By: WebTools/1.16\n";
+ print "X-Powered-By: WebTools/1.23\n";
  print "Content-Disposition: filename=\"$name\"\n";
  print "Content-Transfer-Encoding: binary\n";
  print "Content-Type: ".$type.";name=\"$name\"\n\n";
@@ -164,11 +193,84 @@ sub downloader_SendFile
  close FH;
  return(1);           		       # Done...
 }
+#######################################################
+# Send memmory buffer as file to STDOUT
+#######################################################
+sub downloader_SendMemFile
+{
+ my ($filename,$buffer,$type,$speed) = @_;
+ my $name;
+ $sys_last_sent_byte = 0;
+ if($speed) {$speed = int($speed*1024);}
+ if($filename =~ m/\//)
+  {
+   $filename =~ m/^.*\/(.*)$/;
+   $name = $1;
+  }
+ else { $name = $filename; }
+
+ local $SIG{'TERM'} = '\&downloader_onApacheKill';   # Don`t allow Apache to kill process!
+ local $SIG{'QUIT'} = '\&downloader_onApacheKill';
+ local $SIG{'PIPE'} = '\&downloader_onApacheKill';
+ local $SIG{'STOP'} = '\&downloader_onApacheKill';
+ 
+ $sys_kill_flag = 0;
+ $| = 1;
+
+ binmode(STDOUT);
+ 
+ eval '$stdouthandle::sys_stdouthandle_header = 1;';
+  
+ print "MIME-Type: 1.0\n";
+ print "X-Powered-By: WebTools/1.23\n";
+ print "Content-Disposition: filename=\"$name\"\n";
+ print "Content-Transfer-Encoding: binary\n";
+ print "Content-Type: ".$type.";name=\"$name\"\n\n";
+ my $all_data = $buffer;
+ $buffer = '';
+ if($speed){$sys_length = downloader_setSpeed($speed);}
+ while(1)
+   {
+    if($sys_kill_flag == 1) { return(0);}  # Killed!
+    my $result;
+
+    # $buffer - currently processing piece of code
+    # $result - how many byte(s) are read
+    ($result,$all_data,$buffer) = downloader_mem_read($all_data,$sys_length);
+    if($result == 0)
+      {
+       last;
+      }
+    if($result eq undef)               # Error!
+      {
+       return(0);
+      }
+    if(!(print STDOUT $buffer))
+      {
+       return(0);
+      }
+    $sys_last_sent_byte += $sys_length;
+    if($speed){sleep($sys_period);}
+   }
+ return(1);           		       # Done...
+}
 sub downloader_setSpeed
 {
   my $speed=shift;
 
   return(int($speed*$sys_period));
+}
+
+sub downloader_mem_read
+{
+ my ($buffer,$sys_length) = @_;
+ my $ln = length($buffer);
+
+ if($ln == 0) {return((0,'',''));}
+ if($ln <= $sys_length) {return(($ln,'',$buffer));}
+ my $data = substr($buffer,0,$sys_length);
+
+ return(($sys_length,substr($buffer,$sys_length),$data));
 }
 
 1;

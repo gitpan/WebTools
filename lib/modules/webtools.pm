@@ -14,9 +14,8 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.23";
+    $VERSION = "1.24";
     $INTERNALVERSION = "1";
-    $webtools::sys_ERROR = 'error';
     @ISA = qw(Exporter);
     @EXPORT = 
      qw(
@@ -45,18 +44,19 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
         attach_var detach_var 
         encode_separator decode_separator 
         StartUpInit RunScript set_script_timeout flush_print set_printing_mode DestroyScript 
-        ClearBuffer ClearHeader $print_header_buffer $print_flush_buffer 
-        r_str rand_srand b_print Parse_Form exists_insensetive 
-        *SESSIONSTDOUT $reg_buffer $global_variables_dump set_variables_dump global_variables_dump_style 
+        ClearBuffer ClearHeader Load_and_Parse_script $print_header_buffer $print_flush_buffer 
+        r_str rand_srand b_print Parse_Form exists_insensetive set_ignore_termination 
+        get_ignore_termination global_variables_dump_style $sys_ignore_term 
+        *SESSIONSTDOUT $reg_buffer $global_variables_dump set_variables_dump 
         $sentcontent $apacheshtdocs %SIGNALS $loaded_functions 
-        $sys_OS $sys_CRLF $sys_EBCDIC $sys_config_pl_loaded $sys_ERROR 
+        $sys_OS $sys_CRLF $sys_EBCDIC $sys_config_pl_loaded 
        );
 
  require Exporter;
  
  use Errors::Errors;
- $webtools::sys_ERROR = Errors::Errors->new(); # Create one global error object
-
+ $Errors::Errors::sys_ERROR = Errors::Errors->new(); # Create one global error object
+ 
  use globexport;
  use stdouthandle;
 
@@ -83,6 +83,7 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
  $webtools::syspre_process_counter = 0;
  $webtools::sys_cookie_accepted = 0;
  $webtools::sys_header_warnings = 0;
+ $webtools::sys_ignore_term = 1;
  $webtools::sys__subs__ = {};
  
  tie(*SESSIONSTDOUT,'stdouthandle');
@@ -121,37 +122,6 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
   $webtools::usystem_database_handle_mysql  = undef;
   $webtools::usystem_database_handle_access = undef;
   
-  $webtools::sys_ERROR->install('onTerm',\&On_Term_Event);
-
-  sub On_Term_Event
-     {
-      my $obj   = shift;
-      my $err   = shift;
-      my $name  = shift;
-      # User hit STOP button or...admin shutdown Apache server :-)
-  	if($webtools::system_database_handle ne undef)
-  	  {
-  	   my $q =<<'THAT_TERM_SIG_STR';
-  	   if ($sys_local_sess_id ne '')
-  	     {
-  	      close_session_file($webtools::system_database_handle);
-  	     }
-  	   DB_OnExit($webtools::system_database_handle);
-  	   $webtools::system_database_handle = undef;
-  	   $usystem_database_handle = undef;
-           onExit();
-THAT_TERM_SIG_STR
-  	   eval $q;
-  	  }
-  	if(exists($webtools::SIGNALS{'OnTerm'}))
-          {
-           eval {
-      	         my $OnEvent_code = $webtools::SIGNALS{'OnTerm'};
-      	         &$OnEvent_code;
-      	        };
-          }
-   CORE::exit;
-  }
 }
 
 sub AUTOLOAD
@@ -183,6 +153,7 @@ sub PathMaker
 ###########################################
 sub StartUpInit
 {
+ $Errors::Errors::sys_ERROR->install('onterm',\&On_Term_Event);
  my $add = PathMaker('./modules/additionals','./additionals');
  $webtools::loaded_functions = 0;
  $webtools::global_variables_dump = 0;
@@ -211,9 +182,10 @@ sub StartUpInit
 ##########################################
 sub DestroyScript
 {
- my $sys_destroy_db_code = 'DB_OnExit($webtools::system_database_handle);';
+ my $sys_destroy_db_code = 'if($webtools::db_support ne "") {DB_OnExit($webtools::system_database_handle);}';
  eval $sys_destroy_db_code;
  if($webtools::global_variables_dump and ($webtools::debugging =~ m/^on$/sig)) {printDump($webtools::global_variables_dump_style);}
+ $Errors::Errors::sys_ERROR->exit('');
  1;
 }
 ####################################################################
@@ -544,17 +516,17 @@ sub decode_separator
 sub set_printing_mode
 {
  my ($flag) = shift(@_);
- my $old = $stdouthandle::var_printing_mode;
+ my $old = $webtools::var_printing_mode;
  if ($flag eq 'buffered')
    {
-    $stdouthandle::var_printing_mode = 'buffered';
+    $webtools::var_printing_mode = 'buffered';
    }
  else {
  	if($old eq 'buffered')
  	 {
  	  flush_print();
  	 }
- 	$stdouthandle::var_printing_mode = '';
+ 	$webtools::var_printing_mode = '';
        }
  return($old);
 }
@@ -582,7 +554,7 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
   $| = 1;
   if(!$is and !($sys_stdouthandle_header and $sys_stdouthandle_content_ok))
    {
-    $print_header_buffer = "X-Powered-By: WebTools/1.23\n".$print_header_buffer; # Print version of this tool.
+    $print_header_buffer = "X-Powered-By: WebTools/1.24\n".$print_header_buffer; # Print version of this tool.
    }
   if ((!$sys_cookie_accepted) and ($sys_local_sess_id ne ''))
    {
@@ -619,11 +591,29 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
       Header(type=>'content');  # Well we forgot to send content-type
      }
    }
-  print "$print_header_buffer\n";
+  #print "$print_header_buffer\n";
+  my $sys_print_res;
+  my $sys_data;
+  while($sys_data = substr($print_header_buffer,0,4096))
+    {
+      substr($print_header_buffer,0,4096,'');
+      $sys_print_res = print ($sys_data);
+      if($sys_print_res eq undef) {onExit();exit;}
+    }
+    
+  $sys_print_res = print ("\n");
+  if($sys_print_res eq undef) {onExit();exit;}
+  
   $print_header_buffer = '';
   $sess_header_flushed = 1;
  }
- print $print_flush_buffer;  # Just Print It!
+ #print $print_flush_buffer;  # Just Print It!
+ while($sys_data = substr($print_flush_buffer,0,4096))
+    {
+      substr($print_flush_buffer,0,4096,'');
+      $sys_print_res = print ($sys_data);
+      if($sys_print_res eq undef) {onExit();exit;}
+    }
  $print_flush_buffer = '';
  if($webtools::sys_header_warnings > 0)
   {
@@ -733,7 +723,7 @@ sub Header
   my $val = $arg{'val'};
   local $oldstd;
   
-  my $is = $stdouthandle::var_printing_mode eq 'buffered' ? 1 : 0;
+  my $is = $webtools::var_printing_mode eq 'buffered' ? 1 : 0;
   if(!$is)
    {
      if($stdouthandle::sys_stdouthandle_header or $stdouthandle::sys_stdouthandle_print_text)
@@ -1251,6 +1241,12 @@ sub load_session_data   # ($session_ID,$database_handler) // Load DATA from tabl
 }
 sub RunScript
 {
+ my $sys_loaded_src = 0;
+ my $p_file_name_N001 = read_form('file');
+ $p_file_name_N001 =~ m/^(.*?)\./si;
+ my $sys_RS_p_file_name = $1;
+ if($globexport::sys_script_cached_source eq '')
+ {
  if(($perl_html_dir eq '') or ($perl_html_dir =~ m/^(\\|\/)$/si))
    {
     print "<BR><h3><B><font color='red'>Security hole!!!</font> Your default script direcotry (htmls) is leaved empty or<BR>";
@@ -1290,21 +1286,72 @@ sub RunScript
    }
  if ($p_file_checked_done_N001)   
   {
-   if(!open(FILE_H_OPEN_N001,$perl_html_dir.$p_file_name_N001))
-     {
-      Header(type => 'content');
-      $print_flush_buffer = '';
-      flush_print();
-      print "<br><font color='red'><h2>Error: Incorrect request($perl_html_dir$p_file_name_N001)!</h2></font>";
-      onExit();
-      exit;
-     }
-   local $/;
-   undef $/;
-   binmode(FILE_H_OPEN_N001);
-   $p_file_buf_N001 = <FILE_H_OPEN_N001>;
-   close (FILE_H_OPEN_N001);
-   $/ = "\n";
+    if(!open(FILE_H_OPEN_N001,$perl_html_dir.$p_file_name_N001))
+      {
+       Header(type => 'content');
+       $print_flush_buffer = '';
+       flush_print();
+       print "<br><font color='red'><h2>Error: Incorrect request($perl_html_dir$p_file_name_N001)!</h2></font>";
+       onExit('withOutDB');
+       exit;
+      }
+    local $/ = undef;
+    binmode(FILE_H_OPEN_N001);
+    $p_file_buf_N001 = <FILE_H_OPEN_N001>;
+    close (FILE_H_OPEN_N001);
+    $/ = "\n";
+    $sys_loaded_src = 1;
+   }
+  }
+ else
+  {
+   $sys_loaded_src = 1;
+   $p_file_buf_N001 = $globexport::sys_script_cached_source;
+  }
+ if($sys_loaded_src)
+  {
+   @globexport::sys_pre_defined_vars = ();
+   $globexport::sys_script_cached_source =~ s/\n[\ \t]{1,}(\<\!\-\-\#onActivate\>)(.*?)(\<\/\#onActivate\-\-\>)/\n$1$2$3/sig;
+   $globexport::sys_script_cached_source =~ s/(\<\!\-\-\#onActivate\>)(.*?)(\<\/\#onActivate\-\-\>)[\ \t]{1,}/$1$2$3/sig;
+   $globexport::sys_script_cached_source =~ s/(\r\n|\n)(\<\!\-\-\#onActivate\>)(.*?)(\<\/\#onActivate\-\-\>)/$2$3$4/sig;
+   $globexport::sys_script_cached_source =~ s/(\<\!\-\-\#onActivate\>)(.*?)(\<\/\#onActivate\-\-\>)(\r\n|\n)/$1$2$3/sig;
+   my $sys_bkp = $globexport::sys_script_cached_source;
+   $sys_bkp =~ s/(\<\!\-\-\#onActivate\>)(.*?)(\<\/\#onActivate\-\-\>)/do{
+     push(@sys_pre_defined_vars,$2);
+    };/sgioe;
+   # Clear tags
+   $globexport::sys_script_cached_source =~ s/(\<\!\-\-\#onActivate\>)(.*?)(\<\/\#onActivate\-\-\>)//sig;
+   $p_file_buf_N001 = $globexport::sys_script_cached_source;
+   my $sys_str;
+   # WARNNING: Follow iterative loop change configuration variables (in this script)!
+   foreach $sys_str (@globexport::sys_pre_defined_vars)
+    {
+      # Parse confing constants
+      $sys_str =~ s/\#(.*?)(\r\n|\n)/$2/sgi;
+      $sys_str =~ s/\bconfig[\ \t]{0,}\.[\ \t]{0,}(.*?)\;/\$webtools\:\:$1\;/sgi;
+      eval $sys_str;
+      my $codeerr = $@;
+      if($@ ne '')
+       {
+        Header(type => 'content');
+        $print_flush_buffer = '';
+        flush_print();
+        print "<br><font color='red'><h3>Perl Subsystem: Syntax error in Activate section of <font color='blue'>$p_file_name_N001</font> !</h3>";
+        $codeerr =~ s/\r\n/\n/sg;
+        $codeerr =~ s/\n/<BR>/sgi;
+        my $res = $webtools::debugging eq 'on' ? "<br>$codeerr</font>" : "";
+        print $res;
+        onExit('withOutDB');
+        exit;
+       }
+    }
+   StartUpInit();
+   $p_file_buf_N001 =~ s/\bmain[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$webtools\:\:$1$2/sgi;
+   $p_file_buf_N001 =~ s/\bscript[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
+   $p_file_buf_N001 =~ s/\b\@main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@webtools\:\:$1$2/sgi;
+   $p_file_buf_N001 =~ s/\b\@script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
+   $p_file_buf_N001 =~ s/\b\%main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%webtools\:\:$1$2/sgi;
+   $p_file_buf_N001 =~ s/\b\%script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
    $p_file_buf_N001 =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>(\r\n|\n)?/$2/gsio;
    $p_file_buf_N001 =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>(\r\n|\n)?//gsio;
    $p_file_buf_N001 = pre_process_templates($p_file_buf_N001);  # Process all build-in templates
@@ -1326,7 +1373,7 @@ sub RunScript
    $print_flush_buffer = '';
    flush_print();
    print "<br><font color='red'><h2>Error: Invalid file request!</h2></font>";
-   onExit();
+   onExit('withOutDB');
    exit;
   }
 }
@@ -1421,7 +1468,7 @@ sub write_cookie
 sub delete_cookie
 {
  my ($name) = @_;
- my $expires = '-1m';
+ my $expires = '-1d';
  SetCookieExpDate($expires);
  my $cuky = SetCookies($name,'');
  Header(type=>'raw',val=>$cuky); # Expires data is -1 minute!
@@ -1453,7 +1500,7 @@ sub SetCGIScript_Timeout
 {
  if((defined($cgi_script_timeout)) and ($cgi_script_timeout != 0) and ($cgi_script_timeout > 1))
   {
-   $webtools::sys_ERROR->install('onTimeout',\&webtools::Default_CGI_Script_ALARM_SUB);
+   $Errors::Errors::sys_ERROR->install('onTimeout',\&Default_CGI_Script_ALARM_SUB);
 my $script_time_eval = << "TIME_EVAL_TERMINATOR";
    alarm($cgi_script_timeout);
 TIME_EVAL_TERMINATOR
@@ -1676,6 +1723,7 @@ sub Parse_Form
 #####################################################################
 sub onExit
 { 
+  my $todo = shift;
   # now we are going to erase all the files uploaded on the server ...
   my $delete_uploaded_files = << 'EVAL_TERMINATOR';
   while ( my ($file_name,$full_path_to_file) = each( %uploaded_files) )
@@ -1685,7 +1733,7 @@ sub onExit
           unlink ($full_path_to_file); 
         }
     }
- DB_OnDestroy();
+ if($todo ne 'withOutDB') {DB_OnDestroy();}
 EVAL_TERMINATOR
  eval $delete_uploaded_files;
  return(1);
@@ -1700,6 +1748,51 @@ sub onLockedFileErrorEvent
  onExit();
  exit;
 }
+
+sub set_ignore_termination
+{
+ $webtools::sys_ignore_term = shift;
+}
+sub get_ignore_termination
+{
+ return($webtools::sys_ignore_term);
+}
+
+sub On_Term_Event
+     {
+      my $obj   = shift;
+      my $err   = shift;
+      my $name  = shift;
+      # User hit STOP button or...admin shutdown Apache server :-)
+      if(!$webtools::sys_ignore_term)
+       {
+        if(exists($webtools::SIGNALS{'OnTerm'}))
+           {
+            eval {
+      	          my $OnEvent_code = $webtools::SIGNALS{'OnTerm'};
+      	          &$OnEvent_code;
+      	         };
+           }
+       }
+      if(!$webtools::sys_ignore_term)
+       {
+  	if($webtools::system_database_handle ne undef)
+  	  {
+  	   my $q =<<'THAT_TERM_SIG_STR';
+  	   if ($sys_local_sess_id ne '')
+  	     {
+  	      close_session_file($webtools::system_database_handle);
+  	     }
+  	   DB_OnExit($webtools::system_database_handle);
+  	   $webtools::system_database_handle = undef;
+  	   $usystem_database_handle = undef;
+THAT_TERM_SIG_STR
+  	   eval $q;
+  	  }
+  	eval {onExit();};
+        CORE::exit;
+       }
+  }
 
 ##########################################################
 # Case insensetive list function "exists"
@@ -1765,6 +1858,12 @@ sub pre_process_templates ($)
       $sys_prd_template =~ s/\r\n/\n/gs;
       $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>\n?/$2/gsi;
       $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>\n?//gsi;
+      $sys_prd_template =~ s/\bmain[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$webtools\:\:$1$2/sgi;
+      $sys_prd_template =~ s/\bscript[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
+      $sys_prd_template =~ s/\b\@main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@webtools\:\:$1$2/sgi;
+      $sys_prd_template =~ s/\b\@script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
+      $sys_prd_template =~ s/\b\%main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%webtools\:\:$1$2/sgi;
+      $sys_prd_template =~ s/\b\%script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
       close(SYS_PRE_PROCESS_TEMPLATES_FILE);
      }
     else {$sys_prd_template = '';}
@@ -2050,7 +2149,6 @@ sub sys_run_time_process_menuselect
    return($sys_my_pre_process_src);
   }
 }
-
 
 1;  # Well done...
 __END__

@@ -19,7 +19,16 @@ sub printDump
    push (@all_cgi, $global_hashes{$k});
   }
  dump_hash('GET/POST CGI VARIABLES',@all_cgi);
- dump_hash('COOKIE VARIABLES',%sess_cookies);
+ my @all_cgi = ();
+ foreach $k (keys %sess_cookies)
+  {
+   if(!($k =~ m/^sys_debug_cookie_/s))  # Remove debug cookies from cookie list!
+    {
+     push (@all_cgi, $k);
+     push (@all_cgi, $sess_cookies{$k});
+    }
+  }
+ dump_hash('COOKIE VARIABLES',@all_cgi);
  dump_hash('SESSION VARIABLES',%SESREG);
  dump_hash('UPLOADED FILES',%uploaded_original_file_names);
  print make_dump_html(shift(@_));
@@ -94,6 +103,62 @@ sub make_dump_html
    var offset_x=0;
    var offset_y=0;
    var center_w=5;
+   var vis=1;
+   var begin_flag=0;
+   
+   function read_cookie(name)
+   {
+    var stop,index;
+    
+    index = document.cookie.indexOf(name + "=");
+    if (index == -1) return (0);
+    index = document.cookie.indexOf("=", index) + 1;
+    stop = document.cookie.indexOf(";", index);
+    if (stop == -1) stop = document.cookie.length;
+    return(unescape(document.cookie.substring(index, stop)));
+   }
+   function write_cookie(name,value)
+   {
+    var cookie = name + "=" + value + ";";
+    document.cookie = cookie;
+   }
+   function alert_keycode(){
+    if(event.keyCode == 11) // CTRL+L
+     {
+      if(vis == 0)
+       {
+       	Open_Layer();
+       	vis = 1;
+       }
+      else
+       {
+       	Close_Layer();
+       	vis = 0;
+       }
+     }
+   }
+   function processkey(e){
+    if(e.which == 11) // CTRL+L
+     {
+      if(vis == 0)
+       {
+       	Open_Layer();
+       	vis = 1;
+       }
+      else
+       {
+       	Close_Layer();
+       	vis = 0;
+       }
+     }
+   }
+   if(document.all){
+    document.onkeypress=alert_keycode
+   }
+   else {
+    document.captureEvents(Event.KEYPRESS)
+    document.onkeypress=processkey
+   }
    
    function flag(a)
    {
@@ -103,6 +168,33 @@ sub make_dump_html
    {
     outer = a;
    }
+   function get_x(a)
+   {
+    if(begin_flag > 0) {begin_flag --;a=1;}
+    if(a == 1)
+     {
+      pos_x_1 = 0;
+      return(read_cookie('sys_debug_cookie_x'));
+     }
+    else
+     {
+      return(window.event.x);
+     }
+   }
+   function get_y(a)
+   {
+    if(begin_flag > 0) {begin_flag --;a=1;}
+    if(a == 1)
+     {
+      pos_y_1 = 0
+      pos_y_2 = 19;
+      return(read_cookie('sys_debug_cookie_y'));
+     }
+    else
+     {
+      return(window.event.y);
+     }
+   }
    function moveit(debuglaycapt,debuglaybody)
    {
     var tx,ty;
@@ -110,11 +202,25 @@ sub make_dump_html
     if(document.all){
     if(flager == 1)
      {
-      tx = window.event.x - center_w;
-      ty = window.event.y - center_w;
+      g_x = get_x(0);
+      g_y = get_y(0);
+      
+      tx = g_x - center_w;
+      ty = g_y - center_w;
       pos_x_1 = pos_x_1 + tx;
       pos_y_1 = pos_y_1 + ty;
       pos_y_2 = pos_y_2 + ty;
+      
+      var my_x = pos_x_1+center_w;
+      var my_y = pos_y_1+center_w;
+
+      if(parseInt(my_x) > 1024) {my_x=5; my_y=5;}
+      if(parseInt(my_x) < 0) {my_x=5; my_y=5;}
+      if(parseInt(my_y) > 1280) {my_x=5; my_y=5;}
+      if(parseInt(my_y) < 0) {my_x=5; my_y=5;}
+
+      write_cookie('sys_debug_cookie_x',my_x);
+      write_cookie('sys_debug_cookie_y',my_y);
       
       if(pos_x_1 < 0) pos_x_1 = 0;
       if(pos_y_1 < 0) {pos_y_1 = 0; pos_y_2 = 24;}
@@ -145,10 +251,12 @@ sub make_dump_html
        if(document.all.debuglaybody.style.visibility == 'visible')
         {
          document.all.debuglaybody.style.visibility = 'hidden';
+         write_cookie('sys_debug_cookie_min_max','H');
         }
        else
         {
          document.all.debuglaybody.style.visibility = 'visible';
+         write_cookie('sys_debug_cookie_min_max','V');
         }
       }
      else
@@ -156,15 +264,19 @@ sub make_dump_html
        if(document.debuglaybody.visibility != 'hide')
         {
          document.debuglaybody.visibility = 'hide';
+         write_cookie('sys_debug_cookie_min_max','H');
         }
        else
         {
          document.debuglaybody.visibility = 'visible';
+         write_cookie('sys_debug_cookie_min_max','V');
         }
       }
     }
    function Close_Layer()
     {
+     vis = 0;
+     write_cookie('sys_debug_cookie_visible','H');
      if(document.all)
       {
        document.all.debuglaycapt.style.visibility = 'hidden';
@@ -175,7 +287,22 @@ sub make_dump_html
       {
        document.debuglaycapt.visibility = 'hide';
        document.debuglaybody.visibility = 'hide';
-       document.movein.visibility = 'hide';
+      }
+    }
+   function Open_Layer()
+    {
+     vis = 1;
+     write_cookie('sys_debug_cookie_visible','V');
+     if(document.all)
+      {
+       document.all.debuglaycapt.style.visibility = 'visible';
+       document.all.debuglaybody.style.visibility = 'visible';
+       document.all.movein.style.visibility = 'visible';
+      }
+     else
+      {
+       document.debuglaycapt.visibility = 'visible';
+       document.debuglaybody.visibility = 'visible';
       }
     }
    //-->
@@ -193,7 +320,7 @@ sub make_dump_html
       </script>
       <td width="100%" bgcolor="#0099FF"> 
         <div align="center"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#FFFF00"><b>Debug 
-          Window</b></font></div>
+          Window <font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#004FB0">- Press CTRL+K to hide/show window</font></b></font></div>
       </td>
       <td width="1" bgcolor="#0099FF"> 
         <div align="center"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#FFFF00"><b><font size="3"><font size="2">&nbsp;<a href="javascript: Min_Max_Layer();">M</a>&nbsp;</font></font></b></font></div>
@@ -222,7 +349,23 @@ sub make_dump_html
      offset_x = pos_x_2 - pos_x_1;
      offset_y = pos_y_2 - pos_y_1;
      center_w = parseInt(movein.style.width) / 2;
+     begin_flag = 2;
+     flag(1);outit(1);
+     check(debuglaycapt,debuglaybody);
+     flag(0);
    }
+   var rc_state_v = read_cookie('sys_debug_cookie_visible');
+   var rc_state_m = read_cookie('sys_debug_cookie_min_max');
+   rc_state_v
+   if(rc_state_v == 'V' || rc_state_v == 0)
+    {
+     Open_Layer(); vis=1;
+     if(rc_state_m == 'H')
+      {
+       Min_Max_Layer();
+      }
+    }
+   else {Close_Layer(); vis=0;}
    </script>
    ~;
    return $js;
@@ -305,7 +448,7 @@ sub dump_hash
       }
       $full .= qq~
       <TR VLAIGN="top">
-        <TD WIDTH="120"><FONT COLOR="BLUE" FACE="Verdana,Arial"><B><TT>&nbsp;$ii&nbsp;</TT></B></FONT></TD>
+        <TD WIDTH="120" COLSPAN="0"><table border="0"><TR><TD COLSPAN="0"><FONT COLOR="BLUE" FACE="Verdana,Arial" size="2"><B>$ii</B></FONT></TD></TR></TABLE></TD>
         <TD width="100%"><FONT COLOR="BLACK" FACE="Verdana,Arial"><TT>$VA</TT></FONT></TD>
       </TR>
       ~;
