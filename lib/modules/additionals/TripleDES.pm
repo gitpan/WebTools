@@ -8,7 +8,7 @@
 #######################################################################
 ## DES module was modified by Julian Lishev
 ## DO NOT code files bigger than 8k !!!
-## (Recomended for small paces of data)
+## (Recomended for small pieces of data)
 
 package TripleDES;
 BEGIN {
@@ -162,11 +162,11 @@ sub Make_Check_Sum
 ################################################################################
 # SYNOPSIS
 ################################################################################
-# $crpt = CriptData("sicret_credit_card=4557024001932895","Unhackable_password");
-# print "My data now is cripted like: $crpt\n";
-#
-# $encrpt = EncriptData($crpt,"Unhackable_password");
-# print "Now we read encripted value via password: $encrpt\n";
+# $crpt = EncriptData("secret_credit_card=4557024001932895","Unhackable_password");
+# print "My data now is crypted like: $crpt\n";
+# 
+# $decrpt = DecriptData($crpt,"Unhackable_password");
+# print "Now we read decripted value via password: $decrpt\n";
 
 package PPDES;
 

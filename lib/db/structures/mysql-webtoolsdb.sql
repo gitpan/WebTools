@@ -18,7 +18,7 @@ use webtoolsdb;
 
 create table webtools_sessions (
         ID BIGINT(1) not null auto_increment primary key,
-        S_ID VARCHAR(45) binary not null,
+        S_ID VARCHAR(255) binary not null,
         IP VARCHAR(20) binary default 'xxx.xxx.xxx.xxx',
         EXPIRE DATETIME not null,
         FLAG char(1) binary default '0',
@@ -32,12 +32,17 @@ create table webtools_sessions (
 
 create table webtools_users (
         ID INT(1) not null auto_increment primary key,
-        USER VARCHAR(30) binary not null,
-        PASSWORD VARCHAR(30) binary default '',
+        USER VARCHAR(50) binary not null,
+        PASSWORD VARCHAR(50) binary default '',
+        ACTIVE CHAR(1),
         DATA longblob,
+        CREATED DATETIME not null,
+        FNAME VARCHAR(50),
+        LNAME VARCHAR(50),
+        EMAIL VARCHAR(120),
         unique(USER)
         );
 
 # Default user of system: Must be changed!
-insert into webtools_users values(NULL,'admin',password('adminpassword'),'');
+insert into webtools_users values(NULL,'admin','adminpassword','Y','',NOW(),'Admin','','');
 

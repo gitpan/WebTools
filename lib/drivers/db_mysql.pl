@@ -26,6 +26,8 @@ if($@ ne '')
   exit;
  }
 
+$Mysql::QUIET = $mysqlbequiet;
+
 sub DB_OnExit
    {
     my ($system_database_handle) = @_;
@@ -218,7 +220,7 @@ sub session_clear_expired
  else
  {
   ###FLAT###
-  remove_SF_OldSessions($tmp.'/',time()-$sys_time_for_flat_sess);
+  remove_SF_OldSessions($tmp,time()-$sys_time_for_flat_sess);
  }
  return(1);
 }
@@ -240,7 +242,7 @@ sub session_expire_update
  else
  {
   ###FLAT###
-  return(update_SF_File($tmp.'/',$sys_local_sess_id));
+  return(update_SF_File($tmp,$sys_local_sess_id));
  }
  return (1);
 }
@@ -261,7 +263,7 @@ sub insert_sessions_row   # ($session_id,$db_handler)
   else
   {
    ###FLAT###
-   write_SF_File($tmp.'/',$sid,'');
+   write_SF_File($tmp,$sid,'');
    return(1);
   }
   return(0);
@@ -275,11 +277,15 @@ sub DB_OnDestroy
 #####################################################################
 sub SignUpUser
 {
- my ($user,$pass,$data,$dbh) = @_;
+ my ($user,$pass,$data,$active,$fname,$lname,$email,$dbh) = @_;
+ $active = uc($active);
  $user = sql_quote($user,$dbh);
  $pass = sql_quote($pass,$dbh);
  $data = sql_quote($data,$dbh);
- my $q = "insert into $sql_user_table values(NULL,$user,password($pass),$data);";
+ $fname = sql_quote($fname,$dbh);
+ $lname = sql_quote($lname,$dbh);
+ $email = sql_quote($email,$dbh);
+ my $q = "insert into $sql_user_table values(NULL,$user,$pass,\'$active\',$data,NOW(),$fname,$lname,$email);";
  my $res = sql_query($q,$dbh);
  if (($res ne undef) and (sql_affected_rows($res) > 0))
    {
@@ -293,7 +299,7 @@ sub SignInUser
  $user = sql_quote($user,$dbh);
  $pass = sql_quote($pass,$dbh);
  $data = sql_quote($data,$dbh);
- my $q = "select ID,DATA from $sql_user_table where USER=$user and PASSWORD=password($pass);";
+ my $q = "select ID,DATA from $sql_user_table where USER=$user and PASSWORD=$pass and ACTIVE='Y';";
  my $res = sql_query($q,$dbh);
  if ($res eq undef)
    {

@@ -250,7 +250,7 @@ sub session_clear_expired
  else
  {
   ###FLAT###
-  remove_SF_OldSessions($tmp.'/',time()-$sys_time_for_flat_sess);
+  remove_SF_OldSessions($tmp,time()-$sys_time_for_flat_sess);
  }
  return(1);
 }
@@ -259,7 +259,7 @@ sub session_expire_update
  my ($dbh) = @_;
  my %calmin  = ('second',1,'minute',60,'hour',3600,'day',86400,'month',2678400,'year',31536000);
  my %globmin = ('s',1,'m',60,'h',3600,'d',86400,'M',2678400,'y',31536000);
- my $inter = $calmin{$sess_datetype};
+ my $inter = $sess_time * $calmin{$sess_datetype};
  $inter += time();
  my $i_id;
  my $ip = $ENV{'REMOTE_ADDR'}; # Get remote IP address
@@ -276,7 +276,7 @@ if($sess_force_flat eq 'off') ###DB###
  else
  {
   ###FLAT###
-  return(update_SF_File($tmp.'/',$sys_local_sess_id));
+  return(update_SF_File($tmp,$sys_local_sess_id));
  }
  return (1);
 }
@@ -285,7 +285,7 @@ sub insert_sessions_row   # ($session_id,$db_handler)
   my ($dbh) = @_;
   my %calmin  = ('second',1,'minute',60,'hour',3600,'day',86400,'month',2678400,'year',31536000);
   my %globmin = ('s',1,'m',60,'h',3600,'d',86400,'M',2678400,'y',31536000);
-  my $inter = $calmin{$sess_datetype};
+  my $inter = $sess_time * $calmin{$sess_datetype};
   $inter += time();
   my $sid = $sys_local_sess_id;
   my $ip = $ENV{'REMOTE_ADDR'}; # Get remote IP address
@@ -302,7 +302,7 @@ sub insert_sessions_row   # ($session_id,$db_handler)
   else
   {
    ###FLAT###
-   write_SF_File($tmp.'/',$sid,'');
+   write_SF_File($tmp,$sid,'');
    return(1);
   }
   return(0);
@@ -321,9 +321,10 @@ sub DB_OnDestroy
 #####################################################################
 sub SignUpUser
 {
- my ($user,$pass,$data,$dbh) = @_;
+ my ($user,$pass,$data,$active,$fname,$lname,$email,$dbh) = @_;
  my $ut = "SELECT USER FROM $sql_user_table WHERE USER=?";
- my $q = "INSERT INTO $sql_user_table(USER,PASSWORD,DATA) VALUES(?,?,?);";
+ my $q = "INSERT INTO $sql_user_table(USER,PASSWORD,ACTIVE,DATA,CREATED,FNAME,LNAME,EMAIL) VALUES(?,?,?,?,?,?,?,?);";
+ $active = uc($active);
 
  my $rut = $dbh->prepare($ut);
  $rut->execute($user);
@@ -333,7 +334,7 @@ sub SignUpUser
  if ($arr[0] ne '') { return(0);}
  else
   {
-   my $res = $dbh->do($q,undef,$user,$pass,$data);
+   my $res = $dbh->do($q,undef,$user,$pass,$active,$data,time(),$fname,$lname,$email);
    if ($res eq '1')
      {
        return(1);
@@ -347,7 +348,7 @@ sub SignInUser
  my ($user,$pass,$dbh) = @_;
  $user = sql_quote($user,$dbh);
  $pass = sql_quote($pass,$dbh);
- my $q = "SELECT ID,DATA FROM $sql_user_table WHERE USER=$user and PASSWORD=$pass;";
+ my $q = "SELECT ID,DATA FROM $sql_user_table WHERE USER=$user and PASSWORD=$pass and ACTIVE=\'Y\';";
  my $res = sql_query($q,$dbh);
  if ($res eq undef)
    {

@@ -176,6 +176,7 @@ sub SetCookies {
             $value =~ s/$char/$Cookie_Encode_Chars{$char}/g;
         }
 
+        #$cd = 'Set-Cookie2: Version = 1'."\n";
         $cd = 'Set-Cookie: ' . $cookie . '=' . $value . ';';
 
         if ($cookie_exp_date_cgi) {

@@ -557,7 +557,7 @@ yet.
       # Count of attempts when database is flocked 
 
       $wait_for_open = '2.0'; 
-      # Time between two attempts (in sec  
+      # Time between two attempts (in sec) 
 
       $sess_time = '2'; # !!! 
       # Expire time on session: 60 minutes 

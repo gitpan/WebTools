@@ -3,6 +3,7 @@ package FlatLock;
 # Flat lock module written by Julian Lishev
 # This module is part of WebTools package!
 # Privacy and terms are same as WebTools!
+# www.proscriptum.com
 
 # This module can "lock" one or other number.
 # In that state it will stay till somebody
@@ -15,6 +16,7 @@ package FlatLock;
 # This module create file (default) in /tmp
 # directory when you lock "fibre" and module
 # delete this file when fibre is unlocked!
+
 
 use strict;
 
@@ -34,6 +36,14 @@ use strict;
                    force deleting of locked fibre! (default: 300)
 
 =cut
+
+BEGIN
+ {
+  use vars qw($VERSION @ISA @EXPORT);
+  $VERSION = "1.16";
+  @ISA = qw(Exporter);
+  @EXPORT = qw();
+ }
 
 sub new
 { 

@@ -270,11 +270,11 @@ sub PrintHtml
 # That function is very imortant to be explained!
 # You must supplay: User,Password,Empty,Old_SID and DB Handler,
 # where: Empty is 1, if User and Password vars are not defined;
-#     Old_SID is Session ID finded from GetCurrentSID($dbh) ;
-# Function return action in depened of these data.
-# Syntax: ($action,$user,$pass,$ID,$DATA) = UserPasswprd(....);
+#     Old_SID is Session ID found from GetCurrentSID($dbh);
+# Function return action depened of these data.
+# Syntax: ($action,$user,$pass,$ID,$DATA) = UserPassword(....);
 # Where $action can be: 
-# 'redirect' - mean that, no user/pass were founded and you
+# 'redirect' - mean that, no user/pass were found and you
 #     must redirect to check out form.
 # 'new' - You must create new session, to register vars and to
 #     print "Users" menu and so on..
@@ -287,7 +287,8 @@ sub UserPassword
 {
  my ($user,$pass,$empty,$old_sid,$dbh) = @_;
  my $result = undef;
- my ($id,$data)= ();
+ my ($id,$data,$sid,$user_loged) = ();
+ my ($back_up_header,$back_up_buffer,$back_up_flsh)= ();
  if($old_sid eq '')   # SID is empty
    {
     if($empty)
@@ -320,26 +321,25 @@ sub UserPassword
       $back_up_flsh = $sess_header_flushed;
       
       $sid = session_start($dbh,0);
-      $user = read_scalar('user');
+      
       # Read saved values from previos script run.
-      $pass = read_scalar('pass');
-      #session_destroy($dbh); #Why DESTROY session???
+      $user = read_scalar('user');
+      $user_loged = read_scalar('user_loged');
+      $pass = '';
       
       $print_flush_buffer = $back_up_header;
       $print_header_buffer = $back_up_buffer;
       $sess_header_flushed = $back_up_flsh;
       
-      ($id,$data) = SignInUser($user,$pass,$dbh);
-      # Check reged User and Pass.
-      if ($id eq undef)
+      if($user_loged eq '1')
        {
-        # Here we must "Redirect" to entry user/pass page.
-	 $result = 'redirect';
+        # Here we must ONLY print MENU.
+	$result = 'menu';
        }
       else
        {
-        # Here we must ONLY print MENU.
-	 $result = 'menu';
+       	# Here we must "Redirect" to entry user/pass page.
+	$result = 'redirect';
        }
      }
     else

@@ -432,7 +432,7 @@ for finding bugs and offering suggestions:
 
 =head1 COPYRIGHT INFORMATION
 	
-			WTJSprite Copyright (c) 1998-2000, Jim Turner
+			WTJSprite Copyright (c) 1998-2001, Jim Turner
           Sprite Copyright (c) 1995-1998, Shishir Gundavaram
                       All Rights Reserved
 
@@ -463,12 +463,13 @@ eval {require 'OraSpriteFns.pl';};
 use vars qw ($VERSION $LOCK_SH $LOCK_EX);
 ##--
 
-$WTJSprite::VERSION = '5.26';
+$WTJSprite::VERSION = '5.30';
 $WTJSprite::LOCK_SH = 1;
 $WTJSprite::LOCK_EX = 2;
 
-my $NUMERICTYPES = '^(NUMBER|FLOAT|DOUBLE|INT|INTEGER|NUM|AUTONUMBER|AUTO|AUTO_INCREMENT)$';       #20011029
+my $NUMERICTYPES = '^(NUMBER|FLOAT|DOUBLE|INT|INTEGER|NUM|AUTONUMBER|AUTO|AUTO_INCREMENT)$';       #20000224
 my $STRINGTYPES = '^(VARCHAR2|CHAR|VARCHAR|DATE|LONG|BLOB|MEMO)$';
+my $BLOBTYPES = '^(LONG|BLOB|MEMO)$';
 my @perlconds = ();
 my @perlmatches = ();
 my $sprite_user = '';   #ADDED 20011026.
@@ -518,11 +519,13 @@ sub new
 		lastmsg      => '',
 		CaseTableNames  => 0,    #JWT:  19990991 TABLE-NAME CASE-SENSITIVITY?
 		LongTruncOk  => 0,     #JWT: 19991104: ERROR OR NOT IF TRUNCATION.
+		LongReadLen  => 0,     #JWT: 19991104: ERROR OR NOT IF TRUNCATION.
 		RaiseError   => 0,     #JWT: 20000114: ADDED DBI RAISEERROR HANDLING.
 		silent       => 0,
 		dirty			 => 0,     #JWT: 20000229: PREVENT NEEDLESS RECOMMITS.
 		StrictCharComp => 0,    #JWT: 20010313: FORCES USER TO PAD STRING LITERALS W/SPACES IF COMPARING WITH "CHAR" TYPES.
 		sprite_forcereplace => 0,  #JWT: 20010912: FORCE DELETE/REPLACE OF DATAFILE (FOR INTERNAL WEBFARM USE)!
+		sprite_Crypt => 0,  #JWT: 20020109:  Encrypt Sprite table files! FORMAT:  [[encrypt=|decrypt=][Crypt]::CBC;][[IDEA[_PP]|DES]_PP];]keystr
 		dbuser			=> ''      #JWT: 20011026: SAVE USER'S NAME.
 	    };
 
@@ -530,6 +533,11 @@ sub new
 		   PC    => '\\\\', VMS => '/' };
 
     bless $self, $class;
+
+	 for (my $i=0;$i<scalar(@_);$i+=2)   #ADDED: 20020109 TO ALLOW SETTING ATTRIBUTES IN INITIALIZATION!
+	 {
+	 	$self->{$_[$i]} = $_[$i+1];
+	 }
 
     $self->initialize;
     return $self;
@@ -542,6 +550,33 @@ sub initialize
     $sprite_user = $self->{'dbuser'};   #ADDED 20011026.
     $self->define_errors;
     $self->set_os ($^O) if (defined $^O);
+	if ($self->{sprite_Crypt})  #ADDED: 20020109
+	{
+		my (@cryptinfo) = split(/\;/, $self->{sprite_Crypt});
+		unshift (@cryptinfo, 'IDEA')  if ($#cryptinfo < 1);
+		unshift (@cryptinfo, 'Crypt::CBC')  if ($#cryptinfo < 2);
+		$self->{sprite_Crypt} = 1;
+		$self->{sprite_Crypt} = 2  if ($cryptinfo[0] =~ s/^encrypt\=//i);
+		$self->{sprite_Crypt} = 3  if ($cryptinfo[0] =~ s/^decrypt\=//i);
+		$cryptinfo[0] = 'Crypt::' . $cryptinfo[0]  
+				unless ($cryptinfo[0] =~ /\:\:/);
+		eval "require $cryptinfo[0]";
+	    if ($@)
+	    {
+			$errdetails = $@;
+			$self->display_error (-526);
+		}
+		else
+		{
+		    eval {$CBC = Crypt::CBC->new($cryptinfo[2], $cryptinfo[1]); };
+		    if ($@)
+		    {
+				$errdetails = "Can't find/use module \"$cryptinfo[1].pm\"? ($@)!";
+				$self->display_error (-526);
+			}
+		}
+	}
+	return $self;
 }
 
 sub set_delimiter
@@ -621,7 +656,6 @@ sub get_path_info
 {
     my ($self, $file) = @_;
     my ($separator, $path, $name, $full);
-
     $separator = $self->{separator}->{ $self->{platform} };
 
     ($path, $name) = $file =~ m|(.*?)([^$separator]+)$|o;
@@ -709,8 +743,8 @@ sub sql
 	$sprite_user = $self->{'dbuser'};   #ADDED 20011026.
 	$self->{lasterror} = 0;
 	$self->{lastmsg} = '';
-    $query   =~ s/\n/ /gs;
-    $query   =~ s/^\s*(.*?)\s*$/$1/;
+    #$query   =~ s/\n/ /gs;   #REMOVED 20011107
+    $query   =~ s/^\s*(.*?)\s*$/$1/s;
     $command = '';
 
 	if ($query =~ /^($self->{commands})/io)
@@ -846,7 +880,8 @@ sub define_errors
     $errors->{'-523'} = "Special table \"DUAL\" is READONLY!";  #20000323 JWT.
 	$errors->{'-524'} = "Can't store non-NULL value into AUTOSEQUENCE!"; #20011029 JWT.
 	$errors->{'-525'} = "Can't update AUTOSEQUENCE field!"; #20011029 JWT.
-
+	$errors->{'-526'} = "Can't find encryption modules"; #20011029 JWT.
+	$errors->{'-527'} = "Database illedgable - wrong encryption key/method?"; #20011029 JWT.
     $self->{errors} = $errors;
 
     return (1);
@@ -893,43 +928,32 @@ sub parse_expression
     ##  Jeffrey Friedl. Thanks Jeffrey!
     ##--
 
-#$query =~ s/\'\'/\\\'/g;    #CONVERT ALL '' TO \'.
-#$query =~ s#\b($column)\s*($numops)\s*\'\'\'#$1 $2 \'\\\'#go;   #FIX "op '''..." TO "op '\'..."
-#$query =~ s/([^\\])\'\'\'/$1\\\'\'/g;    #FIX "'''   " TO "\''   "
-$query =~ s/\\\\/\x02/g;    #PROTECT "\\"
-#$query =~ s/\\\'/\x03/g;    #PROTECT "", \", '', AND \'.
-$query =~ s/\\\'|\'\'/\x03/g;   #20000201  #PROTECT "", \", '', AND \'.
-#$query =~ s/\\\"|\"\"/\x04/g;   #REMOVED 20000303.
+$query =~ s/\\\\/\x02\^2jSpR1tE\x02/gs;    #PROTECT "\\"   #XCHGD. TO 2 LINES DOWN 20020111
+$query =~ s/\\\'|\'\'/\x02\^3jSpR1tE\x02/gs;   #20000201  #PROTECT "", \", '', AND \'.
+#$query =~ s/\\/\x02\^2jSpR1tE\x02/gs;    #PROTECT "\\"
 
 my ($i, $j, $j2, $k);
 while (1)
 {
 	$i = 0;
-	#$i = ($query =~ s|(\w)\s+not\s+like\s+|$1 !^ |i);
-	#$i = ($query =~ s|(\w)\s+like\s+|$1 =^ |i)  unless ($i);
-	#20011017: LAST 2 CHGD. TO NEXT 2 TO (PARTIALLY) FIX BUG FORBIDDING THE WORD 'LIKE' IN LITERAL STRINGS IN WHERE CLAUSES.
-	#$i = ($query =~ s|\b($column)\s+not\s+like\s+|$1 !^ |i);
-	#$i = ($query =~ s|\b($column)\s+like\s+|$1 =^ |i)  unless ($i);
-	$i = ($query =~ s|\b($colmlist)\s+not\s+like\s+|$1 !^ |i);
-	$i = ($query =~ s|\b($colmlist)\s+like\s+|$1 =^ |i)  unless ($i);
+	$i = ($query =~ s|\b($colmlist)\s+not\s+like\s+|$1 !^ |is);
+	$i = ($query =~ s|\b($colmlist)\s+like\s+|$1 =^ |is)  unless ($i);
 	if ($i)
 	{
-		#if ($query =~ /(\^\s*["'])([^"\\]*(\\.[^"\\]*)*)/)
-		#if ($query =~ /(\^\s*)(["'])(.*?)\2/)
-		if ($query =~ /([\=\!]\^\s*)(["'])(.*?)\2/)  #20001010
+		if ($query =~ /([\=\!]\^\s*)(["'])(.*?)\2/s)  #20001010
 		{
 			$j = "$1$2";   #EVERYTHING BEFORE THE QUOTE (DELIMITER), INCLUSIVE
 			$i = $3;       #THE STUFF BETWEEN THE QUOTES.
 			my $iquoted = $i;    #ADDED 20000816 TO FIX "LIKE 'X.%'" (X\.%)!
-			$iquoted =~ s/([\\\|\(\)\[\{\^\$\*\+\?\.])/\\$1/g;
+			$iquoted =~ s/([\\\|\(\)\[\{\^\$\*\+\?\.])/\\$1/gs;
 			my ($k) = "\^$iquoted\$";
-			$k =~ s/^\^%//;
-			$k =~ s/%\$$//;
+			$k =~ s/^\^%//s;
+			$k =~ s/%\$$//s;
 			$j2 = $j;
 			#$j2 =~ s/^\^/~/;   #CHANGE SPECIAL OPERATORS (=^ AND !^) BACK TO (=~ AND !~).
-			$j2 =~ s/^(.)\^/$1~/;   #20001010 CHANGE SPECIAL OPERATORS (=^ AND !^) BACK TO (=~ AND !~).
-			$k =~ s/_/./g;
-			$query =~ s/\Q$j$i\E/$j2$k/;
+			$j2 =~ s/^(.)\^/$1~/s;   #20001010 CHANGE SPECIAL OPERATORS (=^ AND !^) BACK TO (=~ AND !~).
+			$k =~ s/_/./gs;
+			$query =~ s/\Q$j$i\E/$j2$k/s;
 		}
 	}
 	else
@@ -958,12 +982,11 @@ while (1)
 			}
 			"$one ".'&'."$two".substr($three,0,$i).'&'.
 					substr($three,$i);
-	|e);
+	|es);
 
 	#THIS REGEX HANDLES ALL OTHER LIKE AND PERL "=~" AND "!~" OPERATORS.
 
 	@perlconds = ();
-    #$query =~ s%([!=][~\^])\s*(m)?(.)([^\3]*?)\3(i)?%  #20011017: CHGD TO NEXT.
 
     $query =~ s%\b($colmlist)\s*([!=][~\^])\s*(m)?(.)([^\4]*?)\4(i)?%  #20011017: CHGD TO NEXT.
 	           my ($m, $i, $delim, $four, $one, $fldname) = ($3, $6, $4, $5, $2, $1);
@@ -971,34 +994,35 @@ while (1)
                    $m ||= ''; $i ||= '';
 					$m = 'm'  unless ($delim eq '/');
 					my ($three) = $delim;
-					$four =~ s/\\\(/\x02/g;
-					$four =~ s/\\\)/\x03/g;
+					$four =~ s/\\\(/\x02\^2jSpR1tE\x02/gs;
+					$four =~ s/\\\)/\x02\^3jSpR1tE\x02/gs;
 					if ($four =~ /\(.*\)/)
 					{
 						#$four =~ s/\(//g;
 						#$four =~ s/\)//g;
 						$catchmatch = 1;
 					}
-					$four =~ s/\x02/\(/g;
-					$four =~ s/\x03/\)/g;
+					$four =~ s/\x02\^2jSpR1tE\x02/\(/gs;
+					$four =~ s/\x02\^3jSpR1tE\x02/\)/gs;
                     push (@strings, "$m$delim$four$three$i");
 					push (@perlconds, "\$_->{$fldname} $one *$#strings; push (\@perlmatches, \$1)  if (defined \$1); push (\@perlmatches, \$2)  if (defined \$2);")  if ($catchmatch);
                    "$fldname $one *$#strings";
-               %gei;
+               %geis;
     #$query =~ s|(['"])([^\1\\]*(?:\\.[^\1\\]*)*)\1|
     $query =~ s|(["'])(.*?)\1|
                    push (@strings, "$1$2$1"); "*$#strings";
- 	       |ge;
+ 	       |ges;
 
-	$query =~ s/\x03/\'/g;   #RESTORE PROTECTED SINGLE QUOTES HERE.
-	#$query =~ s/\x04/\"/g;   #RESTORE PROTECTED DOUBLE QUOTES HERE.   #REMOVED 20000303.
-	$query =~ s/\x02/\\/g;   #RESTORE PROTECTED SLATS HERE.
+	$query =~ s/\x02\^3jSpR1tE\x02/\'/gs;   #RESTORE PROTECTED SINGLE QUOTES HERE.
+	#$query =~ s/\x02\^2jSpR1tE\x02/\\/gs;   #RESTORE PROTECTED SLATS HERE.  #CHGD. TO NEXT 20020111
+	$query =~ s/\x02\^2jSpR1tE\x02/\\\\/gs;   #RESTORE PROTECTED SLATS HERE.
 
 	for $i (0..$#strings)
 	{
-		$strings[$i] =~ s/\x03/\\\'/g; #RESTORE PROTECTED SINGLE QUOTES HERE.
-		#$strings[$i] =~ s/\x04/\"/g;   #RESTORE PROTECTED DOUBLE QUOTES HERE.   #REMOVED 20000303.
-		$strings[$i] =~ s/\x02/\\/g;   #RESTORE PROTECTED SLATS HERE.
+		$strings[$i] =~ s/\x02\^3jSpR1tE\x02/\\\'/gs; #RESTORE PROTECTED SINGLE QUOTES HERE.
+		#$strings[$i] =~ s/\x02\^4jSpR1tE\x02/\"/gs;   #RESTORE PROTECTED DOUBLE QUOTES HERE.   #REMOVED 20000303.
+		#$strings[$i] =~ s/\x02\^2jSpR1tE\x02/\\/gs;   #RESTORE PROTECTED SLATS HERE.  #CHGD. TO NEXT 20020111
+		$strings[$i] =~ s/\x02\^2jSpR1tE\x02/\\\\/gs;   #RESTORE PROTECTED SLATS HERE.
 	}
 
 	if ($query =~ /^($column)$/)
@@ -1008,51 +1032,52 @@ while (1)
 		$query = '&' . $i  unless ($i =~ m/($colmlist)/i);
 	}
 
-    $query =~ s#\b($colmlist)\s*($numops)\s*\*#$1 $numopmap{$2} \*#gi;
-    $query =~ s#\b($colmlist)\s*($numops)\s*\'#$1 $numopmap{$2} \'\'#gi;
-    $query =~ s#\b($colmlist)\s*($numops)\s*($colmlist)#$1 $numopmap{$2} $3#gi;
+    $query =~ s#\b($colmlist)\s*($numops)\s*\*#$1 $numopmap{$2} \*#gis;
+    $query =~ s#\b($colmlist)\s*($numops)\s*\'#$1 $numopmap{$2} \'\'#gis;
+    $query =~ s#\b($colmlist)\s*($numops)\s*($colmlist)#$1 $numopmap{$2} $3#gis;
     #$query =~ s#\b($colmlist)\s*($numops)\s*($column(?:\(.*?\))?)#$1 $numopmap{$2} $3#gi;
-    $query =~ s%\b($column\s*(?:\(.*?\))?)\s+is\s+null%$1 eq ''%ig;
-    $query =~ s%\b($column\s*(?:\(.*?\))?)\s+is\s+not\s+null%$1 ne ''%ig;
+    $query =~ s%\b($column\s*(?:\(.*?\))?)\s+is\s+null%$1 eq ''%igs;
+    $query =~ s%\b($column\s*(?:\(.*?\))?)\s+is\s+not\s+null%$1 ne ''%igs;
     #$query =~ s%\b($colmlist)\s*(?:\(.*?\))?)\s*($numops)\s*CURVAL%$1 $2 &pscolfn($self,$3)%gi;
-    $query =~ s%($column)\s*($numops)\s*($column\.(?:$psuedocols))%"$1 $2 ".&pscolfn($self,$3)%eg;
-    $query =~ s%\b($column\s*(?:\(.*?\))?)\s*($numops)\s*($column\s*(?:\(.*?\))?)%
+    $query =~ s%($column)\s*($numops)\s*($column\.(?:$psuedocols))%"$1 $2 ".&pscolfn($self,$3)%egs;
+    #$query =~ s%\b($column\s*(?:\(.*?\))?)\s*($numops)\s*($column\s*(?:\(.*?\))?)%   #CHGD. TO NEXT 20020108 TO FIX BUG WHEN WHERE-CLAUSE TESTED EQUALITY WITH NEGATIVE CONSTANTS.
+    $query =~ s%\b($column\s*(?:\(.*?\))?)\s*($numops)\s*((?:[+-]?[0..9+-\.Ee]+|$column)\s*(?:\(.*?\))?)%
 		my ($one,$two,$three) = ($1,$2,$3);
 		$one =~ s/\s+$//;
 		if ($one =~ /NUM\s*\(/ || ${$self->{types}}{"\U$one\E"} =~ /$NUMERICTYPES/i)
 		{
-			$two =~ s/^($strops)$/$stropmap{$two}/;
+			$two =~ s/^($strops)$/$stropmap{$two}/s;
 			"$one $two $three";
 		}
 		else
 		{
 			"$one $numopmap{$two} $three";
 		}
-	 %eg;
+	 %egs;
 
 # (JWT 8/8/1998) $query =~ s|\b($colmlist)\s+($strops)\s+(\d+)|$1 $stropmap{$2} $3|gi;
-	$query =~ s|\b($colmlist)\s*($strops)\s*(\d+)|$1 $stropmap{$2} $3|gi;
+	$query =~ s|\b($colmlist)\s*($strops)\s*(\d+)|$1 $stropmap{$2} $3|gis;
 
 	my $ineqop = '!=';
 	$query =~ s!\b($colmlist)\s*($strops)\s*(\*\d+)!
 		my ($one,$two,$three) = ($1,$2,$3);
 		$one =~ s/\s+$//;
 		my $res;
-		if ($one =~ /NUM\s*\(/ || ${$self->{types}}{"\U$one\E"} =~ /$NUMERICTYPES/i)
+		if ($one =~ /NUM\s*\(/ || ${$self->{types}}{"\U$one\E"} =~ /$NUMERICTYPES/is)
 		{
 			my ($opno) = undef;    #NEXT 18 LINES ADDED 20010313 TO CAUSE STRING COMPARISENS W/NUMERIC FIELDS TO RETURN ZERO, SINCE PERL NON-NUMERIC STRINGS RETURN ZERO.
-			if ($three =~ /^\*\d+/)
+			if ($three =~ /^\*\d+/s)
 			{
 				$opno = substr($three,1);
 				$opno = $strings[$opno];
-				$opno =~ s/^\'//;
-				$opno =~ s/\'$//;
+				$opno =~ s/^\'//s;
+				$opno =~ s/\'$//s;
 			}
 			else
 			{
 				$opno = $three;
 			}
-			unless ($opno =~ /^[\+\-\d\.][\d\.Ex\+\-\_]*$/)  #ARGUMENT IS A VALID NUMBER.
+			unless ($opno =~ /^[\+\-\d\.][\d\.Ex\+\-\_]*$/s)  #ARGUMENT IS A VALID NUMBER.
 			{
 			#	$res = '0';
 			#	$res = '1'  if ($two eq $ineqop);
@@ -1060,7 +1085,7 @@ while (1)
 			}
 			else
 			{
-				$two =~ s/^($strops)$/$stropmap{$two}/  unless ($opno eq "0");
+				$two =~ s/^($strops)$/$stropmap{$two}/s  unless ($opno eq "0");
 				$res = "$one $two $three";
 			}
 		}
@@ -1071,8 +1096,8 @@ while (1)
 			{
 				$opno = substr($three,1);
 				my $opstr = $strings[$opno];
-				$opstr =~ s/^\'//;
-				$opstr =~ s/\'$//;
+				$opstr =~ s/^\'//s;
+				$opstr =~ s/\'$//s;
 				$strings[$opno] = "'" . sprintf(
 							'%-'.${$self->{lengths}}{"\U$one\E"}.'s',
 							$opstr) . "'";
@@ -1084,38 +1109,37 @@ while (1)
 			$res = "$one $two $three";
 		}
 		$res;
-		!egi;
+		!egis;
 
 	#NOTE!:  NEVER USE ANY VALUE OF $special AS A COLUMN NAME IN YOUR TABLES!!
 	#20000224 ADDED "\b" AFTER "$special)" 5 LINES BELOW!
 	$query =~ s!\b(($colmlist))\b!
                    my $match = $1;
 						$match =~ tr/a-z/A-Z/;
-                   ($match =~ /\b(?:$special)\b/io) ? "\L$match\E"    : 
+                   ($match =~ /\b(?:$special)\b/ios) ? "\L$match\E"    : 
                                                     "\$_->{$match}"
-               !gei;
-	$query =~ s/ (and|or|not) / \L$1\E /ig;   #ADDED 20001011 TO FIX BUG THAT DIDN'T ALLOW UPPER-CASE BOOLOPS! 20001215: SPACES ADDED TO PREVENT "$_->{MandY}" MANGLE!
-    $query =~ s|[;`]||g;
-    $query =~ s#\|\|#or#g;
-    $query =~ s#&&#and#g;
+               !geis;
+	$query =~ s/ (and|or|not) / \L$1\E /igs;   #ADDED 20001011 TO FIX BUG THAT DIDN'T ALLOW UPPER-CASE BOOLOPS! 20001215: SPACES ADDED TO PREVENT "$_->{MandY}" MANGLE!
+    $query =~ s|[;`]||gs;
+    $query =~ s#\|\|#or#gs;
+    $query =~ s#&&#and#gs;
 
-	$query =~ s|(\d+)\s*($strops)\s*(\d+)|$1 $stropmap{$2} $3|gio;   #ADDED 20010313 TO MAKE "1=0" CONDITION EVAL WO/ERROR.
-    $query =~ s|\*(\d+)|$strings[$1]|g;
+	$query =~ s|(\d+)\s*($strops)\s*(\d+)|$1 $stropmap{$2} $3|gios;   #ADDED 20010313 TO MAKE "1=0" CONDITION EVAL WO/ERROR.
+    $query =~ s|\*(\d+)|$strings[$1]|gs;
 	 for (my $i=0;$i<=$#perlconds;$i++)
 	 {
-	 	$perlconds[$i] =~ s|\*(\d+)|$strings[$1]|g;
+	 	$perlconds[$i] =~ s|\*(\d+)|$strings[$1]|gs;
 	 }
 
     
 	#THIS REGEX EVALS USER-FUNCTION CALLS FOLLOWING "=~" OR "!~".
-
 	$query =~ s@([!=][~\^])\s*m\&([a-zA-Z_]+[^&]*)\&@
 			my ($one, $two) = ($1, $2);
 			
-			$one =~ s/\^/\~/;
+			$one =~ s/\^/\~/s;
 			my ($res) = eval($two);
-			$res =~ s/^\%//;
-			$res =~ s/\%$//;
+			$res =~ s/^\%//s;
+			$res =~ s/\%$//s;
 			my ($rtn);
 			foreach my $i ('/',"'",'"','|')
 			{
@@ -1126,7 +1150,7 @@ while (1)
 				}
 			}
 			$rtn;
-	@eg;
+	@egs;
 
     return $query;
 }
@@ -1170,12 +1194,12 @@ sub parse_columns
 	{
 		$valuenames{$i} = $values->{$i};
 		$values->{$i} =~ s/^\'(.*)\'$/my ($stuff) = $1; 
-				$stuff =~ s|\'|\\\'|g;
-		$stuff =~ s|\\\'\\\'|\\\'|g;
-				"'" . $stuff . "'"/e;
-		$values->{$i} =~ s/^\'$//;      #HANDLE NULL VALUES.
-		$values->{$i} =~ s/\n//g;       #REMOVE LFS ADDED BY NETSCAPE TEXTAREAS!
-		$values->{$i} =~ s/\r /\r/g;    #20000108: FIX LFS PREV. CONVERTED TO SPACES!
+				$stuff =~ s|\'|\\\'|gs;
+				$stuff =~ s|\\\'\\\'|\\\'|gs;
+				"'" . $stuff . "'"/es;
+		$values->{$i} =~ s/^\'$//s;      #HANDLE NULL VALUES.
+		#$values->{$i} =~ s/\n//gs;       #REMOVE LFS ADDED BY NETSCAPE TEXTAREAS! #REMOVED 20011107 - ALLOW \n IN DATA!
+		#$values->{$i} =~ s/\r /\r/gs;    #20000108: FIX LFS PREV. CONVERTED TO SPACES! #REMOVED 20011107 (SHOULDN'T NEED ANYMORE).
 		$values->{$i} = "''"  unless ($values->{$i} =~ /\S/);
 	}
     local $SIG{'__WARN__'} = sub { $status = -510; $errdetails = "$_[0] at ".__LINE__ };
@@ -1248,7 +1272,7 @@ K:
 						for ($k=0;$k < scalar @{ $self->{records} }; $k++)
 						{
 							$rawvalue = $values->{$i};
-							$rawvalue =~ s/^\'(.*)\'\s*$/$1/;
+							$rawvalue =~ s/^\'(.*)\'\s*$/$1/s;
 							if ($self->{records}->[$k]->{$i} eq $rawvalue)
 							{
 								foreach $jj (@keyfields)
@@ -1279,7 +1303,6 @@ NOMATCHED1:
 				$rawvalue = $valuenames{$jj};
 				#NEXT LINE ADDED 20011018 TO HANDLE PERL REGEX SUBSTITUTIONS.
 				$colskipreformat = 0  if ($rawvalue =~ s/\$(\d)/$perlmatches[$1-1]/g);
-				#if ($rawvalue =~ /^[_a-zA-Z]/)  #NEXT 5 LINES ADDED 20000516 SO FUNCTIONS WILL WORK IN UPDATES!
 				if ($valuenames{$jj} =~ /^[_a-zA-Z]/)  #NEXT 5 LINES ADDED 20000516 SO FUNCTIONS WILL WORK IN UPDATES!
 				{
 					unless ($self->{fields}->{"\U$valuenames{$jj}\E"})  #ADDED TEST 20001218 TO ALLOW FIELD-NAMES AS RIGHT-VALUES.
@@ -1297,7 +1320,7 @@ NOMATCHED1:
 				}
 				else
 				{
-					$rawvalue =~ s/^\'(.*)\'\s*$/$1/  if ($valuenames{$jj} =~ /^\'/);
+					$rawvalue =~ s/^\'(.*)\'\s*$/$1/s  if ($valuenames{$jj} =~ /^\'/);
 				}
 				#if (${$self->{types}}{$jj} =~ /$NUMERICTYPES/)  #CHGD TO NEXT LINE 20010313.
 
@@ -1312,7 +1335,8 @@ NOMATCHED1:
 					{
 						$k = $rawvalue;
 					}
-					$rawvalue = substr($k,0,${$self->{lengths}}{$jj});
+					#$rawvalue = substr($k,0,${$self->{lengths}}{$jj});
+					$rawvalue = (${$self->{types}}{$jj} =~ /$BLOBTYPES/) ? $k : substr($k,0,${$self->{lengths}}{$jj});
 					unless ($self->{LongTruncOk} || $rawvalue eq $k || 
 							(${$self->{types}}{$jj} eq 'FLOAT'))
 					{
@@ -1376,18 +1400,18 @@ NOMATCHED1:
 			my (%disthash);
 			for (my $i=0;$i<=$#$results;$i++)
 			{
-				++$disthash{join("\x02",@{$results->[$i]})};
+				++$disthash{join("\x02\^2jSpR1tE\x02",@{$results->[$i]})};
 			}
 			@$results = ();
 			foreach my $i (keys(%disthash))
 			{
-				push (@$results, [split(/\x02/, $i)]);
+				push (@$results, [split(/\x02\^2jSpR1tE\x02/, $i)]);
 			}
 		}
 		if (@$ordercols)
 		{
 			$rowcnt = 0;
-			my ($mysep) = "\x02";
+			my ($mysep) = "\x02\^2jSpR1tE\x02";
 			$mysep = "\xFF"  if ($descorder);
 			@SA = ();
 			$i = 0;
@@ -1487,7 +1511,8 @@ sub check_for_reload
     if ( ($self->{table} ne $table) || ($self->{file} ne $file
     		|| $self->{timestamp} != $stats[9]) ) {
 	#stat ($file);
-	if ( (-e _) && (-T _) && (-s _) && (-r _) ) {
+	#if ( (-e _) && (-T _) && (-s _) && (-r _) ) {
+	if ( (-e _) && (-s _) && (-r _) ) {
 
 	    $self->{table} = $table;
 		#$file .= $self->{ext}  if ($self->{ext});  #JWT:ADD FILE EXTENSIONS.
@@ -1532,18 +1557,18 @@ sub select
 	my (@ordercols) = ();
     $regex = $self->{_select};
     $path  = $self->{path};
-	$fieldregex = $self->{fieldregex};
+$fieldregex = $self->{fieldregex};
 
 	my $distinct;   #NEXT 2 ADDED 20010521 TO ADD "DISTINCT" CAPABILITY!
 	$distinct = 1  if ($query =~ /^select\s+distinct/);
-	$query =~ s/^select\s+distinct(\s+\w|\s*\(|\s+\*)/select $1/i;
+	$query =~ s/^select\s+distinct(\s+\w|\s*\(|\s+\*)/select $1/is;
 
 
 
     if  ($query =~ /^select\s+
 			(.+)\s+
 			from\s+
-			(\w+)(.*)$/iox)
+			(\w+)(.*)$/ioxs)
     {
 		my ($column_stuff, $table, $extra) = ($1, $2, $3);
     		my (@fields) = ();
@@ -1551,7 +1576,7 @@ sub select
 
 		#ORACLE COMPATABILITY!
 
-		if ($column_stuff =~ /^table_name\s*$/i && $table =~ /^user_tables$/i)  #JWT: FETCH TABLE NAMES!
+		if ($column_stuff =~ /^table_name\s*$/i && $table =~ /^(user|all)_tables$/i)  #JWT: FETCH TABLE NAMES!
 		{
 			$full_path = $self->{directory};
 			$full_path .= $self->{separator}->{ $self->{platform} }  
@@ -1643,7 +1668,9 @@ END_CODE
 			$column_stuff = $t;
 		}
 		$thefid = $table;
-		$self->check_for_reload ($table) || return (-501);
+		#$self->check_for_reload ($table) || return (-501);  #CHGD. TO NEXT 20020110 TO BETTER CATCH ERRORS.
+		my $cfr = $self->check_for_reload($table) || -501;
+		return $cfr  if ($cfr < 0);
 		my ($column_list) = '('.join ('|', @{ $self->{order} }).')';
 		$columns = '';
 		my (@strings);
@@ -1660,26 +1687,29 @@ END_CODE
 
 			$fields[$i] =~ s|(\'[^\']+\')|
 					push (@strings, $1);
-					"\x02$#strings\x02"
+					"\x02\^2jSpR1tE\x02$#strings\x02\^2jSpR1tE\x02"
 			|eg;
 
 			#NOW CONVERT THE REMAINING COLUMN NAMES TO "$$_{COLUMN_NAME}"!
 
-			$fields[$i] =~ s/($column_list)/
+			#$fields[$i] =~ s/($column_list)/  #ADDED WORD-BOUNDARIES 20011129 TO FIX BUG WHERE ONE COLUMN NAME CONTAINED ANOTHER ONE, IE. "EMPL" AND "EMPLID".
+			$fields[$i] =~ s/\b($column_list)\b/
 					my ($column_name) = $1;
 					$columns .= $column_name . ',';
 					"\$\$\_\{\U$column_name\E\}"/ieg;
-			$fields[$i] =~ s/\x02(\d+)\x02/$strings[$1]/g; #UNPROTECT LITERALS!
+			$fields[$i] =~ s/\x02\^2jSpR1tE\x02(\d+)\x02\^2jSpR1tE\x02/$strings[$1]/g; #UNPROTECT LITERALS!
 		}
 		chop ($columns);
 
 		#PROCESS ANY WHERE AND ORDER-BY CLAUSES.
 
-		if ($extra =~ s/([\s|\)]+)order\s+by\s*(.*)/$1/i)
+		#if ($extra =~ s/([\s|\)]+)order\s+by\s*(.*)/$1/i)  #20011129
+		if ($extra =~ s/([\s|\)]+)order\s+by\s*(.*)/$1/is)
 		{
 			$orderclause = $2;
 			@ordercols = split(/,/,$orderclause);
-			$descorder = ($ordercols[$#ordercols] =~ s/(\w+\W+)desc$/$1/i);
+			#$descorder = ($ordercols[$#ordercols] =~ s/(\w+\W+)desc$/$1/i);
+			$descorder = ($ordercols[$#ordercols] =~ s/(\w+\W+)desc$/$1/is); #20011129
 			#$orderclause =~ s/,\s+/,/g;
 			for $i (0..$#ordercols)
 			{
@@ -1687,7 +1717,8 @@ END_CODE
 				$ordercols[$i] =~ s/[\(\)]+//g;
 			}
 		}
-		if ($extra =~ /^\s+where\s*(.+)$/i)
+		#if ($extra =~ /^\s+where\s*(.+)$/i)  #20011129
+		if ($extra =~ /^\s+where\s*(.+)$/is)
 		{
 		    $condition = $self->parse_expression ($1);
 		}
@@ -1702,6 +1733,7 @@ END_CODE
 		}
 		$columns =~ tr/a-z/A-Z/;
 		$self->check_columns ($columns) || return (-502);
+		#$self->{use_fields} = join (',', @{ $self->{order} }[0..$#fields] ) 
 		if ($#fields >= 0)
 		{
 			my (@fieldnames) = @fields;
@@ -1734,75 +1766,78 @@ sub update
     ##  Hack to allow parenthesis to be escaped!
     ##--
 
-    $query =~ s/\\([()])/sprintf ("%%\0%d: ", ord ($1))/ge;
+    $query =~ s/\\([()])/sprintf ("%%\0%d: ", ord ($1))/ges;
     $path  =  $self->{path};
     $regex =  $self->{column};
 
-    if ($query =~ /^update\s+($path)\s+set\s+(.+)$/io) {
+    if ($query =~ /^update\s+($path)\s+set\s+(.+)$/ios) {
 	($table, $extra) = ($1, $2);
 	return (-523)  if ($table =~ /^DUAL$/i);
 
 	#ADDED IF-STMT 20010418 TO CATCH 
 			#PARENTHESIZED SET-CLAUSES (ILLEGAL IN ORACLE & CAUSE WIERD PARSING ERRORS!)
-	if ($extra =~ /^\(.+\)\s*where/)
+	if ($extra =~ /^\(.+\)\s*where/s)
 	{
 		$errdetails = 'parenthesis around SET clause?';
 		return (-504);
 	}
 	$thefid = $table;
-	$self->check_for_reload ($table) || return (-501);
+	#$self->check_for_reload ($table) || return (-501);  #CHGD. TO NEXT 20020110 TO BETTER CATCH ERRORS.
+	my $cfr = $self->check_for_reload($table) || -501;
+	return $cfr  if ($cfr < 0);
+
 	return (-511)  unless (-w $self->{file});   #ADDED 19991207!
 
 	$all_columns = {};
 	$columns     = '';
 
-	$extra =~ s/\\\\/\x02/g;         #PROTECT "\\"
-	#$extra =~ s/\\\'|\'\'/\x03/g;    #PROTECT '', AND \'. #CHANGED 20000303 TO NEXT 2.
-	$extra =~ s/\'\'/\x03\x03/g;    #PROTECT '', AND \'.
-	$extra =~ s/\\\'/\x03/g;    #PROTECT '', AND \'.
-	#$extra =~ s/\\\"|\"\"/\x04/g;   #REMOVED 20000303.
+	$extra =~ s/\\\\/\x02\^2jSpR1tE\x02/gs;         #PROTECT "\\"
+	#$extra =~ s/\\\'|\'\'/\x02\^3jSpR1tE\x02/gs;    #PROTECT '', AND \'. #CHANGED 20000303 TO NEXT 2.
+	$extra =~ s/\'\'/\x02\^3jSpR1tE\x02\x02\^3jSpR1tE\x02/gs;    #PROTECT '', AND \'.
+	$extra =~ s/\\\'/\x02\^3jSpR1tE\x02/gs;    #PROTECT '', AND \'.
+	#$extra =~ s/\\\"|\"\"/\x02\^4jSpR1tE\x02/gs;   #REMOVED 20000303.
 
 	#$extra =~ s/^[\s\(]+(.*)$/$1/;  #STRIP OFF SURROUNDING SPACES AND PARINS.
 	#$extra =~ s/[\s\)]+$/$1/;
 	#$extra =~ s/^[\s\(]+//;  #STRIP OFF SURROUNDING SPACES AND PARINS.
 	#$extra =~ s/[\s\)]+$//;
-	$extra =~ s/^\s+//;  #STRIP OFF SURROUNDING SPACES.
-	$extra =~ s/\s+$//;
+	$extra =~ s/^\s+//s;  #STRIP OFF SURROUNDING SPACES.
+	$extra =~ s/\s+$//s;
 	#NOW TEMPORARILY PROTECT COMMAS WITHIN (), IE. FN(ARG1,ARG2).
 	$column = $self->{column};
 	$extra =~ s/($column\s*\=\s*)\'(.*?)\'(,|$)/
 		my ($one,$two,$three) = ($1,$2,$3);
-		$two =~ s|\,|\x05|g;
-		$two =~ s|\(|\x06|g;
-		$two =~ s|\)|\x07|g;
+		$two =~ s|\,|\x02\^5jSpR1tE\x02|g;
+		$two =~ s|\(|\x02\^6jSpR1tE\x02|g;
+		$two =~ s|\)|\x02\^7jSpR1tE\x02|g;
 		$one."'".$two."'".$three;
-	/eg;
+	/egs;
 
 	1 while ($extra =~ s/\(([^\(\)]*)\)/
 			my ($args) = $1;
-			$args =~ s|\,|\x05|g;
-			"\x06$args\x07";
-			/eg);
+			$args =~ s|\,|\x02\^5jSpR1tE\x02|g;
+			"\x02\^6jSpR1tE\x02$args\x02\^7jSpR1tE\x02";
+			/egs);
 	###$extra =~ s/\'(.*?)\'/my ($j)=$1;  #PROTECT COMMAS IN QUOTES.
-	###		$j=~s|,|\x05|g; 
+	###		$j=~s|,|\x02\^5jSpR1tE\x02|g; 
 	###	"'$j'"/eg;
 	@expns = split(',',$extra);
 	for ($i=0;$i<=$#expns;$i++)  #PROTECT "WHERE" IN QUOTED VALUES.
 	{
-		$expns[$i] =~ s/\x05/,/g;
-		$expns[$i] =~ s/\x06/\(/g;
-		$expns[$i] =~ s/\x07/\)/g;
-		$expns[$i] =~ s/\=\s*'([^']*?)where([^']*?)'/\='$1\x05$2'/gi;
+		$expns[$i] =~ s/\x02\^5jSpR1tE\x02/,/gs;
+		$expns[$i] =~ s/\x02\^6jSpR1tE\x02/\(/gs;
+		$expns[$i] =~ s/\x02\^7jSpR1tE\x02/\)/gs;
+		$expns[$i] =~ s/\=\s*'([^']*?)where([^']*?)'/\='$1\x02\^5jSpR1tE\x02$2'/gis;
 		$expns[$i] =~ s/\'(.*?)\'/my ($j)=$1; 
-			$j=~s|where|\x05|g; 
-		"'$j'"/eg;
+			$j=~s|where|\x02\^5jSpR1tE\x02|g; 
+		"'$j'"/egs;
 	}
 	$extra = $expns[$#expns];    #EXTRACT WHERE-CLAUSE, IF ANY.
-	$condition = ($extra =~ s/(.*)where(.+)$/where$1/i) ? $2 : '';
-	$condition =~ s/\s+//;
+	$condition = ($extra =~ s/(.*)where(.+)$/where$1/is) ? $2 : '';
+	$condition =~ s/\s+//s;
 	####$condition =~ s/^\((.*)\)$/$1/g;  #REMOVED 20010313 SO "WHERE ((COND) OP (COND) OP (COND)) WOULD WORK FOR DBIX-RECORDSET. (SELECT APPEARS TO WORK WITHOUT THIS).
 	#$expns[$#expns] =~ s/where(.+)$//i;
-	$expns[$#expns] =~ s/\s*where(.+)$//i;   #20000108 REP. PREV. LINE 2FIX BUG IF LAST COLUMN CONTAINS SINGLE QUOTES.
+	$expns[$#expns] =~ s/\s*where(.+)$//is;   #20000108 REP. PREV. LINE 2FIX BUG IF LAST COLUMN CONTAINS SINGLE QUOTES.
 	##########$expns[$#expns] =~ s/\s*\)\s*$//i;   #20010416: ADDED TO FIX BUG WHERE LAST ")" BEFORE "WHERE" NOT STRIPPED!
 	##########ABOVE NOT A BUG -- MUST NOT USE PARINS AROUND UPDATE CLAUSE, IE. 
 	##########"update table set (a = b, c = d) where e = f" is INVALID (IN ORACLE ALSO!!!!!!!!
@@ -1820,16 +1855,16 @@ sub update
 			$columns .= $var . ',';   #ADDED 20010228.
 			$val =~ s|%\0(\d+): |pack("C",$1)|ge;
 			$all_columns->{$var} = $val;
-			$all_columns->{$var} =~ s/\x02/\\\\/g;
-			#$all_columns->{$var} =~ s/\x03/\'\'/g;
-			$all_columns->{$var} =~ s/\x03/\'/g;   #20000108 REPL. PREV. LINE - NO NEED TO DOUBLE QUOTES (WE ESCAPE THEM) - THIS AIN'T ORACLE.
-			#$all_columns->{$var} =~ s/\x04/\"\"/g;   #REMOVED 20000303.
-		!e;
+			$all_columns->{$var} =~ s/\x02\^2jSpR1tE\x02/\\\\/g;
+			#$all_columns->{$var} =~ s/\x02\^3jSpR1tE\x02/\'\'/g;
+			$all_columns->{$var} =~ s/\x02\^3jSpR1tE\x02/\'/g;   #20000108 REPL. PREV. LINE - NO NEED TO DOUBLE QUOTES (WE ESCAPE THEM) - THIS AIN'T ORACLE.
+			#$all_columns->{$var} =~ s/\x02\^4jSpR1tE\x02/\"\"/g;   #REMOVED 20000303.
+		!es;
 	}
 	#$columns   = join (',', keys %$all_columns);  #NEXT 2 CHGD TO 3RD LINE 20010228.
 	#$columns =~ tr/a-z/A-Z/;   #JWT
 	chop($columns);   #ADDED 20010228.
-	#$condition = ($extra =~ /^\s*where\s+(.+)$/i) ? $1 : '';
+	#$condition = ($extra =~ /^\s*where\s+(.+)$/is) ? $1 : '';
 
 	#$self->check_for_reload ($table) || return (-501);
 	$self->check_columns ($columns)  || return (-502);
@@ -1851,11 +1886,14 @@ sub delete
 
     $path = $self->{path};
 
-    if ($query =~ /^delete\s+from\s+($path)(?:\s+where\s+(.+))?$/io) {
+    if ($query =~ /^delete\s+from\s+($path)(?:\s+where\s+(.+))?$/ios) {
 	$table     = $1;
 	$wherepart = $2;
 	$thefid = $table;
-	$self->check_for_reload ($table) || return (-501);
+	#$self->check_for_reload ($table) || return (-501);  #CHGD. TO NEXT 20020110 TO BETTER CATCH ERRORS.
+	my $cfr = $self->check_for_reload($table) || -501;
+	return $cfr  if ($cfr < 0);
+
 	return (-511)  unless (-w $self->{file});   #ADDED 19991207!
 	if ($wherepart =~ /\S/)
 	{
@@ -1883,10 +1921,13 @@ sub drop
     $path = $self->{path};
 
 	$_ = undef;
-    if ($query =~ /^drop\s+table\s+($path)\s*$/io)
+    if ($query =~ /^drop\s+table\s+($path)\s*$/ios)
     {
 		$table     = $1;
-		$self->check_for_reload ($table) || return (-501);
+		#$self->check_for_reload ($table) || return (-501);  #CHGD. TO NEXT 20020110 TO BETTER CATCH ERRORS.
+		my $cfr = $self->check_for_reload($table) || -501;
+		return $cfr  if ($cfr < 0);
+
 		return (unlink $self->{file} || -501);
 		return 
 	}
@@ -1903,7 +1944,6 @@ sub delete_rows
     #$status = 1;
     $status = 0;
 
-    #for ($loop=0; $loop < scalar @{ $self->{records} }; $loop++) {
 	$loop = 0;
 	while (1)
 	{
@@ -1939,36 +1979,36 @@ sub create
 	local ($/) = $self->{_record};    #JWT:SUPPORT ANY RECORD-SEPARATOR!
 
     $^W = 0;
-	if ($query =~ /^create\s+table\s+($self->{path})\s*\((.+)\)\s*$/i)
+	if ($query =~ /^create\s+table\s+($self->{path})\s*\((.+)\)\s*$/is)
 	{
 		($table, $extra) = ($1, $2);
 
-	    $query =~ tr/a-z/A-Z/;  #ADDED 20000225;
+	    $query =~ tr/a-z/A-Z/s;  #ADDED 20000225;
 	    #$extra =~ tr/a-z/A-Z/;  #ADDED 20000225;
-		$extra =~ s/^\s*//;
-		$extra =~ s/\s*$//;
+		$extra =~ s/^\s*//s;
+		$extra =~ s/\s*$//s;
 		$extra =~ s/\((.*?)\)/
 				my ($precision) = $1;
-				$precision =~ s|\,|\x02|g;   #PROTECT COMMAS IN ().
-				"($precision)"/eg;
+				$precision =~ s|\,|\x02\^2jSpR1tE\x02|g;   #PROTECT COMMAS IN ().
+				"($precision)"/egs;
 		$extra =~ s/([\'\"])([^\1]*?)\1/
 				my ($quote) = $1;
 				my ($str) = $2;
-				$str =~ s|\,|\x02|g;   #PROTECT COMMAS IN QUOTES.
-				"$quote$str$quote"/eg;
+				$str =~ s|\,|\x02\^2jSpR1tE\x02|g;   #PROTECT COMMAS IN QUOTES.
+				"$quote$str$quote"/egs;
 
 		my (@fieldlist) = split(/,/,$extra);
 		my ($fields) = '';
 		for ($i=0;$i<=$#fieldlist;$i++)
 		{
-			$fieldlist[$i] =~ s/^\s+//g;
-			$fieldlist[$i] =~ s/\s+$//g;
+			$fieldlist[$i] =~ s/^\s+//gs;
+			$fieldlist[$i] =~ s/\s+$//gs;
 			if ($fieldlist[$i] =~ s/^PRIMARY\s+KEY\s*\(([^\)]+)\)$//i)
 			{
 				my $keyfields = $1;
 				$keyfields =~ s/\s+//g;
 				$keyfields =~ tr/a-z/A-Z/;
-				@keyfields = split(/\x02/,$keyfields);
+				@keyfields = split(/\x02\^2jSpR1tE\x02/,$keyfields);
 			}
 		}
 		while (@fieldlist)
@@ -1988,7 +2028,7 @@ sub create
 			my ($tp,$len,$scale);
 			$i =~ s/\w+\=//;
 			$i =~ s/\s+//g;
-			if ($i =~ /(\w+)(?:\((\d+))?(?:\x02(\d+))?/)
+			if ($i =~ /(\w+)(?:\((\d+))?(?:\x02\^2jSpR1tE\x02(\d+))?/)
 			{
 				$tp = $1;
 				$len = $2;
@@ -2002,7 +2042,8 @@ sub create
 			{
 				$len = 40;
 				$len = 10    if ($tp =~ /NUM|INT|FLOAT|DOUBLE/);
-				$len = 5000  if ($tp =~ /LONG|BLOB|MEMO/);
+				#$len = 5000  if ($tp =~ /LONG|BLOB|MEMO/);  #CHGD TO NEXT 20020110.
+				$len = $self->{LongReadLen} || 0  if ($tp =~ /$BLOBTYPES/);
 			}
 			unless ($scale)
 			{
@@ -2031,7 +2072,8 @@ sub create
 				{
 					$rawvalue = $value;
 				}
-				$value = substr($rawvalue,0,$len);
+				#$value = substr($rawvalue,0,$len);  #CHGD. TO NEXT 20020110.
+				$value = ($tp =~ /$BLOBTYPES/) ? $rawvalue : substr($rawvalue,0,$len);
 				unless ($self->{LongTruncOk} || $value eq $rawvalue || 
 						($tp eq 'FLOAT'))
 				{
@@ -2070,13 +2112,18 @@ sub create
 					last;
 				}
 			}
-			$fields .= $tp . '(' . $len;
-			$fields .= ',' . $scale  if ($scale && $tp =~ /$NUMERICTYPES/);
-			$fields .= ')';
+			#$fields .= $tp . '(' . $len;   #CHGD. TO NEXT 20020110.
+			$fields .= $tp;
+			unless ($tp =~ /$BLOBTYPES/)
+			{
+				$fields .= '(' . $len;
+				$fields .= ',' . $scale  if ($scale && $tp =~ /$NUMERICTYPES/);
+				$fields .= ')';
+			}
 			$fields .= '=' . $value  if (length($value));
 			$fields .= $self->{_write};
 		}
-		$fields =~ s|\x02|\,|g;
+		$fields =~ s|\x02\^2jSpR1tE\x02|\,|g;
 		#$fields =~ tr/a-z/A-Z/;
 		$new_file = $self->get_path_info ($table);
 		my ($new_filename) = $new_file;  #ADDED 20000225;
@@ -2090,7 +2137,10 @@ sub create
 			$fields =~ s/$self->{_write}$//;
 			print FILE "$fields$/";
 			close (FILE);
-			$self->check_for_reload ($new_filename) || return (-501);  #ADDED 20000225 HANDLE USER DOING CREATE, THEN COMMIT!
+			#$self->check_for_reload ($new_filename) || return (-501);  #ADDED 20000225 HANDLE USER DOING CREATE, THEN COMMIT!  #CHGD. TO NEXT 20020110 TO BETTER CATCH ERRORS.
+			my $cfr = $self->check_for_reload($table) || -501;
+			return $cfr  if ($cfr < 0);
+
 		}
 		else
 		{
@@ -2098,7 +2148,7 @@ sub create
 			return -511;
 		}
 	}
-	elsif ($query =~ /^create\s+sequence\s+($self->{path})(?:\s+inc(?:rement)?\s+by\s+(\d+))?(?:\s+start\s+with\s+(\d+))?/i)
+	elsif ($query =~ /^create\s+sequence\s+($self->{path})(?:\s+inc(?:rement)?\s+by\s+(\d+))?(?:\s+start\s+with\s+(\d+))?/is)
 	{
 		my ($seqfid, $incval, $startval) = ($1, $2, $3);
 
@@ -2130,27 +2180,30 @@ sub alter
     $path  = $self->{path};
     $regex = $self->{column};
 
-	if ($query =~ /^alter\s+table\s+($path)\s+(.+)$/io)
+	if ($query =~ /^alter\s+table\s+($path)\s+(.+)$/ios)
 	{
 		($table, $extra) = ($1, $2);
-		if ($extra =~ /^(add|modify|drop)\s*(.+)$/io)
+		if ($extra =~ /^(add|modify|drop)\s*(.+)$/ios)
 		{
 			($type, $columnstuff) = ($1, $2);
-			$columnstuff =~ s/^\s*\(//;
-			$columnstuff =~ s/\)\s*$//;
+			$columnstuff =~ s/^\s*\(//s;
+			$columnstuff =~ s/\)\s*$//s;
 ###alter table table2 add (newcol1  varchar(5), newcol2 varchar(10))
 			$columnstuff =~ s/\((.*?)\)/
 				my ($precision) = $1;
-				$precision =~ s|\,|\x02|g;   #PROTECT COMMAS IN ().
-				"($precision)"/eg;
+				$precision =~ s|\,|\x02\^2jSpR1tE\x02|g;   #PROTECT COMMAS IN ().
+				"($precision)"/egs;
 			$columnstuff =~ s/([\'\"])([^\1]*?)\1/
 				my ($quote) = $1;
 				my ($str) = $2;
-				$str =~ s|\,|\x02|g;   #PROTECT COMMAS IN QUOTES.
-				"$quote$str$quote"/eg;
+				$str =~ s|\,|\x02\^2jSpR1tE\x02|gs;   #PROTECT COMMAS IN QUOTES.
+				"$quote$str$quote"/egs;
 
 			$thefid = $table;
-			$self->check_for_reload ($table) || return (-501);
+			#$self->check_for_reload ($table) || return (-501);  #CHGD. TO NEXT 20020110 TO BETTER CATCH ERRORS.
+			my $cfr = $self->check_for_reload($table) || -501;
+			return $cfr  if ($cfr < 0);
+
 			my (@values) = ();
 			my (@fieldlist) = split(/,/,$columnstuff);
 			my ($olddf, $oldln);
@@ -2160,12 +2213,12 @@ sub alter
 				$i =~ s/^\s+//g;
 				$i =~ s/\s+$//g;
 				last  unless ($i =~ /\S/);
-				$i =~ s/\x02/\,/g;
+				$i =~ s/\x02\^2jSpR1tE\x02/\,/g;
 				$i =~ s/\s+DEFAULT\s+(?:([\'\"])([^\1]*?)\1|([\+\-]?[\d\.]+)|(NULL))$/
 					my ($value) = $4 || $3 || $2 || $1;
-					$value = "\x04"  if ($4);
+					$value = "\x02\^4jSpR1tE\x02"  if ($4);
 					push (@values, $value);
-					"=\x03"/ieg;
+					"=\x02\^3jSpR1tE\x02"/ieg;
 				$posn = undef;
 				$posn = $1  if ($i =~ s/^(\d+)\s*//);
 				$i =~ s/\s+/=/;
@@ -2211,22 +2264,23 @@ sub alter
 				{
 					$self->{lengths}->{$fd} = 40;
 					$self->{lengths}->{$fd} = 10  if ($tp =~ /NUM|INT|FLOAT|DOUBLE/);
-					$self->{lengths}->{$fd} = 5000  if ($tp =~ /LONG|BLOB|MEMO/);
+					#$self->{lengths}->{$fd} = 5000  if ($tp =~ /$BLOBTYPES/);  #CHGD. 20020110
+					$self->{lengths}->{$fd} = $self->{LongReadLen} || 0  if ($tp =~ /$BLOBTYPES/);
 				}
-				if ($self->{lengths}->{$fd} < $oldln)
+				if ($self->{lengths}->{$fd} < $oldln && $tp !~ /$BLOBTYPES/)
 				{
 					$errdetails = $fd;
 					return -522;
 				}
-				$x =~ s/\x03/
+				$x =~ s/\x02\^3jSpR1tE\x02/
 						$self->{defaults}->{$fd} = shift(@values);
-						#$self->{defaults}->{$fd} =~ s|\x02|\,|g;
+						#$self->{defaults}->{$fd} =~ s|\x02\^2jSpR1tE\x02|\,|g;
 						$self->{defaults}->{$fd}/eg;
 				$self->{fields}->{$fd} = 1;
 				$self->{types}->{$fd} = $tp;
 				$self->{defaults}->{$fd} = $olddf  
 					if ((defined $olddf) && !(defined $self->{defaults}->{$fd}));
-				$self->{defaults}->{$fd} = undef  if ($self->{defaults}->{$fd} eq "\x04");
+				$self->{defaults}->{$fd} = undef  if ($self->{defaults}->{$fd} eq "\x02\^4jSpR1tE\x02");
 				if ($x =~ s/\,\s*(\d+)//)
 				{
 					$self->{scales}->{$fd} = $1;
@@ -2248,9 +2302,10 @@ sub alter
 					{
 						$val = $self->{defaults}->{$fd};
 					}
-					$self->{defaults}->{$fd} = substr($val,0,
-							${$self->{lengths}}{$fd});
-					unless ($self->{LongTruncOk} 
+					#$self->{defaults}->{$fd} = substr($val,0,  #CHGD. TO NEXT 2 20020110
+					#		${$self->{lengths}}{$fd});
+					$self->{defaults}->{$fd} = (${$self->{types}}{$fd} =~ /$BLOBTYPES/) ? $val : substr($val,0,${$self->{lengths}}{$fd});
+					unless ($self->{LongTruncOk} || ${$self->{types}}{$fd} =~ /$BLOBTYPES/
 							|| $self->{defaults}->{$fd} eq $val
 							|| ${$self->{types}}{$fd} eq 'FLOAT')
 					{
@@ -2352,14 +2407,17 @@ sub insert
                    ($path)\s*                                  # Table
                    (?:\((.+?)\)\s*)?                               # Keys
                    values\s*                                    # 'values'
-                   \((.+)\)$/ixo)
+                   \((.+)\)$/ixos)
 {   #JWT: MAKE COLUMN LIST OPTIONAL!
 
 	($table, $columns, $values) = ($1, $2, $3);
 	return (-523)  if ($table =~ /^DUAL$/i);
 	$thefid = $table;
-	$self->check_for_reload ($table) || return (-501);
-	$columns =~ s/\s//g;
+	#$self->check_for_reload ($table) || return (-501);  #CHGD. TO NEXT 20020110 TO BETTER CATCH ERRORS.
+	my $cfr = $self->check_for_reload($table) || -501;
+	return $cfr  if ($cfr < 0);
+
+	$columns =~ s/\s//gs;
 	$columns = join(',', @{ $self->{order} })  unless ($columns =~ /\S/);  #JWT
 	#$self->check_for_reload ($table) || return (-501);
 	return (-511)  unless (-w $self->{file});
@@ -2380,27 +2438,29 @@ $fieldregex = $self->{fieldregex};
 		close FILE;
 	}
 
-	$values =~ s/\\\\/\x02/g;         #PROTECT "\\"
-	#$values =~ s/\\\'|\'\'/\x03/g;    #PROTECT '', AND \'. #CHANGED 20000303 TO NEXT 2.
-	$values =~ s/\'\'/\x03\x03/g;    #PROTECT '', AND \'.
-	$values =~ s/\\\'/\x03/g;    #PROTECT '', AND \'.
+	$values =~ s/\\\\/\x02\^2jSpR1tE\x02/gs;         #PROTECT "\\"  #XCHGD. TO 4 LINES DOWN 20020111
+	#$values =~ s/\\\'|\'\'/\x02\^3jSpR1tE\x02/gs;    #PROTECT '', AND \'. #CHANGED 20000303 TO NEXT 2.
+	$values =~ s/\'\'/\x02\^3jSpR1tE\x02\x02\^3jSpR1tE\x02/gs;    #PROTECT '', AND \'.
+	$values =~ s/\\\'/\x02\^3jSpR1tE\x02/gs;    #PROTECT '', AND \'.
+	#$values =~ s/\\/\x02\^2jSpR1tE\x02/gs;         #PROTECT "\"
 	
 	$values =~ s/\'(.*?)\'/
 			my ($j)=$1; 
-			$j=~s|,|\x04|g;         #PROTECT "," IN QUOTES.
+			$j=~s|,|\x02\^4jSpR1tE\x02|gs;         #PROTECT "," IN QUOTES.
 			"'$j'"
-	/eg;
+	/egs;
 		
 	@values = split(/,/,$values);
 	$values = '';
 	for $i (0..$#values)
 	{
-		$values[$i] =~ s/^\s+//;      #STRIP LEADING & TRAILING SPACES.
-		$values[$i] =~ s/\s+$//;
-		$values[$i] =~ s/\x03/\'/g;   #RESTORE PROTECTED SINGLE QUOTES HERE.
-		$values[$i] =~ s/\x02/\\/g;   #RESTORE PROTECTED SLATS HERE.
-		$values[$i] =~ s/\x04/,/g;    #RESTORE PROTECTED COMMAS HERE.
-		if ($values[$i] =~ /^[_a-zA-Z]/)
+		$values[$i] =~ s/^\s+//s;      #STRIP LEADING & TRAILING SPACES.
+		$values[$i] =~ s/\s+$//s;
+		$values[$i] =~ s/\x02\^3jSpR1tE\x02/\'/gs;   #RESTORE PROTECTED SINGLE QUOTES HERE.
+		#$values[$i] =~ s/\x02\^2jSpR1tE\x02/\\/gs;   #RESTORE PROTECTED SLATS HERE.  #CHGD TO NEXT 20020111
+		$values[$i] =~ s/\x02\^2jSpR1tE\x02/\\\\/gs;   #RESTORE PROTECTED SLATS HERE.
+		$values[$i] =~ s/\x02\^4jSpR1tE\x02/,/gs;    #RESTORE PROTECTED COMMAS HERE.
+		if ($values[$i] =~ /^[_a-zA-Z]/s)
 		{
 			if ($values[$i] =~ /\s*(\w+).NEXTVAL\s*$/ 
 					|| $values[$i] =~ /\s*(\w+).CURVAL\s*$/)
@@ -2460,7 +2520,6 @@ sub insert_data
 	$column_string =~ tr/a-z/A-Z/;
     @columns = split (/,/, $column_string);
     #JWT: @values  = $self->quotewords (',', 0, $value_string);
-
 	if ($#columns > $#values)  #ADDED 20011029 TO DO AUTOSEQUENCING!
 	{
 		$column_string .= ','  unless ($column_string =~ /\,\s*$/);
@@ -2476,7 +2535,6 @@ sub insert_data
 		$column_string =~ s/\,\s*$//;
 		@columns = split (/,/, $column_string);
 	}
-
     if ($#columns == $#values) {
     
 	my (@keyfields) = split(',', $self->{key_fields});  #JWT: PREVENT DUP. KEYS.
@@ -2500,10 +2558,10 @@ sub insert_data
 		if ($self->{fields}->{$column})
 		{
 			$values[$loop] =~ s/^\'(.*)\'$/my ($stuff) = $1; 
-			#$stuff =~ s|\'|\\\'|g;
-			$stuff =~ s|\'\'|\'|g;
-			$stuff/e;
-			$values[$loop] =~ s|^\'$||;      #HANDLE NULL VALUES!!!.
+			#$stuff =~ s|\'|\\\'|gs;
+			$stuff =~ s|\'\'|\'|gs;
+			$stuff/es;
+			$values[$loop] =~ s|^\'$||s;      #HANDLE NULL VALUES!!!.
 			if (${$self->{types}}{$column} =~ /AUTO/)  #NEXT 12 ADDED 20011029 TO DO ODBC&MYSQL-LIKE AUTOSEQUENCING.
 			{
 				if (length($values[$loop]))
@@ -2533,7 +2591,8 @@ sub insert_data
 			{
 				$hash->{$column} = $v;
 			}
-			$v = substr($hash->{$column},0,${$self->{lengths}}{$column});
+			#$v = substr($hash->{$column},0,${$self->{lengths}}{$column});  #CHGD TO NEXT (20020110)
+			$v = (${$self->{types}}{$column} =~ /$BLOBTYPES/) ? $hash->{$column} : substr($hash->{$column},0,${$self->{lengths}}{$column});
 			unless ($self->{LongTruncOk} || $v eq $hash->{$column} || 
 					(${$self->{types}}{$column} eq 'FLOAT'))
 			{
@@ -2598,7 +2657,15 @@ sub write_file
 	my (@keyfields) = split(',', $self->{key_fields});  #JWT: PREVENT DUP. KEYS.
 
     local (*FILE, $^W);
-	local ($/) = $self->{_record};    #JWT:SUPPORT ANY RECORD-SEPARATOR!
+	local ($/);
+	if ($CBC && $self->{sprite_Crypt} <= 2)  #ADDED: 20020109
+	{
+		$/ = "\x03^0jSp".$self->{_record};    #(EOR) JWT:SUPPORT ANY RECORD-SEPARATOR!
+	}
+	else
+	{
+		$/ = $self->{_record};    #JWT:SUPPORT ANY RECORD-SEPARATOR!
+	}
 
     $^W = 0;
 
@@ -2635,15 +2702,20 @@ sub write_file
 		{
 			$fields .= '*'  if (${$self->{order}}[$i] eq $keyfields[$j])
 		}
-		$fields .= ${$self->{types}}{${$self->{order}}[$i]} . '(' 
-				. ${$self->{lengths}}{${$self->{order}}[$i]};
-		if (${$self->{scales}}{${$self->{order}}[$i]} 
-				&& ${$self->{types}}{${$self->{order}}[$i]} =~ /$NUMERICTYPES/)
+		#$fields .= ${$self->{types}}{${$self->{order}}[$i]} . '('   #CHGD. TO NEXT 20020110
+		#		. ${$self->{lengths}}{${$self->{order}}[$i]};
+		$fields .= ${$self->{types}}{${$self->{order}}[$i]};
+		unless (${$self->{types}}{${$self->{order}}[$i]} =~ /$BLOBTYPES/)
 		{
-			$fields .= ',' . ${$self->{scales}}{${$self->{order}}[$i]}
+			$fields .= '(' . ${$self->{lengths}}{${$self->{order}}[$i]};
+			if (${$self->{scales}}{${$self->{order}}[$i]} 
+					&& ${$self->{types}}{${$self->{order}}[$i]} =~ /$NUMERICTYPES/)
+			{
+				$fields .= ',' . ${$self->{scales}}{${$self->{order}}[$i]}
+			}
+			#$fields .= ')' . $self->{_write};
+			$fields .= ')';
 		}
-		#$fields .= ')' . $self->{_write};
-		$fields .= ')';
 		$fields .= '='. ${$self->{defaults}}{${$self->{order}}[$i]}  
 				if (length(${$self->{defaults}}{${$self->{order}}[$i]}));
 		$fields .= $self->{_write};
@@ -2651,7 +2723,14 @@ sub write_file
 	$fields =~ s/$self->{_write}$//;
 
 	#$fields =~ tr/a-z/A-Z/;   #JWT:MAKE SURE COLUMNS are UPPERCASE!
-	print FILE "$fields$/";
+	if ($CBC && $self->{sprite_Crypt} <= 2)  #ADDED: 20020109
+	{
+		print FILE $CBC->encrypt($fields).$/;
+	}
+	else
+	{
+		print FILE "$fields$/";
+	}
 
 	for ($loop=0; $loop < scalar @{ $self->{records} }; $loop++) {
 	    $record = $self->{records}->[$loop];
@@ -2678,13 +2757,23 @@ sub write_file
 				$value = $record->{$column};
 			}
 
+			#NEXT 2 ADDED 20020111 TO PERMIT EMBEDDED RECORD & FIELD SEPERATORS.
+			$value =~ s/$self->{_record}/\x02\^0jSpR1tE\x02/gs;   #PROTECT EMBEDDED RECORD SEPARATORS.
+			$value =~ s/$self->{_write}/\x02\^1jSpR1tE\x02/gs;   #PROTECT EMBEDDED RECORD SEPARATORS.
 			$record_string .= "$self->{_write}$value";
 	    }
 
 	    #$record_string =~ s/^$self->{_write}//o;  #CHGD TO NEXT LINE 20010917.
-	    $record_string =~ s/^$self->{_write}//;
+	    $record_string =~ s/^$self->{_write}//s;
 
-	    print FILE "$record_string$/";
+		if ($CBC && $self->{sprite_Crypt} <= 2)  #ADDED: 20020109
+		{
+			print FILE $CBC->encrypt($record_string).$/;
+		}
+		else
+		{
+		    print FILE "$record_string$/";
+		}
 	}
 
 	close (FILE);
@@ -2704,7 +2793,15 @@ sub load_database
     my ($self, $file) = @_;
     my ($i, $header, @fields, $no_fields, @record, $hash, $loop, $tp, $dflt);
     local (*FILE);
-	local ($/) = $self->{_record};    #JWT:SUPPORT ANY RECORD-SEPARATOR!
+	local ($/);
+	if ($CBC && $self->{sprite_Crypt} != 2)  #ADDED: 20020109
+	{
+		$/ = "\x03^0jSp".$self->{_record};    #JWT:SUPPORT ANY RECORD-SEPARATOR!
+	}
+	else
+	{
+		$/ = $self->{_record};    #JWT:SUPPORT ANY RECORD-SEPARATOR!
+	}
 
 	########$file =~ tr/A-Z/a-z/  unless ($self->{CaseTableNames});  #JWT:TABLE-NAMES ARE NOW CASE-INSENSITIVE!
 	$thefid = $file;
@@ -2727,6 +2824,9 @@ sub load_database
 
     $_ = <FILE>;
 	chomp;          #JWT:SUPPORT ANY RECORD-SEPARATOR!
+	my $t = $_;
+	$_ = $CBC->decrypt($t)  if ($CBC && $self->{sprite_Crypt} != 2);  #ADDED: 20020109
+	return -527  unless (/^\w+\=/);   #ADDED 20020110
 
     ($header)  = /^ *(.*?) *$/;
 	#####################$header =~ tr/a-z/A-Z/;   #JWT  20000316
@@ -2750,7 +2850,8 @@ sub load_database
 				if ($tp =~ s/^\*//);   #JWT:  *TYPE means KEY FIELD!
 		$ln = 40;
 		$ln = 10  if ($tp =~ /NUM|INT|FLOAT|DOUBLE/);
-		$ln = 5000  if ($tp =~ /LONG|BLOB|MEMO/);
+		#$ln = 5000  if ($tp =~ /$BLOBTYPES/);   #CHGD. 20020110.
+		$ln = $self->{LongReadLen} || 0  if ($tp =~ /$BLOBTYPES/);
 		$ln = $2  if ($tp =~ s/(.*)\((.*)\)/$1/);
 		${$self->{types}}{$fields[$i]} = $tp;
 		${$self->{lengths}}{$fields[$i]} = $ln;
@@ -2787,14 +2888,20 @@ sub load_database
     while (<FILE>) {
 	chomp;
 	#chop;     #JWT:SUPPORT ANY RECORD-SEPARATOR!
+	$t = $_;
+	$_ = $CBC->decrypt($t)  if ($CBC && $self->{sprite_Crypt} != 2);  #ADDED: 20020109
+
 	next unless ($_);
 
 	#@record = split (/$self->{_read}/o, $_);  #CHGD TO NEXT LINE 20010917.
-	@record = split (/$self->{_read}/, $_);
+	@record = split (/$self->{_read}/s, $_);
 
 	$hash = {};
 
 	for ($loop=0; $loop <= $no_fields; $loop++) {
+		#NEXT 2 ADDED 20020111 TO PERMIT EMBEDDED RECORD & FIELD SEPERATORS.
+		$record[$loop] =~ s/\x02\^0jSpR1tE\x02/$self->{_record}/gs;   #RESTORE EMBEDDED RECORD SEPARATORS.
+		$record[$loop] =~ s/\x02\^1jSpR1tE\x02/$self->{_read}/gs;   #RESTORE EMBEDDED RECORD SEPARATORS.
 	    $hash->{ $fields[$loop] } = $record[$loop];
 	}
 
@@ -2815,8 +2922,7 @@ sub pscolfn
 	my ($value) = '';
 	my ($seq_file,$col) = split(/\./,$id);
 	$seq_file = $self->get_path_info($seq_file) . '.seq';
-
-	$seq_file =~ tr/A-Z/a-z/  unless ($self->{CaseTableNames});  #JWT:TABLE-NAMES ARE NOW CASE-INSENSITIVE!
+#	$seq_file =~ tr/A-Z/a-z/  unless ($self->{CaseTableNames});  #JWT:TABLE-NAMES ARE NOW CASE-INSENSITIVE! - REMOVED 20011218 (get_path_info HANDLES THIS RIGHT!)
 	#open (FILE, "<$seq_file") || return (-511);
 	unless (open (FILE, "<$seq_file"))
 	{
@@ -2928,15 +3034,15 @@ last;
 sub chkcolumnparms   #ADDED 20001218 TO CHECK FUNCTION PARAMETERS FOR FIELD-NAMES.
 {
 	my ($evalstr) = shift;
-	$evalstr =~ s/\\\'|\'\'/\x02/g;   #PROTECT QUOTES W/N QUOTES.
-	$evalstr =~ s/\\\"|\"\"/\x03/g;   #PROTECT QUOTES W/N QUOTES.
+	$evalstr =~ s/\\\'|\'\'/\x02\^2jSpR1tE\x02/g;   #PROTECT QUOTES W/N QUOTES.
+	$evalstr =~ s/\\\"|\"\"/\x02\^3jSpR1tE\x02/g;   #PROTECT QUOTES W/N QUOTES.
 	
 	$i = -1;
 	my (@strings);     #PROTECT ANYTHING BETWEEN QUOTES (FIELD NAMES IN LITERALS).
 	$evalstr =~ s/([\'\"])([^\1]*?)\1/
 			++$i;
 			$strings[$i] = "$1$2$1";
-			"\x04$i";
+			"\x02\^4jSpR1tE\x02$i";
 	/eg;
 
 	#FIND EACH FIELD NAME PARAMETER & REPLACE IT WITH IT'S VALUE || NAME || EMPTY-STRING.
@@ -2950,9 +3056,9 @@ sub chkcolumnparms   #ADDED 20001218 TO CHECK FUNCTION PARAMETERS FOR FIELD-NAME
 				$res;
 	/eig;
 
-	$evalstr =~ s/\x04(\d+)/$strings[$1]/g;   #UNPROTECT LITERALS
-	$evalstr =~ s/\x03/\\\'/g;                #UNPROTECT QUOTES.
-	$evalstr =~ s/\x02/\\\"/g;
+	$evalstr =~ s/\x02\^4jSpR1tE\x02(\d+)/$strings[$1]/g;   #UNPROTECT LITERALS
+	$evalstr =~ s/\x02\^3jSpR1tE\x02/\\\'/g;                #UNPROTECT QUOTES.
+	$evalstr =~ s/\x02\^2jSpR1tE\x02/\\\"/g;
 	return $evalstr;
 }
 

@@ -38,10 +38,14 @@ Note: Font sizes variates from 'f_min' up to 'f_max' pixels.
 
 =cut
 
-sub BEGIN
-{
- srand();
-}
+BEGIN
+ {
+  use vars qw($VERSION @ISA @EXPORT);
+  $VERSION = "1.16";
+  @ISA = qw(Exporter);
+  @EXPORT = qw();
+  srand();
+ }
 
 sub new
 { 
@@ -310,10 +314,37 @@ You can automatize many aspects of generated image:
  binmode STDOUT;
  print "Content-type: image/png\n\n";
  print $img->Write('png:-');
+ 
+ OR
+ 
+<?perl
+ use ImagePwd;
+
+ $obj = ImagePwd->new(len=>6, height=>60, width=>280, fixed=>1, rot=>10,
+                     quality=>128, cell=>1, f_min=>20);
+
+ $obj->fonts(['c:/Windows/FONTS/Verdana.TTF','c:/Windows/FONTS/Arial.TTF',
+             'c:/Windows/FONTS/comic.TTF','c:/Windows/FONTS/georgiab.TTF',
+             'c:/Windows/FONTS/micross.TTF','c:/Windows/FONTS/tahoma.TTF',
+             ]);
+ # $obj->fonts(['kai.ttf']); # And more fonts for Unix/Linux users
+
+ $img = $obj->ImagePassword();
+
+ ClearBuffer();
+ ClearHeader();
+ flush_print(1);
+ set_printing_mode('');
+
+ Header(type=>'raw',val=>"Content-type: image/png\n\n");
+ print $img->Write('png:-');
+
+?>
 
 =head1 AUTHOR
 
- Julian Lishev - Bulgaria, Sofia
- e-mail: julian@proscriptum.com
+ Julian Lishev - Bulgaria, Sofia, 
+ e-mail: julian@proscriptum.com, 
+ www.proscriptum.com
 
 =cut

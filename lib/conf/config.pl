@@ -1,5 +1,5 @@
 ###################################################################
-# Configuration file for "Web Tools" ver 1.16
+# Configuration file for "Web Tools" ver 1.20
 # Please edit here, don’t do that in Perl scripts!
 # For Web based configurator script see install.cgi
 ###################################################################
@@ -23,12 +23,13 @@ $sql_user_table = $projectname.'_users';             # Contain all users (and ad
 $check_module_functions = 'on';       # After first check, please turn this 'off'!
 
 #[Secure]
+$site_is_down = 'off';                # Set to 'on' to prevent execution of scripts
 $wait_attempt = '4';                  # Count of attempts when database is flocked
 $wait_for_open = '2.0';               # Time between two attempts (in sec)
 $sess_time = '2';                     # Expire time on session(2 hours)
 $sys_conf_d = 'hour';                 # time dimenstion (lower case only) and can be:
                                       # second,minute,hour,day,month and year
-$rand_sid_length = '16';              # Length of random SID string!
+$rand_sid_length = '32';              # Length of random SID string!
 $sess_cookie = 'sesstime';            # 'sesstime'(i.e. expire after $sess_time) or
                                       # '0' (i.e. expire when user close browser)
 
@@ -163,15 +164,29 @@ $db_path       = PathMaker($db_path,'.'.$db_path);
 $driver_path   = PathMaker($driver_path,'.'.$driver_path);
 $xreader_path  = PathMaker($xreader_path,'.'.$xreader_path);
 $perl_html_dir = PathMaker($perl_html_dir,'.'.$perl_html_dir);
-$tmp =~ s/\/$//si;
+
 foreach my $path (@use_addition_paths) { PathMaker($path,$path); }
 
-##########################################################################################
+####################################################################################
+# Stop execution of scripts till site is down
+####################################################################################
+if (($site_is_down =~ m/^on$/si) and !($ENV{'SCRIPT_NAME'} =~ m/\/install\.cgi$/si))
+ {
+  CORE::print STDOUT "Content-type: text/html\n\n";
+  CORE::print STDOUT "<B><font style='font-size:11pt' face='Verdana'>Dear Visitors,<BR><BR></B>";
+  CORE::print STDOUT "<B><font color='red'>";
+  CORE::print STDOUT "Sorry for inconvenience but currently this site is down due software reconstructions!<BR><BR>";
+  CORE::print STDOUT "It will be back available as soon as possible!<BR>";
+  CORE::print STDOUT "</font></B></font>\n";
+  CORE::exit;
+ }
+
+####################################################################################
 # This part check structure of script
 # If $check_module_functions equal on 'true' then this check is performed always!!!
 # If you have already checked structure please turn this feature off!!!
-##########################################################################################
-if ($check_module_functions eq 'on')
+####################################################################################
+if ($check_module_functions =~ m/^on$/si)
  {
   require 'check.pl';
   check_configuration();

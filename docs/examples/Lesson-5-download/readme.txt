@@ -69,11 +69,11 @@ When download some file we are obliged to set non buffered mode.
 
   if (download_file('this.zip',10))  # Download file with 10kb/s
    {
-    open(FF,'>'.$tmp.'/done.txt');close FF;   # Create file showing successful download.
+    open(FF,'>'.$tmp.'done.txt');close FF;   # Create file showing successful download.
    }
   else 
    {
-    open(FF,'>'.$tmp'/error.txt');close FF;   # Error occure throught download process.
+    open(FF,'>'.$tmp.'error.txt');close FF;   # Error occure throught download process.
    }
   exit;
 

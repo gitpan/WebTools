@@ -66,7 +66,7 @@ Please, fill out the form below to test the example... <BR>
  if ($action eq '2')
  {
   print "<B>$visitor_name</B> successfully passed the exaple test! [ logged out ]";
-  disattach_var('visitor_name');
+  detach_var('visitor_name');
  }
  ?>
  //-->

@@ -56,3 +56,10 @@ Revision history for Perl sub system "WebTools"
         - Thank's to S. Marinov for some fixed bugs.
         - Fixed problem with header in 'non-buffered' print mode.
         - New object oriented module for image (password) generation.
+
+1.20   17 Feb 2002
+        - This is a first version of WebTools that use Errors::Errors module
+          to handle some base errors and signals.
+        - Problem with INLINE/INPERL templates solved.
+        - "User support" extended: DB structure extended.
+        - Improved install.cgi (use session cookies)

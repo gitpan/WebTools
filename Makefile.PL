@@ -14,9 +14,9 @@ if($INPUT[0] =~ m/LIB=(.*)/si)
  }
 else
  {
-  print "Please enter full path where you want WebTools to be installed!\n";
+  print "Please enter full path to place where you want WebTools to be installed!\n";
   print "NOTE: The module must be installed in your cgi-bin directory\n";
-  print "(it is strongly recommanded to enter your real\n\n";
+  print "(it is strongly recommended to enter your real\n\n";
   print "WEB_SERVER_ROOT/cgi-bin/webtools/ directory!\n \tor \n";
   print "~/YOUR_USER_NAME/cgi-bin/webtools/ directory!\n\n";
   print "Please specify directory: ";

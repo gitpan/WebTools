@@ -13,11 +13,14 @@
 # PLEASE BE RESPONSIBLE ABOUT YOUR SECURITY!
 my $install_script_available = '0';
 
-# This is admin user for 'install' script. Please edit!
+# This is ADMIN USER for 'install' script. Please EDIT!
+# user name must match /^[A-Za-z0-9_]*$/
 my $install_only_user = 'admin';
 
-# This is default password for 'install' script. Please edit!
+# This is default PASSWORD for 'install' script. Please EDIT!
 my $install_only_pass = '';
+
+# Note: YOU CAN'T LEAVE THESE DEFAULT SETTINGS UNTOUCHED!
 
 # All these variables protect your 'config.pl' file from
 # external (WEB) users (hackers). That is needful because
@@ -49,29 +52,78 @@ my $f_e = '</font>';
 if($install_script_available ne '1')
  {
   print "Content-type: text/html\n\n";
+  print << "END_OF_HTML";
+  $f_b
+  <H3><U>WebTools Configure</U></H3>
+  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+  <B><center>Powered by <A href="http://www.proscriptum.com/">www.proscriptum.com</A></center></B>$f_e
+  </TD></TR></TABLE><BR>
+  $f_e
+END_OF_HTML
   print $f_b."<B>Access denied!<BR><BR>";
   print "<font color='red'>Reason: Variable \$install_script_available is set to: $install_script_available</font><BR><BR>";
   print "Hint: Edit file 'install.cgi' and set \$install_script_available variable to '1'</B>";
-  print "<BR><BR><BR><BR><B>You can learn more about WebTools at <A href='http://www.proscriptum.com/'>www.proscriptum.com</A></B>".$f_e;
+  print << "END_OF_HTML";
+  $f_b
+  <BR><BR>
+  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+  <B><center>All rights reserved by <A href="http://www.proscriptum.com/">Julian Lishev</A> , Sofia 2002</center></B>$f_e
+  </TD></TR></TABLE><BR>
+  $f_e
+END_OF_HTML
   exit;
  }
 
 if(!(-e $config.'config.pl'))
  {
   print "Content-type: text/html\n\n";
+  print << "END_OF_HTML";
+  $f_b
+  <H3><U>WebTools Configure</U></H3>
+  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+  <B><center>Powered by <A href="http://www.proscriptum.com/">www.proscriptum.com</A></center></B>$f_e
+  </TD></TR></TABLE><BR>
+  $f_e
+END_OF_HTML
   print $f_b."<B>Error!<BR><BR>";
   print "<font color='red'>Can't find ./conf/config.pl file!</font> This package is not installed properly!<BR><BR>";
   print "Hint: See whether you have in your 'webtools' directory ./conf/config.pl file!</B>".$f_e;
+  print << "END_OF_HTML";
+  $f_b
+  <BR><BR>
+  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+  <B><center>All rights reserved by <A href="http://www.proscriptum.com/">Julian Lishev</A> , Sofia 2002</center></B>$f_e
+  </TD></TR></TABLE><BR>
+  $f_e
+END_OF_HTML
   exit;
  }
 
 if(DirectoryRights($config,3) ne 'ok')
  {
   print "Content-type: text/html\n\n";
+  print << "END_OF_HTML";
+  $f_b
+  <H3><U>WebTools Configure</U></H3>
+  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+  <B><center>Powered by <A href="http://www.proscriptum.com/">www.proscriptum.com</A></center></B>$f_e
+  </TD></TR></TABLE><BR>
+  $f_e
+END_OF_HTML
   print $f_b."<B>Error!<BR><BR>";
   print "<font color='red'>conf/ directory is not readable/writeable!</font><BR><BR>";
   print "Hint: See whether mode of conf/ directory is 755! If it isn't please execute follow command:<BR>";
-  print "<font color='red'>chmod 755 conf/</font></B>".$f_e;
+  print "<font color='red'>chmod 755 conf/</font></B><BR>";
+  print "(If apache run scripts with it's user you may need to ";
+  print "chmod directory to 777) </B>".$f_e;
+  print << "END_OF_HTML";
+  $f_b
+  <BR><BR>
+  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+  <B><center>All rights reserved by <A href="http://www.proscriptum.com/">Julian Lishev</A> , Sofia 2002</center></B>$f_e
+  </TD></TR></TABLE><BR>
+  $f_e
+END_OF_HTML
   exit;
  }
 
@@ -90,12 +142,54 @@ if($conf_code != -1)
 if($res != 3)
  {
   print "Content-type: text/html\n\n";
+  print << "END_OF_HTML";
+  $f_b
+  <H3><U>WebTools Configure</U></H3>
+  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+  <B><center>Powered by <A href="http://www.proscriptum.com/">www.proscriptum.com</A></center></B>$f_e
+  </TD></TR></TABLE><BR>
+  $f_e
+END_OF_HTML
   print $f_b."<B>Error!<BR><BR>";
   print "<font color='red'>conf/config.pl file is not readable/writeable!</font><BR><BR>";
   print "Hint: See whether mode of conf/config.pl file is 644! If it isn't please execute follow command:<BR>";
-  print "<font color='red'>chmod 644 conf/config.pl</font><BR>".$f_e;
+  print "<font color='red'>chmod 644 conf/config.pl</font><BR>";
   print "(If apache run scripts with it's user you may need to ";
   print "chmod file to 777) </B>".$f_e;
+  print << "END_OF_HTML";
+  $f_b
+  <BR><BR>
+  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+  <B><center>All rights reserved by <A href="http://www.proscriptum.com/">Julian Lishev</A> , Sofia 2002</center></B>$f_e
+  </TD></TR></TABLE><BR>
+  $f_e
+END_OF_HTML
+  exit;
+ }
+
+if(($install_only_user =~ m/^admin$/si) and ($install_only_pass eq ''))
+ {
+  print "Content-type: text/html\n\n";
+  print << "END_OF_HTML";
+  $f_b
+  <H3><U>WebTools Configure</U></H3>
+  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+  <B><center>Powered by <A href="http://www.proscriptum.com/">www.proscriptum.com</A></center></B>$f_e
+  </TD></TR></TABLE><BR>
+  $f_e
+END_OF_HTML
+  print $f_b."<B>Everythings look good, but I have to deny you access till security problem occured!<BR><BR>";
+  print "<font color='red'>Reason: Your user name and password are set to default!</font><BR><BR>";
+  print "Hint: Edit file 'install.cgi' and change deafault user name and/or password!</B>";
+  print $f_e;
+  print << "END_OF_HTML";
+  $f_b
+  <BR><BR>
+  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+  <B><center>All rights reserved by <A href="http://www.proscriptum.com/">Julian Lishev</A> , Sofia 2002</center></B>$f_e
+  </TD></TR></TABLE><BR>
+  $f_e
+END_OF_HTML
   exit;
  }
 
@@ -103,7 +197,7 @@ if($res != 3)
 print "Expires: Mon, 26 Jul 1997 05:00:00 GMT\n";
 print "Cache-Control: no-cache, must-revalidate, post-check=0, pre-check=0\n";
 print "Pragma: no-cache\n";
-print "Content-type: text/html\n\n";
+print "Content-type: text/html\n";
 
 # Parse input data:
 
@@ -113,25 +207,56 @@ my $action = $input->param('action');
 my $do     = $input->param('do');
 my $type   = $input->param('type');
 my $name   = $input->param('name');
-my $user   = $input->param('user');
-my $pass   = $input->param('pass');
+my $user_admin   = $input->param('user_admin');
+my $pass_admin   = $input->param('pass_admin');
+my $flag   = 'get/post';
+my %COOKIES = ();
+
+&read_cookies();
 
 my $scriptname = $ENV{SCRIPT_NAME};
 
 # ------------ Main loop of install program --------------
 
-if(($user ne $install_only_user) or ($pass ne $install_only_pass))
+if(($user_admin ne $install_only_user) or ($pass_admin ne $install_only_pass))
 {
- if(($user ne '') or ($pass ne '')) { sleep(8); }
+ $user_admin = read_cookie('user_admin');
+ $pass_admin = read_cookie('pass_admin');
+ $flag = 'cookies';
+ if(($user_admin ne $install_only_user) or ($pass_admin ne $install_only_pass))
+  {
+   if(($input->param('user_admin') ne '') or ($input->param('pass_admin') ne '')) { sleep(8); }
+   print "\n";   # Close HTTP header
+   LogInPage();
+   exit;
+  }
+}
+
+if($action eq 'logout')
+{
+ del_cookie('user_admin');
+ del_cookie('pass_admin');
+ print "\n";   # Close HTTP header
  LogInPage();
  exit;
 }
 
 if($action eq '')
 {
+ if(($user_admin eq $install_only_user) and ($pass_admin eq $install_only_pass))
+   {
+    if($flag eq 'get/post')
+     {
+      set_cookie('user_admin',$user_admin);
+      set_cookie('pass_admin',$pass_admin);
+     }
+   }
+ print "\n";   # Close HTTP header
  MainMenu();
  exit;
 }
+
+print "\n";   # Close HTTP header
 
 if($action eq 'config')
 {
@@ -200,7 +325,48 @@ sub trim
  $str =~ s/\ *$//s;
  return($str);
 }
+###########################################
+# Cookies
+###########################################
+sub set_cookie
+{
+ my ($name,$val) = @_;
+ print "Set-Cookie: $name=$val; path=/;\n";
+ return 1;
+}
 
+sub del_cookie
+{
+ my ($name) = @_;
+ print "Set-Cookie: $name=; path=/; expires=-1;\n";
+ return 1;
+}
+
+sub read_cookie
+{
+ my ($name) = @_;
+ return($COOKIES{$name});
+}
+
+sub read_cookies
+{
+  my $id = $ENV{HTTP_COOKIE} || $ENV{COOKIE};
+  my @cookies = split(/;/s,$id);
+  my $l;
+  foreach $l (@cookies)
+   {
+    if($l ne '') 
+      {
+       my ($n,$v) = split(/=/s,$l);
+       $n =~ s/ //sg;
+       $n =~ s/\[^A-Za-z0-9_]//sg;
+       if (!exists($COOKIES{$n}))
+         {
+          $COOKIES{$n} = $v;
+         }
+      }
+   }
+}
 ################################
 # Make scalar from scalars
 ################################
@@ -376,16 +542,24 @@ sub LogInPage
  print << "END_OF_HTML";
  $f_b
  <H3><U>WebTools Configure</U></H3>
+ <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+ <B><center>Powered by <A href="http://www.proscriptum.com/">www.proscriptum.com</A></center></B>$f_e
+ </TD></TR></TABLE><BR>
  <b>Please enter your user name and password in Admin form<BR>
- After sucessful login you will be able to configure WebTools<BR><BR>
+ After sucessful login you will be able to configure your WebTools<BR><BR>
  <form METHOD='POST' ACTION='$scriptname'>
  <input name='action' value='' type='hidden'>
  <table>
- <tr><td width='100'>$f_b<B>User:</B>$f_e</td><td><input name='user' value='' type='text'></td></tr>
- <tr><td width='100'>$f_b<B>Password:</B>$f_e</td><td><input name='pass' value='' type='password'></td></tr>
+ <tr><td width='100'>$f_b<B>User:</B>$f_e</td><td><input name='user_admin' value='' type='text'></td></tr>
+ <tr><td width='100'>$f_b<B>Password:</B>$f_e</td><td><input name='pass_admin' value='' type='password'></td></tr>
  <tr><td width='100'></td><td><input value='Enter' type='submit'></td></tr>
  </table>
  </form>
+ Note: Install.cgi use 'session' cookies to simulate simple session needed to insecure this Web based script!
+ <BR><BR>
+ <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+ <B><center>All rights reserved by <A href="http://www.proscriptum.com/">Julian Lishev</A> , Sofia 2002</center></B>$f_e
+ </TD></TR></TABLE><BR>
 END_OF_HTML
  print $f_e;
 }
@@ -395,13 +569,20 @@ sub MainMenu
  print << "END_OF_HTML";
  <B>$f_b
  <H3><U>WebTools Configure</U></H3>
+ <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+ <B><center>Powered by <A href="http://www.proscriptum.com/">www.proscriptum.com</A></center></B>$f_e
+ </TD></TR></TABLE><BR>
  Use follow links to manage install script:<BR><BR>
- <A href="$scriptname?action=config&user=$user&pass=$pass">config.pl</A>
+ <A href="$scriptname?action=config">config.pl</A>
  <BR>
- <A href="$scriptname?action=database&user=$user&pass=$pass">database</A>
+ <A href="$scriptname?action=database">database</A>
  <BR><BR>
- <A href="$scriptname?action=&user=&pass=">LogOut</A>
+ <A href="$scriptname?action=logout">LogOut</A>
  </B>$f_e
+ <BR><BR>
+ <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
+ <B><center>All rights reserved by <A href="http://www.proscriptum.com/">Julian Lishev</A> , Sofia 2002</center></B>$f_e
+ </TD></TR></TABLE><BR>
 END_OF_HTML
 }
 
@@ -422,6 +603,7 @@ my $sql_pass = fetchValue('sql_pass',$conf_code);
 my $check_module_functions = fetchValue('check_module_functions',$conf_code);
 
 #[Secure]
+my $site_is_down = fetchValue('site_is_down',$conf_code);
 my $wait_attempt = fetchValue('wait_attempt',$conf_code);
 my $wait_for_open = fetchValue('wait_for_open',$conf_code);
 my $sess_time = fetchValue('sess_time',$conf_code);
@@ -471,6 +653,7 @@ my $http_home_path = fetchValue('http_home_path',$conf_code);
 
 my $db_support_S = getSelect('db_support',$db_support,'db_flat','db_mysql','db_access','');
 my $check_module_functions_S = getSelect('check_module_functions',$check_module_functions,'on','off');
+my $site_is_down_S = getSelect('site_is_down',$site_is_down,'on','off');
 my $sys_conf_d_S = getSelect('sys_conf_d',$sys_conf_d,'second','minute','hour','day','month','year');
 my $sess_cookie_S = getSelect('sess_cookie',$sess_cookie,'sesstime','0');
 my $cgi_lib_forbid_mulipart_S = getSelect('cgi_lib_forbid_mulipart',$cgi_lib_forbid_mulipart,'on','off');
@@ -487,15 +670,15 @@ my $var_printing_mode_S = getSelect('var_printing_mode',$var_printing_mode,'buff
  $f_b
  <H3><U>WebTools Configure</U></H3>
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE><BR>
  <B>
  These values are related to WebTools configuration. Using this script practicality you will edit config.pl file!<BR><BR>
  <form METHOD='POST' ACTION='$scriptname'>
  <input name='action' value='config' type='hidden'>
  <input name='do' value='save' type='hidden'>
- <input name='user' value='$user' type='hidden'>
- <input name='pass' value='$pass' type='hidden'>
+ <input name='user_admin' value='$user_admin' type='hidden'>
+ <input name='pass_admin' value='$pass_admin' type='hidden'>
  <table>
  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Name of project:</B>$f_e</td>
   <td><input name='projectname' value='$projectname' type='text' size="20"></td></tr>
@@ -521,15 +704,15 @@ my $var_printing_mode_S = getSelect('var_printing_mode',$var_printing_mode,'buff
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Checking mode:</B>$f_e</td>
   <td>$f_b$check_module_functions_S$f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
+  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>WebTools(your site) is down:</B>$f_e</td>
+  <td>$f_b$site_is_down_S (Set this field to '<B>on</B>' if you want to 'stop' your site /scripts side/)$f_e</td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Count of attempts:</B>$f_e</td>
   <td><input name='wait_attempt' value='$wait_attempt' type='text' size="20"></td></tr>  
-  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Time between to attempts:</B>$f_e</td>
+  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Time between two attempts:</B>$f_e</td>
   <td><input name='wait_for_open' value='$wait_for_open' type='text' size="20"> $f_b (in seconds) $f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Period of session time:</B>$f_e</td>
-  <td><input name='sess_time' value='$sess_time' type='text' size="20"></td></tr>
-  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Dimenssion of session time:</B>$f_e</td>
-  <td>$f_b$sys_conf_d_S$f_e</td></tr>
+  <td><input name='sess_time' value='$sess_time' type='text' size="7">$f_b $sys_conf_d_S$f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
  
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Length of session ID:</B>$f_e</td>
@@ -563,15 +746,15 @@ my $var_printing_mode_S = getSelect('var_printing_mode',$var_printing_mode,'buff
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Run scripts in debug mode:</B>$f_e</td>
   <td>$f_b$debugging_S (If you choice '<B>on</B>' and error appear in script then WebTools will print error in browser)$f_e</td></tr>
   
-  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Send of mails in debug mode:</B>$f_e</td>
-  <td>$f_b$debug_mail_S (only for send_mail() function, so if you send mail in '<B>on</B>' mode, then all your mails will appear in mail directory!)$f_e</td></tr>
+  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Send mails in debug mode:</B>$f_e</td>
+  <td>$f_b$debug_mail_S (only for send_mail() function, so if you send mail in '<B>on</B>' mode, then all your mails will appear in mail directory and they never be sent!)$f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Full path of sendmail program:</B>$f_e</td>
   <td><input name='sendmail' value='$sendmail' type='text' size="20"></td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
-  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Mix charset for session ID generating:</B>$f_e</td>
+  <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Mix charset for session ID generation:</B>$f_e</td>
   <td><input name='charset' value='$charset' type='text' size="80"> $f_b(just mix well this chars)$f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
@@ -586,19 +769,19 @@ my $var_printing_mode_S = getSelect('var_printing_mode',$var_printing_mode,'buff
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set print mode:</B>$f_e</td>
-  <td>$f_b$var_printing_mode_S (If you choice '<B>buffered</B>' then all prints will be cached!(default))$f_e</td></tr>
+  <td>$f_b$var_printing_mode_S (If you choice '<B>buffered</B>' then all prints will be cached!(default & recommended))$f_e</td></tr>
   <TR><TD><BR></TD><TD><BR></TD></TR>
   
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set TEMP directory:</B>$f_e</td>
-  <td><input name='tmp' value='$tmp' type='text' size="25"> $f_b(To this directory you must have write/read access)$f_e</td></tr>
+  <td><input name='tmp' value='$tmp' type='text' size="25"> $f_b(At this directory you must have write/read access)$f_e</td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set Drivers directory:</B>$f_e</td>
   <td><input name='driver_path' value='$driver_path' type='text' size="25"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set Library directory:</B>$f_e</td>
   <td><input name='library_path' value='$library_path' type='text' size="25"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set Database directory:</B>$f_e</td>
-  <td><input name='db_path' value='$db_path' type='text' size="25"> $f_b(To this directory you must have write/read access)$f_e</td></tr>
+  <td><input name='db_path' value='$db_path' type='text' size="25"> $f_b(At this directory you must have write/read access)$f_e</td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set Mail directory:</B>$f_e</td>
-  <td><input name='mailsender_path' value='$mailsender_path' type='text' size="25"> $f_b(To this directory you must have write/read access)$f_e</td></tr>
+  <td><input name='mailsender_path' value='$mailsender_path' type='text' size="25"> $f_b(At this directory you must have write/read access)$f_e</td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set Template directory:</B>$f_e</td>
   <td><input name='xreader_path' value='$xreader_path' type='text' size="25"></td></tr>
   <tr><td nowrap width="300" bgcolor="#EEEEEE">$f_b<B>Set WHTML(scripts) directory:</B>$f_e</td>
@@ -615,7 +798,7 @@ my $var_printing_mode_S = getSelect('var_printing_mode',$var_printing_mode,'buff
  </form>
  NOTE:</B> If you want to modify <B>\@treat_htmls_ext</B> and/or <B>\@use_addition_paths</B> you have to open manualy config.pl file!<BR><BR><B>
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE>
  </B>$f_e
 END_OF_HTML
@@ -664,6 +847,7 @@ my $sql_pass = $input->param('sql_pass');
 
 my $check_module_functions = $input->param('check_module_functions');
 
+my $site_is_down = $input->param('site_is_down');
 my $wait_attempt = $input->param('wait_attempt');
 my $wait_for_open = $input->param('wait_for_open');
 my $sess_time = $input->param('sess_time');
@@ -717,6 +901,7 @@ $conf_code = setValue('sql_user',trim($sql_user),$conf_code);
 $conf_code = setValue('sql_pass',trim($sql_pass),$conf_code);
 
 $conf_code = setValue('check_module_functions',trim($check_module_functions),$conf_code);
+$conf_code = setValue('site_is_down',trim($site_is_down),$conf_code);
 
 $conf_code = setValue('wait_attempt',trim($wait_attempt),$conf_code);
 $conf_code = setValue('wait_for_open',trim($wait_for_open),$conf_code);
@@ -770,16 +955,16 @@ sub ShowDBs
  <B>$f_b
  <H3><U>WebTools Configure</U></H3>
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE><BR>
  Use follow links to manage your database:<BR><BR>
- <A href="$scriptname?action=database&do=&type=flat&user=$user&pass=$pass">Flat DB</A>
+ <A href="$scriptname?action=database&do=&type=flat">Flat DB</A>
  <BR>
- <A href="$scriptname?action=database&do=&type=mysql&user=$user&pass=$pass">Mysql DB</A>
+ <A href="$scriptname?action=database&do=&type=mysql">Mysql DB</A>
  <BR><BR><BR>
  </B>$f_e
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE>
 END_OF_HTML
 }
@@ -817,7 +1002,7 @@ END_TERM
     unlink($db_path.$projectnameusers.'.stb');
    }
   open (SDB, ">>".$db_path.$projectnamedb.'.sdb')  || do {
-    print $f_b."<B>Can't create database: $dbname.sdb<BR><BR>";
+    print $f_b."<B>Can't create database: $dbname<BR><BR>";
     print "Hint: Check write/read permissions of your default db directory($db_path)!<BR>More about permissions read in INSTALL.html</B>".$f_e;
     exit;
    };
@@ -840,25 +1025,33 @@ END_REC
   my $tab = << "TERMI";
   $projectnamesessions (
         ID LONG,
-        S_ID VARCHAR(45),
+        S_ID VARCHAR(255),
         IP VARCHAR(20),
-        EXPIRE INT,
+        EXPIRE DATETIME,
         FLAG CHAR(1),
         DATA VARCHAR(1048576)
         )
 TERMI
-  sql_create_db($tab,$dbh);
+  my $dbi = '';
+  eval 'sql_create_db($tab,$dbh);';
+  if($@) {print "<B>$f_b Sorry can't create \'$projectnamesessions\' table!</B>$f_e";exit;}
   my $tab = << "TERMI";
   $projectnameusers (
         ID LONG,
-        USER VARCHAR(30),
-        PASSWORD VARCHAR(30),
-        DATA VARCHAR(1048576)
+        USER VARCHAR(50),
+        PASSWORD VARCHAR(50),
+        ACTIVE CHAR(1),
+        DATA VARCHAR(1048576),
+        CREATED DATETIME,
+        FNAME VARCHAR(50),
+        LNAME VARCHAR(50),
+        EMAIL VARCHAR(120)
         )
 TERMI
-  sql_create_db($tab,$dbh);
+  eval 'sql_create_db($tab,$dbh);';
+  if($@) {print "<B>$f_b Sorry can't create \'$projectnameusers\' table!</B>$f_e";exit;}
   $admin_pass = sql_quote($admin_pass,$dbh);
-  sql_query("insert into $projectnameusers values(MAXVAL('ID|$projectnameusers'),'$admin_user',$admin_pass,'');",$dbh);
+  sql_query("insert into $projectnameusers values(MAXVAL('ID|$projectnameusers'),'$admin_user',$admin_pass,'Y','',NOW(),'Admin','','');",$dbh);
   if(sql_errno($dbh))
     {
      print $f_b."<B>Can't create tables!<BR>";
@@ -870,13 +1063,13 @@ TERMI
  <B>$f_b
  <H3><U>WebTools Configure</U></H3>
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE><BR>
  <B>&nbsp; Flat database in your db directory successfully created!<BR></B><BR>
  <BR>
  </B>$f_e
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE>
 END_OF_HTML
  }
@@ -903,13 +1096,13 @@ END_TERM
  <B>$f_b
  <H3><U>WebTools Configure</U></H3>
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE><BR>
  <B>&nbsp; Flat table successfully created!<BR></B><BR>
  <BR>
  </B>$f_e
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE>
 END_OF_HTML
  }
@@ -919,10 +1112,10 @@ END_OF_HTML
  <B>$f_b
  <H3><U>WebTools Configure</U></H3>
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=database&user=$user&pass=$pass">database menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=database">database menu</A></center></B>$f_e
  </TD></TR></TABLE><BR>
  <b>You can create default database structure for Flat DB, using values from config.pl<BR>
- If your config.pl is not configured do it first <A href="$scriptname?action=config&user=$user&pass=$pass">here</A>!<BR><BR>
+ If your config.pl is not configured do it first <A href="$scriptname?action=config">here</A>!<BR><BR>
  Note: If database exists it will be removed and rebuilt!<BR><BR>
  Database structure will be created based on follow data:<BR><BR>
  DATABASE: <font color='#C05040'>$projectnamedb</font><BR>
@@ -934,8 +1127,8 @@ END_OF_HTML
  <input name='action' value='database' type='hidden'>
  <input name='type' value='flat' type='hidden'>
  <input name='do' value='create' type='hidden'>
- <input name='user' value='$user' type='hidden'>
- <input name='pass' value='$pass' type='hidden'>
+ <input name='user_admin' value='$user_admin' type='hidden'>
+ <input name='pass_admin' value='$pass_admin' type='hidden'>
  Enter password for default 'admin' user (for users support):<BR><BR>
  Password: <input name='apass' value='' type='password'><BR><BR>
  <input value='Create' type='submit'>
@@ -947,8 +1140,8 @@ END_OF_HTML
  <input name='action' value='database' type='hidden'>
  <input name='type' value='flat' type='hidden'>
  <input name='do' value='ctable' type='hidden'>
- <input name='user' value='$user' type='hidden'>
- <input name='pass' value='$pass' type='hidden'>
+ <input name='user_admin' value='$user_admin' type='hidden'>
+ <input name='pass_admin' value='$pass_admin' type='hidden'>
  <textarea name='sqlq' cols='60' rows='12'></textarea><BR><BR>
  <input value='Create Table' type='submit'>
  </form>
@@ -963,7 +1156,7 @@ create table test (<BR>
 &nbsp; &nbsp; )<BR><BR>
  </B>$f_e
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=database&user=$user&pass=$pass">database menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=database">database menu</A></center></B>$f_e
  </TD></TR></TABLE>
 END_OF_HTML
  }
@@ -1004,12 +1197,16 @@ TERMI
   if($@ ne '') { print $f_b."<B>Sorry can't connect to MySQL server! (check in config.pl your SQL settings!)</B>".$f_e; exit;}
   my $code = 'sql_drop_db($projectnamedb,$dbh);';
   eval $code;
-  my $res = sql_create_db($projectnamedb,$dbh);
+  
+  my $res;
+  eval '$res = sql_create_db($projectnamedb,$dbh);';
+  if($@) {print "<B>$f_b Sorry can't create database \'$projectnamedb\'!</B>$f_e";exit;}
+  
   $dbh = sql_select_db($projectnamedb,$dbh);
   my $tab = << "TERMI";
 create table $projectnamesessions (
         ID BIGINT(1) not null auto_increment primary key,
-        S_ID VARCHAR(45) binary not null,
+        S_ID VARCHAR(255) binary not null,
         IP VARCHAR(20) binary default 'xxx.xxx.xxx.xxx',
         EXPIRE DATETIME not null,
         FLAG char(1) binary default '0',
@@ -1022,29 +1219,34 @@ TERMI
   my $tab = << "TERMI";
 create table $projectnameusers (
         ID INT(1) not null auto_increment primary key,
-        USER VARCHAR(30) binary not null,
-        PASSWORD VARCHAR(30) binary default '',
+        USER VARCHAR(50) binary not null,
+        PASSWORD VARCHAR(50) binary default '',
+        ACTIVE CHAR(1),
         DATA longblob,
+        CREATED DATETIME not null,
+        FNAME VARCHAR(50),
+        LNAME VARCHAR(50),
+        EMAIL VARCHAR(120),
         unique(USER)
         )
 TERMI
   sql_query($tab,$dbh);
   if(sql_errno($dbh) ne '') { print $f_b."<B>Sorry can't create system WebTools tables!</B>".$f_e; exit;}
   $apass = sql_quote($apass,$dbh);
-  my $q = "insert into $projectnameusers values(NULL,'$admin_user',password($apass),'');";
+  my $q = "insert into $projectnameusers values(NULL,'$admin_user',$apass,'Y','',NOW(),'Admin','','');";
   sql_query($q,$dbh);
   if(sql_errno($dbh) ne '') { print $f_b."<B>Sorry can't insert Admin user in database!</B>".$f_e; exit;}
   print << "END_OF_HTML";
  <B>$f_b
  <H3><U>WebTools Configure</U></H3>
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE><BR>
  <B>&nbsp; Structure for MySQL successfully created!<BR></B><BR>
  <BR>
  </B>$f_e
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE>
 END_OF_HTML
  }
@@ -1054,10 +1256,10 @@ END_OF_HTML
  <B>$f_b
  <H3><U>WebTools Configure</U></H3>
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=database&user=$user&pass=$pass">database menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=database">database menu</A></center></B>$f_e
  </TD></TR></TABLE><BR>
  <b>You can create default database structure for MySQL, using values from config.pl<BR>
- If your config.pl is not configured do it first <A href="$scriptname?action=config&user=$user&pass=$pass">here</A>!<BR><BR>
+ If your config.pl is not configured do it first <A href="$scriptname?action=config">here</A>!<BR><BR>
  Note: If database exists it will be removed and rebuilt!<BR><BR>
  Database structure will be created based on follow data:<BR><BR>
  DATABASE: <font color='#C05040'>$projectnamedb</font><BR>
@@ -1069,8 +1271,8 @@ END_OF_HTML
  <input name='action' value='database' type='hidden'>
  <input name='type' value='mysql' type='hidden'>
  <input name='do' value='create' type='hidden'>
- <input name='user' value='$user' type='hidden'>
- <input name='pass' value='$pass' type='hidden'>
+ <input name='user_admin' value='$user_admin' type='hidden'>
+ <input name='pass_admin' value='$pass_admin' type='hidden'>
  Enter password for default 'admin' user (for users support):<BR><BR>
  Password: <input name='apass' value='' type='password'><BR><BR>
  <input value='Create' type='submit'>
@@ -1082,8 +1284,8 @@ END_OF_HTML
  <input name='action' value='database' type='hidden'>
  <input name='type' value='mysql' type='hidden'>
  <input name='do' value='ctable' type='hidden'>
- <input name='user' value='$user' type='hidden'>
- <input name='pass' value='$pass' type='hidden'>
+ <input name='user_admin' value='$user_admin' type='hidden'>
+ <input name='pass_admin' value='$pass_admin' type='hidden'>
  <textarea name='sqlq' cols='60' rows='12'></textarea><BR><BR>
  <input value='Create Table' type='submit'>
  </form>
@@ -1097,7 +1299,7 @@ create table test (<BR>
 &nbsp; &nbsp; )<BR><BR>
  </B>$f_e
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=database&user=$user&pass=$pass">database menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=database">database menu</A></center></B>$f_e
  </TD></TR></TABLE>
 END_OF_HTML
 }
@@ -1123,13 +1325,13 @@ END_TERM
  <B>$f_b
  <H3><U>WebTools Configure</U></H3>
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE><BR>
  <B>&nbsp; MySQL table successfully created!<BR></B><BR>
  <BR>
  </B>$f_e
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
- <B><center><A href="$scriptname?action=&user=$user&pass=$pass">main menu</A></center></B>$f_e
+ <B><center><A href="$scriptname?action=">main menu</A></center></B>$f_e
  </TD></TR></TABLE>
 END_OF_HTML
  }

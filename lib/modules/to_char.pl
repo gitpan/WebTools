@@ -156,10 +156,10 @@ sub rr
 	return $t;
 }
 
-sub ddd
-{
-	return $mday;
-}
+#sub ddd
+#{
+#	return $mday;
+#}
 
 sub dd
 {

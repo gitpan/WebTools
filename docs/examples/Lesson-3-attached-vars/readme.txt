@@ -70,7 +70,7 @@ Example:
  When you click over link "logout", script jump to logout page ( $action eq '2'), there you have name of visitor
  because var $visitor_name has value retrieved from cookie/link/form...
 
- At the end of script you must call disattach_var('visitor_name') to clean up attached var (especialy when browser 
+ At the end of script you must call detach_var('visitor_name') to clean up attached var (especialy when browser 
  supprt cookies).
 
 

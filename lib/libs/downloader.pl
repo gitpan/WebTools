@@ -90,7 +90,7 @@ sub download_get_filesize
  return(-1);   # File not found
 }
 #######################################################
-# Get file site of download target
+# Get file size of download target
 # PROTO:  $size = download_last_bytes();
 # Example:
 # $size = download_last_bytes();
@@ -123,6 +123,7 @@ sub downloader_SendFile
  local $SIG{'TERM'} = '\&downloader_onApacheKill';   # Don`t allow Apache to kill process!
  local $SIG{'QUIT'} = '\&downloader_onApacheKill';
  local $SIG{'PIPE'} = '\&downloader_onApacheKill';
+ local $SIG{'STOP'} = '\&downloader_onApacheKill';
  
  $sys_kill_flag = 0;
  $| = 1;

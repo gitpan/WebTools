@@ -9,17 +9,14 @@ package webtools;
 # it and/or modify it under the same terms 
 # as Perl itself.
  
- require Exporter;
- use globexport;
- use stdouthandle;
- 
 ###########################################
 # BEGIN Section start here
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.16";
+    $VERSION = "1.20";
     $INTERNALVERSION = "1";
+    $webtools::sys_ERROR = 'error';
     @ISA = qw(Exporter);
     @EXPORT = 
      qw(
@@ -45,15 +42,23 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
         $sql_sessions_table DB_OnDestroy DB_OnExit $system_database_handle 
         
         Header read_form read_form_array read_var href_adder action_adder 
-        attach_var disattach_var 
+        attach_var detach_var 
         encode_separator decode_separator 
         StartUpInit RunScript set_script_timeout flush_print set_printing_mode DestroyScript 
         ClearBuffer ClearHeader $print_header_buffer $print_flush_buffer 
         r_str rand_srand b_print Parse_Form 
         *SESSIONSTDOUT $reg_buffer   
         $sentcontent $apacheshtdocs %SIGNALS $loaded_functions 
-        $sys_OS $sys_CRLF $sys_EBCDIC $sys_config_pl_loaded 
+        $sys_OS $sys_CRLF $sys_EBCDIC $sys_config_pl_loaded $sys_ERROR 
        );
+
+ require Exporter;
+ 
+ use Errors::Errors;
+ $webtools::sys_ERROR = Errors::Errors->new(); # Create one global error object
+
+ use globexport;
+ use stdouthandle;
 
  #################################
  # PLEASE DO NOT MODIFY ANYTHING!
@@ -104,15 +109,18 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
           }
       }
    }
-  $Mysql::QUIET = $mysqlbequiet;
 
 ###########################################        
   $system_database_handle = undef;   # That is current opened DB Handler!
-  $SIG{'TERM'} = \&On_Term_Event;
-  $SIG{'STOP'} = \&On_Term_Event;
-  $SIG{'PIPE'} = \&On_Term_Event;
+  
+  $webtools::sys_ERROR->install('onTerm',\&On_Term_Event);
+
   sub On_Term_Event
-     {   # User hit STOP button or...admin shutdown Apache server :-)
+     {
+      my $obj   = shift;
+      my $err   = shift;
+      my $name  = shift;
+      # User hit STOP button or...admin shutdown Apache server :-)
   	if($system_database_handle ne undef)
   	  {
   	   my $q =<<'THAT_TERM_SIG_STR';
@@ -194,7 +202,12 @@ sub session_start
  my ($dbh,$newv) = @_;
  session_clear_expired($dbh); # Clear all expired sessions!
  my $sid = Get_Old_SID($dbh); # Try to find old session ID!
- if ($newv) {$sid = '';}
+ if ($newv)
+  {
+   local $sys_local_sess_id = $sid;
+   session_destroy($dbh);     # Remove previous session if user resubmit login form!
+   $sid = '';
+  }
  $sys_local_sess_id = $sid;
  
  my $sid_time;
@@ -311,7 +324,7 @@ sub attach_var
     $attached_vars{$name} = $value;
     return (1);
   }
-sub disattach_var 
+sub detach_var 
   {
     my ($name) = @_;
 
@@ -547,7 +560,7 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
   $| = 1;
   if(!$is and !($sys_stdouthandle_header and $sys_stdouthandle_content_ok))
    {
-    $print_header_buffer = "X-Powered-By: WebTools/1.16\n".$print_header_buffer; # Print version of this tool.
+    $print_header_buffer = "X-Powered-By: WebTools/1.20\n".$print_header_buffer; # Print version of this tool.
    }
   if ((!$sys_cookie_accepted) and ($sys_local_sess_id ne ''))
    {
@@ -620,10 +633,6 @@ sub Get_Old_SID
  my ($dbh) = @_;
  my $sid;
  my $ip = $ENV{'REMOTE_ADDR'}; # Get remote IP address
- if (!$parsedform)
-   {
-     Parse_Form();
-   }
  if (read_var($l_sid) ne undef)
    {
     $sid = read_var($l_sid);
@@ -653,7 +662,7 @@ sub Get_Old_SID
       else
       {
        ###FLAT###
-       my $res = find_SF_File($tmp.'/',$sid);
+       my $res = find_SF_File($tmp,$sid);
        if ($res ne '')
         {
          return($sid);
@@ -1038,7 +1047,7 @@ sub delete_sessions_row
  else
   {
    ###FLAT###
-   return(destroy_SF_File($tmp.'/',$sid));
+   return(destroy_SF_File($tmp,$sid));
   }
  return(0);
 }
@@ -1066,7 +1075,7 @@ sub open_session_file
      else
       {
        ###FLAT###
-       $re = osetflag_SF_File($tmp.'/',$sid);
+       $re = osetflag_SF_File($tmp,$sid);
        if($re == -1) {$re = undef;}
        else {return(1);} # File can be opened!
       }
@@ -1095,7 +1104,7 @@ sub close_session_file
   else
   {
    ###FLAT###
-   $re = csetflag_SF_File($tmp.'/',$sid);
+   $re = csetflag_SF_File($tmp,$sid);
    return(1);
   }
 }
@@ -1189,7 +1198,7 @@ sub save_session_data   # ($session_ID,$buffer,$database_handler) // Save into D
  else
  {
   ###FLAT###
-  write_SF_File($tmp.'/',$sid,$buffer);
+  write_SF_File($tmp,$sid,$buffer);
   return(1);
  }
  return(0);
@@ -1215,13 +1224,12 @@ sub load_session_data   # ($session_ID,$database_handler) // Load DATA from tabl
  else
  {
   ###FLAT###
-  return(read_SF_File($tmp.'/',$sid));
+  return(read_SF_File($tmp,$sid));
  }
  return($arr[0]);     # Return DATA field
 }
 sub RunScript
 {
- Parse_Form();
  if(($perl_html_dir eq '') or ($perl_html_dir =~ m/^(\\|\/)$/si))
    {
     print "<BR><h3><B><font color='red'>Security hole!!!</font> Your default script direcotry (htmls) is leaved empty or<BR>";
@@ -1304,6 +1312,7 @@ sub RunScript
 sub ExecuteHTMLfile
 {
  my ($f_name,$sys_p_buf_N001) = @_;
+ my @h_N001 = ();
  my @html_N001 = split(/\<\?perl/is,$sys_p_buf_N001);
  my $sys_a_N001;
  my $error_locator_N001 = 1;
@@ -1368,6 +1377,7 @@ sub b_print # Only for backware compatibility!
   my ($p) = @_;
   $print_flush_buffer .= $p;
 }
+
 ###########################################
 # Cookies
 ###########################################
@@ -1399,6 +1409,8 @@ sub delete_cookie
 ########################################################
 sub Default_CGI_Script_ALARM_SUB
  {
+  my $obj    = shift;
+  my $what   = shift;
   if(exists($webtools::SIGNALS{'OnTimeOut'}))
      {
       eval {
@@ -1419,7 +1431,7 @@ sub SetCGIScript_Timeout
 {
  if((defined($cgi_script_timeout)) and ($cgi_script_timeout != 0) and ($cgi_script_timeout > 1))
   {
-   $SIG{'ALRM'} = \&webtools::Default_CGI_Script_ALARM_SUB;
+   $webtools::sys_ERROR->install('onTimeout',\&webtools::Default_CGI_Script_ALARM_SUB);
 my $script_time_eval = << "TIME_EVAL_TERMINATOR";
    alarm($cgi_script_timeout);
 TIME_EVAL_TERMINATOR
@@ -1571,11 +1583,12 @@ sub sys_make_template_code
   }
   
  # ----- Make code for XREADER -----
- if($sys_my_pre_process_tempf =~ m/\<XREADER:\d{1,}\:(.*?)\:(.*?)\>/si)
+ if($sys_my_pre_process_tempf =~ m/\<XREADER:.+?\:(.*?)\:(.*?)\>/si)
   {
-    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# if($system_database_handle eq undef)
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
+     if($system_database_handle eq undef)
         {
-          my $rztl_sconn = sql_connect(); 
+          $rztl_sconn = sql_connect(); 
         }
      if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
      xreader_dbh($rztl_sconn);#;
@@ -1588,11 +1601,12 @@ sub sys_make_template_code
   }
   
  # ----- Make code for SQL Templates -----
- if($sys_my_pre_process_tempf =~ m/\<S\©L\:\d{1,}\:(.*?)\:\d{1,}\:\d{1,}\:\d{1,}\:\d{1,}\:S\©L\>/si)
+ if($sys_my_pre_process_tempf =~ m/\<S\©L\:\d{1,}\:(.*?)\:.+?\:.+?\:.+?\:.+?\:S\©L\>/si)
   {
-    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# if($system_database_handle eq undef)
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
+     if($system_database_handle eq undef)
         {
-          my $rztl_sconn = sql_connect(); 
+          $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
         }
      if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
@@ -1608,9 +1622,10 @@ sub sys_make_template_code
  # ----- Make code for SQLVAR Templates -----
  if($sys_my_pre_process_tempf =~ m/\<S\©LVAR\:(.+?)\:S\©L\>/si)
   {
-    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# if($system_database_handle eq undef)
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
+     if($system_database_handle eq undef)
         {
-          my $rztl_sconn = sql_connect(); 
+          $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
         }
      if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
@@ -1626,9 +1641,10 @@ sub sys_make_template_code
  # ----- Make code for MENUSELECT -----
  if($sys_my_pre_process_tempf =~ m/\<MENUSELECT\:\$(.*?)\:(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\>/si)
   {
-    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# if($system_database_handle eq undef)
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
+     if($system_database_handle eq undef)
         {
-          my $rztl_sconn = sql_connect();
+          $rztl_sconn = sql_connect();
         }
      if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
      xreader_dbh($rztl_sconn);#;
@@ -1648,11 +1664,21 @@ sub sys_make_template_code
 sub sys_run_time_process_xread
 {
  my $sys_my_pre_process_tempf = shift(@_);
- if($sys_my_pre_process_tempf =~ m/\<XREADER:(\d{1,})\:(.*?)\:(.*?)\>/si)
+ if($sys_my_pre_process_tempf =~ m/\<XREADER:(.+?)\:(.*?)\:(.*?)\>/si)
   {
    my $sys_my_pre_process_numb = $1;
    my $sys_my_pre_process_file = $2;
    my $sys_my_pre_process_vals = $3;
+   if($sys_my_pre_process_numb =~ m/^\$(.*)$/s)
+    {
+     my $sys_temp_ev1 = '$sys_my_pre_process_numb = $'.$1.';';
+     eval $sys_temp_ev1;
+    }
+   if($sys_my_pre_process_file =~ m/^\$(.*)$/s)
+    {
+     my $sys_temp_ev1 = '$sys_my_pre_process_file = $'.$1.';';
+     eval $sys_temp_ev1;
+    }
    my @sys_my_pre_process_aval = split('\,',$sys_my_pre_process_vals);
    my @sys_my_pre_process_all = ();
    foreach $sys_my_pre_process_aself (@sys_my_pre_process_aval)
@@ -1678,11 +1704,27 @@ sub sys_run_time_process_xread
 sub sys_run_time_process_sql
 {
  my $sys_my_pre_process_tempf = shift(@_);
- if($sys_my_pre_process_tempf =~ m/(\<S\©L\:\d{1,}\:)(.*?)(\:\d{1,}\:\d{1,}\:\d{1,}\:\d{1,}\:S\©L\>)/si)
+ if($sys_my_pre_process_tempf =~ m/(\<S\©L\:\d{1,}\:)(.*?)(\:.+?\:.+?\:.+?\:.+?\:)S\©L\>/si)
   {
    my $sys_my_pre_process_beg  = $1;
    my $sys_my_pre_process_data = $2;
    my $sys_my_pre_process_end  = $3;
+   my @sys_my_pre_a = split(/\:/,$sys_my_pre_process_end);
+   my $sys_line;
+   $sys_my_pre_process_end = ':';
+   foreach $sys_line (@sys_my_pre_a)
+    {
+     if($sys_line ne '')
+      {
+       if($sys_line =~ m/^\$(.*)$/s)
+        {
+         my $sys_temp_ev1 = '$sys_my_pre_process_end .= $'.$1.".':'".';';
+         eval $sys_temp_ev1;
+        }
+       else {$sys_my_pre_process_end .= $sys_line.":";}
+      }
+    }
+   $sys_my_pre_process_end .= 'S©L>';
    my $sys_my_pre_process_tmp  = 0;
    my $sys_pre_process_replce = '';
   
@@ -1697,6 +1739,7 @@ sub sys_run_time_process_sql
       $sys_my_pre_process_data =~ s/([\ \']{0,})\$(.*?)([\'\ \;\"])/$sys_pre_process_replce/si;
      }
    $sys_my_pre_process_tempf = $sys_my_pre_process_beg.$sys_my_pre_process_data.$sys_my_pre_process_end;
+   print $sys_my_pre_process_tempf;
    return(_mem_xreader($sys_my_pre_process_tempf));
   }
 }
@@ -1878,7 +1921,8 @@ It brings in self many features of modern Web developing:
 
 =head1 AUTHOR
 
- Julian Lishev - Bulgaria,Sofia
- e-mail: julian@proscriptum.com
+ Julian Lishev - Bulgaria, Sofia, 
+ e-mail: julian@proscriptum.com, 
+ www.proscriptum.com
 
 =cut

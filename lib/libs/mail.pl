@@ -14,6 +14,14 @@
 #################################################
 # send_mail(FROM,TO,SUBJECT,BODY,AS_HTML);
 #################################################
+# Note: Standart module MIME::QuotedPrint discard
+# rule 4 from RFC 2045, so "\n" is not converted
+# to CRLF. QMAIL refuse to accept HTML(quoted-
+# printable) and you can use in this case only
+# "text" e-mails with mail() function! (code: 451)
+# However you can use send_mail() function 
+# anyway! 
+#################################################
 if(!$sys_config_pl_loaded) {require './conf/config.pl';}
 
 %mole_attached_files = ();  # Please use "set_mail_attachment" and "remove_mail_attachment"
@@ -42,7 +50,7 @@ sub send_mail
       }
     else {$is_html = 0;}
     
-    if(!($to =~ m/^([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z0-9\_\-\.]+)$/si))
+    if(!($to =~ m/^([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)(?:\.)?([A-Za-z0-9\_\-\.]+)$/si))
       {
        return -1; # Bad e-mail address (or not supported from my regex)
       }
@@ -460,8 +468,8 @@ sub talk_to_smpt
      {
       $data = $raw;      # $raw should contain all data that needed for DATA command to smpt!!!
                          # don't forget to put "CRLF.CRLF" sequence!
+      if(send(Sock,$data,0) eq undef){return(-1);} # -1 Can`t send to socket
      }
-    if(send(Sock,$data,0) eq undef){return(-1);} # -1 Can`t send to socket
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 250) {return(($res[0],$res[1]));}
     if(send(Sock,"QUIT".$crlf.'.'.$crlf,0) eq undef){return(-1);} # -1 Can`t send to socket

@@ -61,6 +61,7 @@ sub ReadParse {
   $^W = 0;
   if(!$sys_config_pl_loaded) {require 'config.pl';}
   $cgi_lib_writefiles = $tmp;
+  $cgi_lib_writefiles =~ s/\/$//si;
   my $cgi_lib_maxd    = $cgi_lib_maxdata; # maximum bytes to accept via POST
   local (*in) = shift if @_;    # CGI input
   local (*incfn,                # Client's filename (may not be provided)
