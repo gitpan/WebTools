@@ -51,8 +51,8 @@ INSTALL NOTES:
 First of all you must have webtools package. It must be packed into one tar.gz file.
 Please copy this .gz file into some directory and run follow commands:
 
-tar -zxvf webtools-1.004.tar.gz
-cd webtools-1.004
+tar -zxvf webtools-1.005.tar.gz
+cd webtools-1.005
 
 perl Makefile.PL
 
@@ -119,7 +119,7 @@ CASE 1:  You are some good user(july) on some good free host(newald.proscriptum.
 Let 'july' user has home directory:  /home/july (we use virtual host: july.newald.proscriptum.com)
 His full cgi-bin directory is: /home/july/public_html/cgi-bin
 So  his webtools directory can be: /home/july/public_html/cgi-bin/webtools
-Now we can upload webtools-1.004.tar.gz to our home directory and after that to install script.
+Now we can upload webtools-1.005.tar.gz to our home directory and after that to install script.
 After installation our process.cgi has permission mode set to 0755, directories have permission modes: 0755 and any other files: 0444
 Features: 
 - Our host is virtual, so Apache change user to 'july' when we start process.cgi!
@@ -193,8 +193,8 @@ Enjoy!!!
 # Step by Step Installation example:
 #-----------------------------------------------------------------------------------------
 
-tar -zxvf webtools-1.004.tar.gz [enter]
-cd webtools-1.004 [enter]
+tar -zxvf webtools-1.005.tar.gz [enter]
+cd webtools-1.005 [enter]
 perl Makefile.pl [enter]
        > /usr/local/apache/cgi-bin/webtools/
 make [enter]
@@ -202,7 +202,7 @@ make install [enter]
 make permissions [enter]
 make clean [enter]
 cd .. [enter]
-rm -rf webtools-1.004 [enter]
+rm -rf webtools-1.005 [enter]
 cd /usr/local/apache/cgi-bin/webtools [enter]
 ls -l -a [enter]
 perl -c process.cgi [enter]    # Must be "ok"

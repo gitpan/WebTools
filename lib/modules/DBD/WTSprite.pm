@@ -15,9 +15,9 @@ use vars qw($VERSION $err $errstr $state $sqlstate $drh $i $j $dbcnt);
 #@EXPORT = qw(
 	
 #);
-$VERSION = '0.20';
+$VERSION = '0.26';
 
-# Preloaded methods go here.
+# Preloaded methods go here.(WEBTOOLS)
 $DBD::WTSprite::WTSprite_global_db_handler = 0;
 %DBD::WTSprite::WTSprite_global_MAX_VAL = ();
 
@@ -67,7 +67,7 @@ sub connect {
     # Avoid warnings for undefined values
     $dbuser ||= '';
     $dbpswd ||= '';
-    %DBD::WTSprite::WTSprite_global_MAX_VAL = ();
+    %DBD::WTSprite::WTSprite_global_MAX_VAL = (); # (WEBTOOLS)
     # create a 'blank' dbh
     my($privateattr) = {
 		'Name' => $dbname,
@@ -103,9 +103,20 @@ sub connect {
 			chomp ($dbinputs[$i]);
 		}
 		my ($inputcnt) = $#dbinputs;
+		my ($dfltattrs, %dfltattr);
 		for ($i=0;$i<=$inputcnt;$i+=5)  #SHIFT OFF LINES UNTIL RIGHT USER FOUND.
 		{
 			last  if ($dbinputs[1] eq $dbuser);
+			if ($dbinputs[1] =~ s/^$dbuser\:(.*)/$dbuser/)
+			{
+				$dfltattrs = $1;
+				eval "\%dfltattr = ($dfltattrs)";
+				foreach my $j (keys %dfltattr)
+				{
+					$attr->{$j} = $dfltattr{$j};
+				}
+				last;
+			}
 			for ($j=0;$j<=4;$j++)
 			{
 				shift (@dbinputs);
@@ -123,7 +134,8 @@ sub connect {
 				$this->STORE('sprite_dbuser',$dbuser);
 				$this->STORE('sprite_dbpswd',$dbpswd);
 				close (DBFILE);
-				$this->STORE('sprite_autocommit',0);
+				#$this->STORE('sprite_autocommit',0);  #CHGD TO NEXT 20010912.
+				$this->STORE('sprite_autocommit',($attr->{AutoCommit} || 0));
 				$this->STORE('sprite_SpritesOpen',{});
 				my ($t) = $dbinputs[0];
 				$t =~ s#(.*)/.*#$1#;
@@ -146,7 +158,12 @@ sub connect {
 				$this->STORE('sprite_dbrdelim', eval("return(\"$dbinputs[4]\");") || "\n");
 				$this->STORE('sprite_attrhref', $attr);
 				$this->STORE('AutoCommit', ($attr->{AutoCommit} || 0));
-				$DBD::WTSprite::WTSprite_global_db_handler = $this;
+
+				#NOTE:  "PrintError" and "AutoCommit" are ON by DEFAULT!
+				#I KNOW OF NO WAY TO DETECT WHETHER AUTOCOMMIT IS SET BY 
+				#DEFAULT OR BY USER IN "AutoCommit => 1", THEREFORE I CAN'T 
+				#FORCE THE DEFAULT TO ZERO.  JWT
+                                $DBD::WTSprite::WTSprite_global_db_handler = $this; # (WEBTOOLS)
 				return $this;
 			}
 		}
@@ -169,7 +186,7 @@ sub data_sources
 		$code .= <<'END_CODE';
 		{
 			chomp ($i);
-			push (@dsources,"DBI:Sprite:$1")  if ($i =~ m#([^\/\.]+)\.sdb$#);
+			push (@dsources,"DBI:WTSprite:$1")  if ($i =~ m#([^\/\.]+)\.sdb$#);
 		}
 END_CODE
 		eval $code;
@@ -181,7 +198,7 @@ END_CODE
 	$code .= <<'END_CODE';
 	{
 		chomp ($i);
-		push (@dsources,"DBI:Sprite:$1")  if ($i =~ m#([^\/\.]+)\.sdb$#);
+		push (@dsources,"DBI:WTSprite:$1")  if ($i =~ m#([^\/\.]+)\.sdb$#);
 	}
 END_CODE
 	eval $code;
@@ -196,7 +213,7 @@ END_CODE
 			$code .= <<'END_CODE';
 			{
 				chomp ($i);
-				push (@dsources,"DBI:Sprite:$1")  if ($i =~ m#([^\/\.]+)\.sdb$#);
+				push (@dsources,"DBI:WTSprite:$1")  if ($i =~ m#([^\/\.]+)\.sdb$#);
 			}
 END_CODE
 			eval $code;
@@ -310,6 +327,8 @@ sub prepare
 		#ABOVE CHANGED TO BELOW(1 LINE) 20001010!
 		$myspriteref->{CaseTableNames} = $resptr->{sprite_attrhref}->{sprite_CaseTableNames};
 		$myspriteref->{StrictCharComp} = $resptr->{sprite_attrhref}->{sprite_StrictCharComp};
+		$myspriteref->{sprite_forcereplace} = $resptr->{sprite_attrhref}->{sprite_forcereplace};  #ADDED 20010912.
+		$myspriteref->{dbuser} = $resptr->FETCH('sprite_dbuser');  #ADDED 20011026.
 	}
 	$myspriteref->{LongTruncOk} = $resptr->FETCH('LongTruncOk');
 	my ($silent) = $resptr->FETCH('PrintError');
@@ -478,13 +497,16 @@ sub type_info_all  #ADDED 20010312, BORROWED FROM "Oracle.pm".
 			[ 'NUMBER', 3, 38, undef, undef, 'precision,scale', 1, '0', 3,
 			'0', '0', '0', undef, '0', 38
 	],
+			[ 'AUTONUMBER', 4, 38, undef, undef, 'precision,scale', 1, '0', 3,
+			'0', '0', '0', undef, '0', 38
+	],
 			[ 'DOUBLE', 8, 15, undef, undef, undef, 1, '0', 3,
 			'0', '0', '0', undef, undef, undef
 	],
 			[ 'DATE', 11, 19, '\'', '\'', undef, 1, '0', 3,
 			undef, '0', '0', undef, '0', '0'
 			],
-			[ 'VARCHAR2', 12, 65536, '\'', '\'', 'max length', 1, 1, 3,
+			[ 'VARCHAR2', 12, 2000, '\'', '\'', 'max length', 1, 1, 3,
 			undef, '0', '0', undef, undef, undef
 	]
 	];
@@ -539,6 +561,7 @@ my (%typehash) = (
 	'LONG' => -1, 
 	'CHAR' => 1,
 	'NUMBER' => 3,
+	'AUTONUMBER' => 4,
 	'DOUBLE' => 8,
 	'DATE' => 11,
 	'VARCHAR' => 12,
@@ -590,16 +613,28 @@ sub execute
 		return undef;
     }
     my $sqlstr = $sth->{'Statement'};
+
+	#NEXT 8 LINES ADDED 20010911 TO FIX BUG WHEN QUOTED VALUES CONTAIN "?"s.
+    $sqlstr =~ s/\\\'/\x03/g;      #PROTECT ESCAPED DOUBLE-QUOTES.
+    $sqlstr =~ s/\'\'/\x04/g;      #PROTECT DOUBLED DOUBLE-QUOTES.
+	$sqlstr =~ s/\'([^\']*?)\'/
+			my ($str) = $1;
+			$str =~ s|\?|\x02|g;   #PROTECT QUESTION-MARKS WITHIN QUOTES.
+			"'$str'"/eg;
+	$sqlstr =~ s/\x04/\'\'/g;      #UNPROTECT DOUBLED DOUBLE-QUOTES.
+	$sqlstr =~ s/\x03/\\\'/g;      #UNPROTECT ESCAPED DOUBLE-QUOTES.
+
+	#CONVERT REMAINING QUESTION-MARKS TO BOUND VALUES.
+
     for (my $i = 0;  $i < $numParam;  $i++)
     {
 		$params->[$i] =~ s/\?/\x02/g;   #ADDED 20001023 TO FIX BUG WHEN PARAMETER OTHER THAN LAST CONTAINS A "?"!
         $sqlstr =~ s/\?/"'".$params->[$i]."'"/e;
     }
-	$sqlstr =~ s/\x02/\?/g;     #ADDED 20001023!
-	#@{$sth->{resv}} = $sth->{spritedb}->sql($sqlstr);
+	$sqlstr =~ s/\x02/\?/g;     #ADDED 20001023! - UNPROTECT PROTECTED "?"s.
 	my ($spriteref) = $sth->FETCH('sprite_spritedb');
 
-	#CALL JSPRITE TO DO THE SQL!
+	#CALL WTJSPRITE TO DO THE SQL!
 
 	my (@resv) = $spriteref->sql($sqlstr);
 	#!!! HANDLE SPRITE ERRORS HERE (SEE SPRITE.PM)!!!
@@ -616,8 +651,8 @@ sub execute
 		my $dB = $sth->{Database};
 		if ($dB->FETCH('AutoCommit') == 1 && $sth->FETCH('Statement') !~ /^\s*select/i)
 		{
-			#$dB->STORE('AutoCommit',0);
-			$dB->STORE('AutoCommit',1);  #COMMIT DONE HERE!
+			$retval = undef  unless ($spriteref->commit());  #ADDED 20010911 TO MAKE AUTOCOMMIT WORK (OOPS :(  )
+			#$dB->STORE('AutoCommit',1);  #COMMIT DONE HERE!
 		}
 	}
 	else                     #SELECT SELECTED ZERO RECORDS.
@@ -794,14 +829,14 @@ __END__
     Public License or the Artistic License, as specified in the Perl README
     file.
 
-	JSprite.pm is a derived work by Jim Turner from Sprite.pm, a module 
+	WTJSprite.pm is a derived work by Jim Turner from Sprite.pm, a module 
 	written and copyrighted (c) 1995-1998, by Shishir Gurdavaram 
 	(shishir@ora.com).
 
 =head1 SYNOPSIS
 
      use DBI;
-     $dbh = DBI->connect("DBI:Sprite:spritedb",'user','password')
+     $dbh = DBI->connect("DBI:WTSprite:spritedb",'user','password')
          or die "Cannot connect: " . $DBI::errstr;
      $sth = $dbh->prepare("CREATE TABLE a (id INTEGER, name CHAR(10))")
          or die "Cannot prepare: " . $dbh->errstr();
@@ -824,8 +859,8 @@ or so per table).
 DBD::WTSprite is built upon an old Perl module called "Sprite", written by 
 Shishir Gurdavaram.  This code was used as a starting point.  It was completly 
 reworked and many new features were added, producing a module called 
-"JSprite.pm" (Jim Turner's Sprite).  This was then merged in to DBI::DBD to 
-produce what you are installing now.  (DBD::WTSprite).  JSprite.pm is included 
+"WTJSprite.pm" (Jim Turner's Sprite).  This was then merged in to DBI::DBD to 
+produce what you are installing now.  (DBD::WTSprite).  WTJSprite.pm is included 
 in this module as a separate file, and is required.
 
 Many thanks go to Mr. Gurdavaram.
@@ -848,8 +883,8 @@ applications on their own equipment for later hosting at
 larger customer sites where Oracle is used.  :-)
 
 DBD::WTSprite attempts to do things in as database-independent manner as possible, 
-but where differences occurr, JSprite most closely emmulates Oracle, for 
-example "sequences/autonumbering".  JSprite uses tiny one-line text files 
+but where differences occurr, WTJSprite most closely emmulates Oracle, for 
+example "sequences/autonumbering".  WTJSprite uses tiny one-line text files 
 called "sequence files" (.seq).  and "seq_file_name.NEXTVAL" function to 
 insert into autonumbered fields.  The reason for this is that the Author 
 works in an Oracle shop and wrote this module to allow himself to work on 
@@ -941,7 +976,7 @@ DBD::WTSprite is similar to DBD::CSV, but differs in the following ways:
 		#!/usr/bin/perl
 		use DBI;
 		
-		$dbh = DBI->connect('DBI:Sprite:mydb','me','mypassword') || 
+		$dbh = DBI->connect('DBI:WTSprite:mydb','me','mypassword') || 
 				die "Could not connect (".$DBI->err.':'.$DBI->errstr.")!";
 		...
 		#CREATE A TABLE, INSERT SOME RECORDS, HAVE SOME FUN!
@@ -1045,8 +1080,8 @@ package name (default is "main").
   
 -or-
 
-		use JSprite;
-		JSprite::fn_register ('myfn',__PACKAGE__);
+		use WTJSprite;
+		WTJSprite::fn_register ('myfn',__PACKAGE__);
 
 Then, you could say in sql:
 
@@ -1219,16 +1254,16 @@ I<Return Value>
         database.
         Example:
 
-            my($dbh) = DBI->connect("DBI:Sprite:mydatabase",'me','mypswd');
+            my($dbh) = DBI->connect("DBI:WTSprite:mydatabase",'me','mypswd');
             my(@list) = $dbh->func('tables');
 
-	JSprite::fn_register ('myfn',__PACKAGE__);
+	WTJSprite::fn_register ('myfn',__PACKAGE__);
 		This method takes the name of a user-defined data-conversion function 
 		for use in SQL commands.  Your function can optionally take arguments, 
 		but should return a single number or string.  Unless your function 
 		is defined in package "main", you must also specify the package name 
 		or "__PACKAGE__" for the current package.  For an example, see the 
-		section "INSERTING, FETCHING AND MODIFYING DATA" above or (JSprite(3)).
+		section "INSERTING, FETCHING AND MODIFYING DATA" above or (WTJSprite(3)).
 		
 =head1 OTHER SUPPORTING UTILITIES
 
@@ -1278,7 +1313,7 @@ I<Return Value>
     Joins
         The current version of the module works with single table SELECTs
         only.  This will be a trick, since the underlying statement object 
-        in JSprite is bound to a single file, I have some ideas and am 
+        in WTJSprite is bound to a single file, I have some ideas and am 
         starting to seriously look into this.  Stay tuned!
 
 	Additional Oracle-ish functions built-in.  The currently-supported ones 
@@ -1297,6 +1332,6 @@ I<Return Value>
 
 =head1 SEE ALSO
 
-	JSprite(3), DBI(3), perl(1)
+	WTJSprite(3), DBI(3), perl(1)
 
 =cut

@@ -1,4 +1,4 @@
-Web Tools version 1.004
+Web Tools version 1.005
 -----------------------
 
    This package is written in Perl and its main purpose is: to help all Web developers. 

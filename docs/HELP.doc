@@ -1,5 +1,5 @@
 {\rtf1\ansi\ansicpg1252\uc1\deff0\stshfdbch0\stshfloch0\stshfhich0\stshfbi0\deflang1033\deflangfe1033{\fonttbl{\f0\froman\fcharset0\fprq2{\*\panose 02020603050405020304}Times New Roman;}{\f10\fnil\fcharset2\fprq2{\*\panose 05000000000000000000}Wingdings;}
-{\f36\froman\fcharset0\fprq2 Times New Roman CYR;}{\f37\fswiss\fcharset0\fprq2{\*\panose 020b0604030504040204}Verdana;}{\f39\froman\fcharset238\fprq2 Times New Roman CE;}{\f40\froman\fcharset204\fprq2 Times New Roman Cyr;}
+{\f36\froman\fcharset0\fprq2 Times New Roman CYR;}{\f37\fswiss\fcharset0\fprq2{\*\panose 00000000000000000000}Verdana;}{\f39\froman\fcharset238\fprq2 Times New Roman CE;}{\f40\froman\fcharset204\fprq2 Times New Roman Cyr;}
 {\f42\froman\fcharset161\fprq2 Times New Roman Greek;}{\f43\froman\fcharset162\fprq2 Times New Roman Tur;}{\f44\froman\fcharset177\fprq2 Times New Roman (Hebrew);}{\f45\froman\fcharset178\fprq2 Times New Roman (Arabic);}
 {\f46\froman\fcharset186\fprq2 Times New Roman Baltic;}{\f47\froman\fcharset163\fprq2 Times New Roman (Vietnamese);}{\f399\froman\fcharset238\fprq2 Times New Roman CYR CE;}{\f400\froman\fcharset204\fprq2 Times New Roman CYR Cyr;}
 {\f402\froman\fcharset161\fprq2 Times New Roman CYR Greek;}{\f403\froman\fcharset162\fprq2 Times New Roman CYR Tur;}{\f404\froman\fcharset177\fprq2 Times New Roman CYR (Hebrew);}{\f405\froman\fcharset178\fprq2 Times New Roman CYR (Arabic);}
@@ -9,9 +9,9 @@
 \red128\green128\blue0;\red128\green128\blue128;\red192\green192\blue192;\red0\green0\blue127;\red0\green127\blue0;\red127\green0\blue0;\red153\green51\blue0;\red51\green153\blue102;\red255\green204\blue0;\red0\green127\blue127;}{\stylesheet{
 \ql \li0\ri0\widctlpar\aspalpha\aspnum\faauto\adjustright\rin0\lin0\itap0 \fs24\lang1033\langfe1033\cgrid\langnp1033\langfenp1033 \snext0 Normal;}{\*\cs10 \additive \ssemihidden Default Paragraph Font;}{\*
 \ts11\tsrowd\trftsWidthB3\trpaddl108\trpaddr108\trpaddfl3\trpaddft3\trpaddfb3\trpaddfr3\trcbpat1\trcfpat1\tscellwidthfts0\tsvertalt\tsbrdrt\tsbrdrl\tsbrdrb\tsbrdrr\tsbrdrdgl\tsbrdrdgr\tsbrdrh\tsbrdrv 
-\ql \li0\ri0\widctlpar\aspalpha\aspnum\faauto\adjustright\rin0\lin0\itap0 \fs20\lang1024\langfe1024\cgrid\langnp1024\langfenp1024 \snext11 \ssemihidden Normal Table;}}{\*\rsidtbl \rsid869417\rsid10638950\rsid12140331\rsid14384398}
-{\*\generator Microsoft Word 10.0.2605;}{\info{\title WebTool Help}{\author Julian Lishev}{\operator July}{\creatim\yr2001\mo10\dy28\hr16\min13}{\revtim\yr2001\mo10\dy29\hr20\min15}{\version3}{\edmins0}{\nofpages13}{\nofwords3054}{\nofchars17411}
-{\*\company JTL Soft}{\nofcharsws20425}{\vern16437}}\widowctrl\ftnbj\aenddoc\noxlattoyen\expshrtn\noultrlspc\dntblnsbdb\nospaceforul\hyphcaps0\horzdoc\dghspace120\dgvspace120\dghorigin1701\dgvorigin1984\dghshow0\dgvshow3
+\ql \li0\ri0\widctlpar\aspalpha\aspnum\faauto\adjustright\rin0\lin0\itap0 \fs20\lang1024\langfe1024\cgrid\langnp1024\langfenp1024 \snext11 \ssemihidden Normal Table;}}{\*\rsidtbl \rsid869417\rsid9896958\rsid10638950\rsid12140331\rsid14384398}
+{\*\generator Microsoft Word 10.0.2605;}{\info{\title WebTool Help}{\author Julian Lishev}{\operator July}{\creatim\yr2001\mo10\dy28\hr16\min13}{\revtim\yr2001\mo10\dy30\hr23\min42}{\version4}{\edmins0}{\nofpages13}{\nofwords3054}{\nofchars17413}
+{\*\company JTL Soft}{\nofcharsws20427}{\vern16437}}\widowctrl\ftnbj\aenddoc\noxlattoyen\expshrtn\noultrlspc\dntblnsbdb\nospaceforul\hyphcaps0\horzdoc\dghspace120\dgvspace120\dghorigin1701\dgvorigin1984\dghshow0\dgvshow3
 \jcompress\viewkind4\viewscale100\nolnhtadjtbl\rsidroot869417 \fet0\sectd \linex0\sectdefaultcl\sftnbj {\*\pnseclvl1\pnucrm\pnstart1\pnindent720\pnhang {\pntxta .}}{\*\pnseclvl2\pnucltr\pnstart1\pnindent720\pnhang {\pntxta .}}{\*\pnseclvl3
 \pndec\pnstart1\pnindent720\pnhang {\pntxta .}}{\*\pnseclvl4\pnlcltr\pnstart1\pnindent720\pnhang {\pntxta )}}{\*\pnseclvl5\pndec\pnstart1\pnindent720\pnhang {\pntxtb (}{\pntxta )}}{\*\pnseclvl6\pnlcltr\pnstart1\pnindent720\pnhang {\pntxtb (}{\pntxta )}}
 {\*\pnseclvl7\pnlcrm\pnstart1\pnindent720\pnhang {\pntxtb (}{\pntxta )}}{\*\pnseclvl8\pnlcltr\pnstart1\pnindent720\pnhang {\pntxtb (}{\pntxta )}}{\*\pnseclvl9\pnlcrm\pnstart1\pnindent720\pnhang {\pntxtb (}{\pntxta )}}\pard\plain 
@@ -135,8 +135,8 @@ $query,$DBHandler}{\b\f37\fs20\cf17\insrsid10638950 );
 \par        Return }{\b\f37\fs20\cf17\insrsid10638950 $DBHandler}{\b\f37\fs20\cf19\insrsid10638950  as result.
 \par }{\b\f37\cf17\insrsid10638950 sql_connect 
 \par }{\b\f37\fs20\cf19\insrsid10638950        Connect SQL server. Same as previous but it's take up to 6 parameters.
-\par        }{\b\f37\fs20\cf17\insrsid10638950 $DBHandler}{\b\f37\fs20\cf19\insrsid10638950  }{\b\f37\fs20\cf17\insrsid10638950 = }{\b\f37\fs20\cf6\insrsid10638950 sql_quote}{\b\f37\fs20\cf17\insrsid10638950  }{\b\f37\fs20\cf9\insrsid10638950 (}{
-\b\f37\fs20\cf11\insrsid10638950 $host,$database,$user,$pass,[$port],[$full_path]}{\b\f37\fs20\cf9\insrsid10638950 );}{\b\f37\fs20\cf19\insrsid10638950 
+\par        }{\b\f37\fs20\cf17\insrsid10638950 $DBHandler}{\b\f37\fs20\cf19\insrsid10638950  }{\b\f37\fs20\cf17\insrsid10638950 = }{\b\f37\fs20\cf6\insrsid10638950 sql_}{\b\f37\fs20\cf6\insrsid9896958 connect}{\b\f37\fs20\cf17\insrsid10638950  }{
+\b\f37\fs20\cf9\insrsid10638950 (}{\b\f37\fs20\cf11\insrsid10638950 $host,$database,$user,$pass,[$port],[$full_path]}{\b\f37\fs20\cf9\insrsid10638950 );}{\b\f37\fs20\cf19\insrsid10638950 
 \par        }{\b\f37\fs20\cf11\insrsid10638950 $host }{\b\f37\fs20\cf19\insrsid10638950 is needfull only for }{\b\f37\fs20\cf9\insrsid10638950 MySQL DB}{\b\f37\fs20\cf19\insrsid10638950 ; }{\b\f37\fs20\cf11\insrsid10638950 $database }{
 \b\f37\fs20\cf19\insrsid10638950 is }{\b\f37\fs20\cf9\insrsid10638950 DNS}{\b\f37\fs20\cf19\insrsid10638950  for }{\b\f37\fs20\cf9\insrsid10638950 Access DB}{\b\f37\fs20\cf19\insrsid10638950 , normal
 \par        DB name for }{\b\f37\fs20\cf9\insrsid10638950 MySQL}{\b\f37\fs20\cf19\insrsid10638950  and file name (without path and without ext eg.: 'july');

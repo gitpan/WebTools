@@ -13,6 +13,7 @@
 #####################################################################
 require "./libs/xreader.pl";
 
+# $bool = CheckLength($int_var, $min_val, $max_val);
 sub CheckLength
 {
  my ($var,$min,$max) = @_;
@@ -27,6 +28,7 @@ sub CheckLength
  return(0);
 }
 
+# $trimed_str = Trim($str);
 sub Trim
 {
  my $str = shift(@_);
@@ -115,7 +117,7 @@ sub CheckData
     return(0);
    }
 }
-#######################################################################
+################################
 # Make scalar from scalars
 ################################
 sub MakeScalar
@@ -387,5 +389,24 @@ sub decode_separator
     $enstr =~ s/$col_hex/$col_sep/gsi;
     return($enstr);
   }
+
+# $GET_method_type_string = make_Form((key1=>'val1',key2=>'val2',...));
+sub make_Form
+{
+ my %arr = @_;
+ $msg = "";
+ @all_keys = keys(%arr);
+ for($i=0; $i< $#all_keys; $i++)
+   {
+    $k = $all_keys[$i];
+    $v = $arr{$k};    
+    $v =~ s/([^a-zA-Z0-9_.-])/uc sprintf("%%%02x",ord($1))/seg;
+    $v =~ s/\%20/\+/sg;  
+    $m = $k."=".MIME_encoding_data($v);
+    if(($i+1) != $#all_keys) {$m .= '&'};
+    $msg .= $m;
+   }
+ return($msg);
+}
 
 1;

@@ -45,6 +45,7 @@ sub ForkScript
  ############################################
  # Do anything that will take very long time!
  ############################################
+ # Don't forget to call: set_script_timeout($wished_timelife_in_seconds);
  return(1);
 }
 

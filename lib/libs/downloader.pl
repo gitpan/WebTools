@@ -34,7 +34,7 @@ sub download_file
     return(1);                    # Done!
    }
  else { return (0); }             # Transfer interrupted...or Apache kill process!
- # If Apache kill process, Mole get exit NOW! :-))))
+ # If Apache start killing..., Mole get exit NOW! :-))))
 }
 ###########################################
 sub downloader_onApacheKill
@@ -56,7 +56,10 @@ sub downloader_SendFile
   }
  else { $name = $filename; }
 
- local $SIG{'TERM'} = 'downloader_onApacheKill';   # Don`t allow Apache to kill process!
+ local $SIG{'TERM'} = '\&downloader_onApacheKill';   # Don`t allow Apache to kill process!
+ local $SIG{'QUIT'} = '\&downloader_onApacheKill';
+ local $SIG{'PIPE'} = '\&downloader_onApacheKill';
+ 
  $kill_flag = 0;
  $| = 1;
  open(FH,$filename) or return(0);
@@ -100,3 +103,7 @@ sub downloader_setSpeed
   return(int($speed*$period));
 }
 1;
+############################################
+# TODO: To show what part of code were
+# downloaded before connection break down.
+############################################

@@ -1,27 +1,32 @@
-############################################
+######################################################
 # Flat Session Support for WebTools
 # Powerd by www.proscriptum.com
 #
-# This is a part of WebTools module so
-# WebTools privacy/copyright are applied
-# and for this file!
-############################################
+######################################################
 
-@requestedFiles  = ();
-$countOfReqFiles = 0;
-$ptrInBuffer = 0;
-$allFiles = 0;
-$boundary = '';
-$file_prefix = '';
+# Copyright (c) 2001, Julian Lishev, Sofia 2001
+# All rights reserved.
+# This code is free software; you can redistribute
+# it and/or modify it under the same terms 
+# as Perl itself.
+
+######################################################
+
+@sess_flat_requestedFiles  = ();
+$sess_flat_countOfReqFiles = 0;
+$sess_flat_ptrInBuffer = 0;
+$sess_flat_allFiles = 0;
+$sess_flat_boundary = '';
+$sess_flat_file_prefix = '';
 
 sub reset_SF_cache
 {
- @requestedFiles  = ();      # Buffer for requested files!
- $countOfReqFiles = 500;     # Maximum files into buffer.
- $ptrInBuffer = 0;           # Current pointer into buffer.
- $allFiles = 0;              # Global processed files up to now.
- $boundary = '|';
- $file_prefix = 'webtools_sess_';
+ @sess_flat_requestedFiles  = ();      # Buffer for requested files!
+ $sess_flat_countOfReqFiles = 500;     # Maximum files into buffer.
+ $sess_flat_ptrInBuffer = 0;           # Current pointer into buffer.
+ $sess_flat_allFiles = 0;              # Global processed files up to now.
+ $sess_flat_boundary = '|';
+ $sess_flat_file_prefix = 'webtools_sess_';
 }
 
 # Init variables
@@ -30,80 +35,81 @@ reset_SF_cache();
 sub read_SF_NextFiles
 {
  *OD_FILE = shift(@_);
- my $path = shift(@_);
- my $cntFiles = shift(@_) || $countOfReqFiles;
- my $i;
- $ptrInBuffer = 0;
- @requestedFiles = ();
- if(!($path =~ m/\/$/s)) {$path .= '/';}
- for ($i=0; $i<$cntFiles;$i++)
+ my $sess_flat_path = shift(@_);
+ my $sess_flat_cntFiles = shift(@_) || $sess_flat_countOfReqFiles;
+ my $sess_flat_i;
+ $sess_flat_ptrInBuffer = 0;
+ @sess_flat_requestedFiles = ();
+ if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
+ for ($sess_flat_i=0; $sess_flat_i<$sess_flat_cntFiles;$sess_flat_i++)
   {
-   my $fn = readdir(OD_FILE);
-   if($fn ne undef)
+   my $sess_flat_fn = readdir(OD_FILE);
+   if($sess_flat_fn ne undef)
     {
-     if((!($fn =~ /^\.$/s)) and (!($fn =~ /^\.\.$/s)))
+     if((!($sess_flat_fn =~ /^\.$/s)) and (!($sess_flat_fn =~ /^\.\.$/s)))
       {
-       my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)= stat($path.$fn);
-       $fn .= $boundary.$mtime;            # File name + modified time (Eg: passwd|990466880)
-       push(@requestedFiles, $fn);
+       my ($sess_flat_dev,$sess_flat_ino,$sess_flat_mode,$sess_flat_nlink,$sess_flat_uid,$sess_flat_gid,$sess_flat_rdev,
+           $sess_flat_size,$sess_flat_atime,$sess_flat_mtime,$sess_flat_ctime,$sess_flat_blksize,$sess_flat_blocks)= stat($sess_flat_path.$sess_flat_fn);
+       $sess_flat_fn .= $sess_flat_boundary.$sess_flat_mtime;            # File name + modified time (Eg: passwd|990466880)
+       push(@sess_flat_requestedFiles, $sess_flat_fn);
       }
     else
      {
-      $i--;
+      $sess_flat_i--;
      }
     }
    else
     {
-     push(@requestedFiles, $fn);
+     push(@sess_flat_requestedFiles, $sess_flat_fn);
      last;
     }
   }
- return(@requestedFiles);
+ return(@sess_flat_requestedFiles);
 }
 
 sub reset_SF_cache
 {
- @requestedFiles  = ();      # Buffer for requested files!
- $countOfReqFiles = 500;     # Maximum files into buffer.
- $ptrInBuffer = 0;           # Current pointer into buffer.
- $allFiles = 0;              # Global processed files up to now.
- $boundary = '|';
- $file_prefix = 'webtools_sess_';
+ @sess_flat_requestedFiles  = ();      # Buffer for requested files!
+ $sess_flat_countOfReqFiles = 500;     # Maximum files into buffer.
+ $sess_flat_ptrInBuffer = 0;           # Current pointer into buffer.
+ $sess_flat_allFiles = 0;              # Global processed files up to now.
+ $sess_flat_boundary = '|';
+ $sess_flat_file_prefix = 'webtools_sess_';
 }
 
 sub get_SF_NextFile
 {
  *OD_FILE = shift(@_);
- my $path = shift(@_);
- my $cntFiles = shift(@_) || $countOfReqFiles;
- if(($cntFiles == $ptrInBuffer) || ($allFiles == 0))
+ my $sess_flat_path = shift(@_);
+ my $sess_flat_cntFiles = shift(@_) || $sess_flat_countOfReqFiles;
+ if(($sess_flat_cntFiles == $sess_flat_ptrInBuffer) || ($sess_flat_allFiles == 0))
    {
-    @requestedFiles = read_SF_NextFiles(OD_FILE,$path,$cntFiles);
+    @sess_flat_requestedFiles = read_SF_NextFiles(OD_FILE,$sess_flat_path,$sess_flat_cntFiles);
    }
- my $fln = $requestedFiles[$ptrInBuffer++];
- $allFiles++;
- return($fln);
+ my $sess_flat_fln = $sess_flat_requestedFiles[$sess_flat_ptrInBuffer++];
+ $sess_flat_allFiles++;
+ return($sess_flat_fln);
 }
 
 sub remove_SF_OldSessions
 {
- my $path = shift(@_);
- my ($sessTime) = shift(@_) || time();
+ my $sess_flat_path = shift(@_);
+ my ($sess_flat_sessTime) = shift(@_) || time();
  reset_SF_cache();
- if(!($path =~ m/\/$/s)) {$path .= '/';}
- opendir(ODFILE,$path);
- my $l='';
- my $tmpl = quotemeta($boundary);
+ if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
+ opendir(ODFILE,$sess_flat_path);
+ my $sess_flat_l='';
+ my $sess_flat_tmpl = quotemeta($sess_flat_boundary);
  
- while($l = get_SF_NextFile(ODFILE,$path))
+ while($sess_flat_l = get_SF_NextFile(ODFILE,$sess_flat_path))
   {
-   my ($fn,$modtime) = split(/$tmpl/,$l);
-   if($fn =~ m/^$file_prefix/)
+   my ($sess_flat_fn,$sess_flat_modtime) = split(/$sess_flat_tmpl/,$sess_flat_l);
+   if($sess_flat_fn =~ m/^$sess_flat_file_prefix/)
      {
-      $modtime = int($modtime);
-      if($modtime < $sessTime)
+      $sess_flat_modtime = int($sess_flat_modtime);
+      if($sess_flat_modtime < $sess_flat_sessTime)
         {
-         unlink($path.$fn);
+         unlink($sess_flat_path.$sess_flat_fn);
         }
      }
   }
@@ -112,85 +118,85 @@ sub remove_SF_OldSessions
 
 sub read_SF_File
 {
- my $path = shift(@_);
- my ($ses) = shift(@_);
+ my $sess_flat_path = shift(@_);
+ my ($sess_flat_ses) = shift(@_);
  
- if($ses eq '') {return(undef);}
+ if($sess_flat_ses eq '') {return(undef);}
  
- if(!($path =~ m/\/$/s)) {$path .= '/';}
+ if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
  
- my $findSid = $file_prefix.$ses;
+ my $sess_flat_findSid = $sess_flat_file_prefix.$sess_flat_ses;
 
- my $data = read_SF_lowlevel($path.$findSid);
- return($data);
+ my $sess_flat_data = read_SF_lowlevel($sess_flat_path.$sess_flat_findSid);
+ return($sess_flat_data);
 }
 
 sub find_SF_File
 {
- my $path = shift(@_);
- my ($ses) = shift(@_);
+ my $sess_flat_path = shift(@_);
+ my ($sess_flat_ses) = shift(@_);
  
- if($ses eq '') {return(undef);}
+ if($sess_flat_ses eq '') {return(undef);}
  
- if(!($path =~ m/\/$/s)) {$path .= '/';}
+ if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
  
- my $findFile = $path.$file_prefix.$ses;
+ my $sess_flat_findFile = $sess_flat_path.$sess_flat_file_prefix.$sess_flat_ses;
 
- if(-e $findFile)
+ if(-e $sess_flat_findFile)
   {
-   return($ses);
+   return($sess_flat_ses);
   }
  return('');
 }
 
 sub write_SF_File
 {
- my $path = shift(@_);
- my ($ses) = shift(@_);
- my ($data) = shift(@_);
- if($ses eq '') {return(undef);}
+ my $sess_flat_path = shift(@_);
+ my ($sess_flat_ses) = shift(@_);
+ my ($sess_flat_data) = shift(@_);
+ if($sess_flat_ses eq '') {return(undef);}
  
- if(!($path =~ m/\/$/s)) {$path .= '/';}
+ if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
  
- my $findSid = $file_prefix.$ses;
- my $findFile = $path.$findSid;
- return(write_SF_lowlevel($findFile,$data));
+ my $sess_flat_findSid = $sess_flat_file_prefix.$sess_flat_ses;
+ my $sess_flat_findFile = $sess_flat_path.$sess_flat_findSid;
+ return(write_SF_lowlevel($sess_flat_findFile,$sess_flat_data));
 }
 
 sub create_SF_File
 {
- my $path = shift(@_);
- my ($ses) = shift(@_);
+ my $sess_flat_path = shift(@_);
+ my ($sess_flat_ses) = shift(@_);
  
- if($ses eq '') {return(undef);}
+ if($sess_flat_ses eq '') {return(undef);}
  
- if(!($path =~ m/\/$/s)) {$path .= '/';}
+ if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
  
- my $findSid = $file_prefix.$ses;
- my $findFile = $path.$findSid;
- if(-e $findFile)
+ my $sess_flat_findSid = $sess_flat_file_prefix.$sess_flat_ses;
+ my $sess_flat_findFile = $sess_flat_path.$sess_flat_findSid;
+ if(-e $sess_flat_findFile)
   {
-   unlink($findFile);
+   unlink($sess_flat_findFile);
   }
- open(CSFLL,">".$findFile) or return(undef);
+ open(CSFLL,">".$sess_flat_findFile) or return(undef);
  close(CSFLL);
  return(1);
 }
 
 sub destroy_SF_File
 {
- my $path = shift(@_);
- my ($ses) = shift(@_);
+ my $sess_flat_path = shift(@_);
+ my ($sess_flat_ses) = shift(@_);
  
- if($ses eq '') {return(undef);}
+ if($sess_flat_ses eq '') {return(undef);}
  
- if(!($path =~ m/\/$/s)) {$path .= '/';}
+ if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
  
- my $findSid = $file_prefix.$ses;
- my $findFile = $path.$findSid;
- if(-e $findFile)
+ my $sess_flat_findSid = $sess_flat_file_prefix.$sess_flat_ses;
+ my $sess_flat_findFile = $sess_flat_path.$sess_flat_findSid;
+ if(-e $sess_flat_findFile)
   {
-   unlink($findFile);
+   unlink($sess_flat_findFile);
    return(1);
   }
  return(0);
@@ -198,80 +204,84 @@ sub destroy_SF_File
 
 sub update_SF_File
 {
- my $path = shift(@_);
- my ($ses) = shift(@_);
+ my $sess_flat_path = shift(@_);
+ my ($sess_flat_ses) = shift(@_);
  
- if($ses eq '') {return(undef);}
+ if($sess_flat_ses eq '') {return(undef);}
  
- if(!($path =~ m/\/$/s)) {$path .= '/';}
+ if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
  
- my $findSid = $file_prefix.$ses;
- my $findFile = $path.$findSid;
- my $dat = read_SF_File($findFile,$ses);
- if(-e $findFile)
+ my $sess_flat_findSid = $sess_flat_file_prefix.$sess_flat_ses;
+ my $sess_flat_findFile = $sess_flat_path.$sess_flat_findSid;
+ my $sess_flat_dat = read_SF_File($sess_flat_findFile,$sess_flat_ses);
+ if(-e $sess_flat_findFile)
   {
-   destroy_SF_File($findFile,$ses);
+   destroy_SF_File($sess_flat_findFile,$sess_flat_ses);
   }
- write_SF_File($findFile,$ses,$dat);
+ write_SF_File($sess_flat_findFile,$sess_flat_ses,$sess_flat_dat);
 
  return(1);
 }
 
 sub read_SF_lowlevel
 {
- my ($findSid) = shift(@_);
- open(RSFLL,$findSid) or return(undef);
+ my ($sess_flat_findSid) = shift(@_);
+ open(RSFLL,$sess_flat_findSid) or return(undef);
  binmode(RSFLL);
- if(read(RSFLL,$dat,65535) eq undef)
+ if(read(RSFLL,$sess_flat_dat,65535) eq undef)
    {
-    $dat = undef;
+    $sess_flat_dat = undef;
    }
  close(RSFLL);
- return($dat);
+ return($sess_flat_dat);
 }
 
 sub write_SF_lowlevel
 {
- my ($nFile,$data) = @_;
- my $dat = 1;
- my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)= ();
- my $fl = 0;
- if(-e $nFile)
+ my ($sess_flat_nFile,$sess_flat_data) = @_;
+ my $sess_flat_dat = 1;
+ my ($sess_flat_dev,$sess_flat_ino,$sess_flat_mode,$sess_flat_nlink,$sess_flat_uid,$sess_flat_gid,$sess_flat_rdev,
+     $sess_flat_size,$sess_flat_atime,$sess_flat_mtime,$sess_flat_ctime,$sess_flat_blksize,$sess_flat_blocks)= ();
+ my $sess_flat_fl = 0;
+ if(-e $sess_flat_nFile)
   {
-   ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)= stat($nFile);
-   $fl = 1;
+   ($sess_flat_dev,$sess_flat_ino,$sess_flat_mode,$sess_flat_nlink,$sess_flat_uid,$sess_flat_gid,$sess_flat_rdev,
+    $sess_flat_size,$sess_flat_atime,$sess_flat_mtime,$sess_flat_ctime,$sess_flat_blksize,$sess_flat_blocks)= stat($sess_flat_nFile);
+   $sess_flat_fl = 1;
   }
- open(WSFLL,">".$nFile) or return(undef);
+ open(WSFLL,">".$sess_flat_nFile) or return(undef);
  binmode(WSFLL);
- if(!(print WSFLL $data))
+ if(!(print WSFLL $sess_flat_data))
    {
-    $dat = undef;
+    $sess_flat_dat = undef;
    }
  close(WSFLL);
- if($fl) {utime ($atime,$mtime,$nFile);}
- return($dat);
+ if($sess_flat_fl) {utime ($sess_flat_atime,$sess_flat_mtime,$sess_flat_nFile);}
+ return($sess_flat_dat);
 }
 
 sub osetflag_SF_File
 {
- my $path = shift(@_);
- my ($ses) = shift(@_);
+ my $sess_flat_path = shift(@_);
+ my ($sess_flat_ses) = shift(@_);
 
- my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)= ();
+ my ($sess_flat_dev,$sess_flat_ino,$sess_flat_mode,$sess_flat_nlink,$sess_flat_uid,$sess_flat_gid,$sess_flat_rdev,
+     $sess_flat_size,$sess_flat_atime,$sess_flat_mtime,$sess_flat_ctime,$sess_flat_blksize,$sess_flat_blocks)= ();
 
- if($ses eq '') {return(undef);}
+ if($sess_flat_ses eq '') {return(undef);}
 
- if(!($path =~ m/\/$/s)) {$path .= '/';}
+ if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
  
- my $findSid = $file_prefix.$ses;
- my $findFile = $path.$findSid;
- if(-e $findFile)
+ my $sess_flat_findSid = $sess_flat_file_prefix.$sess_flat_ses;
+ my $sess_flat_findFile = $sess_flat_path.$sess_flat_findSid;
+ if(-e $sess_flat_findFile)
   {
-   ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)= stat($findFile);
-   my $f = 350100000;   # 4 February 1981
-   if($atime > 360100000)
+   ($sess_flat_dev,$sess_flat_ino,$sess_flat_mode,$sess_flat_nlink,$sess_flat_uid,$sess_flat_gid,$sess_flat_rdev,
+    $sess_flat_size,$sess_flat_atime,$sess_flat_mtime,$sess_flat_ctime,$sess_flat_blksize,$sess_flat_blocks)= stat($sess_flat_findFile);
+   my $sess_flat_f = 350100000;   # 4 February 1981
+   if($sess_flat_atime > 360100000)
     {
-     utime ($f,$mtime,$findFile);
+     utime ($sess_flat_f,$sess_flat_mtime,$sess_flat_findFile);
      return(1);
     }
    else
@@ -283,24 +293,26 @@ sub osetflag_SF_File
 
 sub csetflag_SF_File
 {
- my $path = shift(@_);
- my ($ses) = shift(@_);
+ my $sess_flat_path = shift(@_);
+ my ($sess_flat_ses) = shift(@_);
 
- my ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)= ();
+ my ($sess_flat_dev,$sess_flat_ino,$sess_flat_mode,$sess_flat_nlink,$sess_flat_uid,$sess_flat_gid,$sess_flat_rdev,
+     $sess_flat_size,$sess_flat_atime,$sess_flat_mtime,$sess_flat_ctime,$sess_flat_blksize,$sess_flat_blocks)= ();
 
- if($ses eq '') {return(undef);}
+ if($sess_flat_ses eq '') {return(undef);}
 
- if(!($path =~ m/\/$/s)) {$path .= '/';}
+ if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
  
- my $findSid = $file_prefix.$ses;
- my $findFile = $path.$findSid;
- if(-e $findFile)
+ my $sess_flat_findSid = $sess_flat_file_prefix.$sess_flat_ses;
+ my $sess_flat_findFile = $sess_flat_path.$sess_flat_findSid;
+ if(-e $sess_flat_findFile)
   {
-   ($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,$atime,$mtime,$ctime,$blksize,$blocks)= stat($findFile);
-   my $f = time();   # 4 February 1981
-   if($atime < 360100000)
+   ($sess_flat_dev,$sess_flat_ino,$sess_flat_mode,$sess_flat_nlink,$sess_flat_uid,$sess_flat_gid,$sess_flat_rdev,
+    $sess_flat_size,$sess_flat_atime,$sess_flat_mtime,$sess_flat_ctime,$sess_flat_blksize,$sess_flat_blocks)= stat($sess_flat_findFile);
+   my $sess_flat_f = time();   # 4 February 1981
+   if($sess_flat_atime < 360100000)
     {
-     utime ($f,$mtime,$findFile);
+     utime ($sess_flat_f,$sess_flat_mtime,$sess_flat_findFile);
      return(1);
     }
    else

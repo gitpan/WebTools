@@ -61,8 +61,8 @@
 <p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">First of all 
   you must have webtools package. It must be packed into one tar.gz file.<br>
   Please copy this .gz file into some directory and run follow commands:</font></b></p>
-<p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">tar -zxvf webtools-1.004.tar.gz<br>
-  cd webtools-1.004</font></b></p>
+<p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">tar -zxvf webtools-1.005.tar.gz<br>
+  cd webtools-1.005</font></b></p>
 <p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">perl Makefile.PL</font></b></p>
 <p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">make<br>
   make install<br>
@@ -151,7 +151,7 @@
   (we use virtual host: july.newald.proscriptum.com)<br>
   His full cgi-bin directory is: <font color="#000099">/home/july/public_html/cgi-bin</font><br>
   So &nbsp;his webtools directory can be: <font color="#000099">/home/july/public_html/cgi-bin/webtools<br>
-  <font color="#000000">Now we can upload webtools-1.004.tar.gz to our home directory 
+  <font color="#000000">Now we can upload webtools-1.005.tar.gz to our home directory 
   and after that to install script.<br>
   After installation our process.cgi has permission mode set to 0755, directories 
   have permission modes: 0755 and any other files: 0444<br>
@@ -290,8 +290,8 @@
   # Step by Step Installation example:<br>
   #-----------------------------------------------------------------------------------------</font></b></p>
 <p><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#000099">tar 
-  -zxvf webtools-1.004.tar.gz<br>
-  cd webtools-1.004<br>
+  -zxvf webtools-1.005.tar.gz<br>
+  cd webtools-1.005<br>
   perl Makefile.pl</font><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#000000"><br>
   <font color="#006600">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt; /usr/local/apache/cgi-bin/webtools/</font><br>
   <font color="#000099">make<br>
@@ -299,7 +299,7 @@
   make permissions<br>
   make clean<br>
   cd ..<br>
-  rm -rf webtools-1.004<br>
+  rm -rf webtools-1.005<br>
   cd /usr/local/apache/cgi-bin/webtools<br>
   ls -l -a<br>
   perl -c process.cgi &nbsp;&nbsp;&nbsp;&nbsp;# Must be &quot;ok&quot;<br>

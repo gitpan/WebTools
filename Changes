@@ -1,0 +1,16 @@
+Revision history for Perl sub system "WebTools"
+-----------------------------------------------
+
+1.001   9 May 2001
+1.002  27 Oct 2001
+1.003  28 Oct 2001
+
+1.004  29 Oct 2001
+        - Fisrt official release.
+         
+1.005  31 Oct 2001
+	  Last stable (release) version of WebTools and first
+          strongly recommended version.
+	- Library Php.pl were developed with base Php functions.
+	- Flat DB were updated basing on DBD::Sprite 0.26
+	- Were fixed problem with handling of some %SIG-nals in "downloader.pl"
