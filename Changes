@@ -111,3 +111,11 @@ Revision history for Perl sub system "WebTools"
 1.26   23 Jun 2002
         - Speed optimization of WebTools module.
         - Eval WebTools scripts on runtime.
+
+1.27   24 Aug 2002
+        - 'as html' feature added in globexport and webtools
+        - 'safe' quote-printable in mail.pl and bug with base64 removed
+        - flat session permissions is now secured.
+        - deepwalk library introduced.
+        - base ShopCard module (mysql side support) introduced
+        - base Categories module (mysql side support) introduced

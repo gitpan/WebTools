@@ -1,20 +1,14 @@
-##################################################################
-# That script was modified by Julian Lishev. All rights reserved!
-##################################################################
-# Perl Routines to Manipulate CGI input
-# cgi-lib@pobox.com
-# $Id: cgi-lib.pl,v 2.18 1999/02/23 08:16:43 brenner Exp $
-#
-# Copyright (c) 1993-1999 Steven E. Brenner  
-# Unpublished work.
-# Permission granted to use and modify this library so long as the
-# copyright above is maintained, modifications are documented, and
-# credit is given for any use of the library.
-#
-# Thanks are due to many people for reporting bugs and suggestions
+my @cgi_lib_errors = ();
 
-# For more information, see:
-#     http://cgi-lib.stanford.edu/cgi-lib/
+# 1  - Error: Request to receive too much data: $len bytes\n
+# 2  - Error: Unknown request method: $meth\n
+# 3  - Error: Boundary not provided(probably a bug in your server)
+# 4  - Error: Invalid request method for  multipart/form-data($meth)\n
+# 5  - Error: reached end of input while seeking boundary of multipart. Format of CGI input is wrong.\n
+# 6  - Error: reached end of input while seeking end of headers. Format of CGI input is wrong.\n$buf
+# 7  - Error: Could not open $fn<BR>Hint: Check your TMP directory!
+# -1 - Unknown problem with input/output stream
+# 8  - Error: Unknown Content-type (or you prohibit multipart forms)!\n
 
 $cgi_lib_version = sprintf("%d.%02d", q$Revision: 2.18 $ =~ /(\d+)\.(\d+)/);
 
@@ -22,7 +16,7 @@ $cgi_lib_version = sprintf("%d.%02d", q$Revision: 2.18 $ =~ /(\d+)\.(\d+)/);
 # User-configurable parameters affecting file upload.
 $cgi_lib_writefiles =      0;    # directory to which to write files, or
                                  # 0 if files should not be written
-$cgi_lib_filepre    = "cgi-lib"; # Prefix of file names, in directory above
+$cgi_lib_filepre    = "webtools_cgi_lib"; # Prefix of file names, in directory above
 
 # Do not change the following parameters unless you have special reasons
 $cgi_lib_bufsize  =  8192;    # default buffer size when reading multipart
@@ -58,6 +52,7 @@ sub ReadParse {
   $perlwarn = $^W;
   $^W = 0;
   $cgi_lib_writefiles = $webtools::tmp;
+  local * FILE;
   $cgi_lib_writefiles =~ s/\/$//si;
   my $cgi_lib_maxd    = $webtools::cgi_lib_maxdata; # maximum bytes to accept via POST
   local (*in) = shift if @_;    # CGI input
@@ -76,33 +71,51 @@ sub ReadParse {
   $type = $ENV{'CONTENT_TYPE'};
   $len  = $ENV{'CONTENT_LENGTH'};
   $meth = $ENV{'REQUEST_METHOD'};
-  
-  if ($len > $cgi_lib_maxd) { #'
-      &CgiDie("Error: Request to receive too much data: $len bytes\n");
-  }
+  if(length($ENV{'QUERY_STRING'}) > $cgi_lib_maxd)
+   {
+    $cgi_lib_errors[0] = 1;
+    return (@cgi_lib_errors);
+    #&CgiDie("Error: Request to receive too much data: $len bytes\n");
+   }
   my $in_get = '';
+  # -----------------------------------------------------------------------
+  # Check for valid request method
+  # -----------------------------------------------------------------------
   if (!defined $meth || $meth eq '' || $meth eq 'GET' || $meth eq 'HEAD' ||
       $type eq 'application/x-www-form-urlencoded') 
    {
     local ($key, $val, $i);
     # Read in text
+    
     if (!defined $meth || $meth eq '') 
      {
       $in = $ENV{'QUERY_STRING'};
       $cmdflag = 1;  # also use command-line options
-     } elsif($meth eq 'GET' || $meth eq 'HEAD') 
+     }
+    elsif($meth eq 'GET' || $meth eq 'HEAD') 
       {
-      $in = $ENV{'QUERY_STRING'};
-      } elsif ($meth eq 'POST') 
+       $in = $ENV{'QUERY_STRING'};
+      }
+    elsif ($meth eq 'POST') 
+      {
+      if($len <= $cgi_lib_maxd)
        {
-       	$in_get = $ENV{'QUERY_STRING'};
         if (($got = read(STDIN, $in, $len) != $len))
-	  {$errflag="Short Read: wanted $len, got $got\n";};
-       } else {
-          &CgiDie("Error: Unknown request method: $meth\n");
-         }      
+	 {
+          $errflag="Short Read: wanted $len, got $got\n";
+         }
+       }
+       else {$in = '';}
+       $in_get = $ENV{'QUERY_STRING'};
+      } 
+     else
+      {
+       $cgi_lib_errors[0] = 2;
+       return (@cgi_lib_errors);
+       #&CgiDie("Error: Unknown request method: $meth\n");
+      }      
      
-     if(($in ne '') and ($in_get ne '')){$in = $in.'&'.$in_get;}
+     if(($in ne '') and ($in_get ne '')) {$in = $in.'&'.$in_get;}
      elsif ($in_get ne '') {$in = $in_get;}
     
      @in = split(/[&;]/,$in); 
@@ -150,8 +163,13 @@ sub ReadParse {
       $in_ar[$n] = $key."\<\t\>".$val;
       $n++;
       }
-    
-    
+   if($len > $cgi_lib_maxd)
+       {
+        $cgi_lib_errors[0] = -2;
+        $^W = $perlwarn;
+        return (@cgi_lib_errors);
+        #&CgiDie("Error: Request to receive too much data: $len bytes\n");
+       }
 $errflag = !(eval <<'END_MULTIPART');
 
     local ($buf, $boundary, $head, @heads, $cd, $ct, $fname, $ctype, $blen);
@@ -165,19 +183,25 @@ $errflag = !(eval <<'END_MULTIPART');
 
     ($boundary) = $type =~ /boundary="([^"]+)"/; #";   # find boundary
     ($boundary) = $type =~ /boundary=(\S+)/ unless $boundary;
-    &CgiDie ("Error: Boundary not provided(probably a bug in your server)")
-      unless $boundary;
+    do
+     {
+      $cgi_lib_errors[0] = 3;
+      return (@cgi_lib_errors);
+      #&CgiDie ("Error: Boundary not provided(probably a bug in your server)")
+     } unless $boundary;
     $boundary =  "--" . $boundary;
     $blen = length ($boundary);
 
     if ($ENV{'REQUEST_METHOD'} ne 'POST') {
-      &CgiDie("Error: Invalid request method for  multipart/form-data($meth)\n");
+      $cgi_lib_errors[0] = 4;
+      return (@cgi_lib_errors);
+      #&CgiDie("Error: Invalid request method for  multipart/form-data($meth)\n");
     }
 
     if ($writefiles) {
       local($me);
       stat ($writefiles);
-      $writefiles = "/tmp" unless  -d _ && -w _;
+      $writefiles = "/tmp" unless  -d $writefiles && -w $writefiles;
       # ($me) = $0 =~ m#([^/]*)$#;
       $writefiles .= "/$cgi_lib_filepre"; 
     }
@@ -202,12 +226,12 @@ $errflag = !(eval <<'END_MULTIPART');
     $left = $len;
    PART: # find each part of the multi-part while reading data
     while (1) {
-      die $@ if $errflag;
+      die (-1) if $errflag;
 
       $amt = ($left > $bufsize+$maxbound-length($buf) 
 	      ?  $bufsize+$maxbound-length($buf): $left);
       $errflag = (($got = read(STDIN, $buf, $amt, length($buf))) != $amt);
-      die "Short Read: wanted $amt, got $got\n" if $errflag;
+      die (-1) if $errflag;
       $left -= $amt;
 
       $in{$name} .= "\0" if defined $in{$name}; 
@@ -225,10 +249,11 @@ $errflag = !(eval <<'END_MULTIPART');
 	  foreach $value (values %insfn) {
             unlink(split("\0",$value));
 	  }
-	  &CgiDie("Error: reached end of input while seeking boundary " .
-		  "of multipart. Format of CGI input is wrong.\n");
+	  $cgi_lib_errors[0] = 5; die (5);
+	  #&CgiDie("Error: reached end of input while seeking boundary " .
+	  #	  "of multipart. Format of CGI input is wrong.\n");
         }
-        die $@ if $errflag;
+        die (-1) if $errflag;
         if ($name) {  # if no $name, then it's the prologue -- discard
           if ($fn) { print FILE substr($buf, 0, $bufsize); }
           else     { $in{$name} .= substr($buf, 0, $bufsize); }
@@ -237,7 +262,7 @@ $errflag = !(eval <<'END_MULTIPART');
         $amt = ($left > $bufsize ? $bufsize : $left); #$maxbound==length($buf);
         $errflag = (($got = read(STDIN, $buf, $amt, length($buf))) != $amt);
         if($errflag) {eval 'close FILE;'; eval 'unlink $fn;';}
-	die "Short Read: wanted $amt, got $got\n" if $errflag;
+	die (-1) if $errflag;
         $left -= $amt;
       }
       if (defined $name) {  # if no $name, then it's the prologue -- discard
@@ -251,7 +276,7 @@ $errflag = !(eval <<'END_MULTIPART');
 	      ? $bufsize+$maxbound-length($buf) : $left);
       $errflag = (($got = read(STDIN, $buf, $amt, length($buf))) != $amt);
       if($errflag) {eval 'close FILE;'; eval 'unlink $fn;';}
-      die "Short Read: wanted $amt, got $got\n" if $errflag;
+      die (-1) if $errflag;
       $left -= $amt;
 
 
@@ -262,16 +287,17 @@ $errflag = !(eval <<'END_MULTIPART');
 	  foreach $value (values %insfn) {
             unlink(split("\0",$value));
 	  }
-	  &CgiDie("Error: reached end of input while seeking end of " .
-		  "headers. Format of CGI input is wrong.\n$buf");
+	  $cgi_lib_errors[0] = 6; die(6);
+	  #&CgiDie("Error: reached end of input while seeking end of " .
+	  #	  "headers. Format of CGI input is wrong.\n$buf");
         }
-        die $@ if $errflag;
+        die (-1) if $errflag;
         $head .= substr($buf, 0, $bufsize);
         $buf = substr($buf, $bufsize);
         $amt = ($left > $bufsize ? $bufsize : $left); #$maxbound==length($buf);
         $errflag = (($got = read(STDIN, $buf, $amt, length($buf))) != $amt);
         if($errflag) {eval 'close FILE;'; eval 'unlink $fn;';}
-        die "Short Read: wanted $amt, got $got\n" if $errflag;
+        die (-1) if $errflag;
         $left -= $amt;
       }
       $head .= substr($buf, 0, $lpos+2);
@@ -295,7 +321,9 @@ $errflag = !(eval <<'END_MULTIPART');
       if ($writefiles && defined $fname) {
         $ser++;
 	$fn = $writefiles . ".$$.$ser";
-	open (FILE, ">$fn") || &CgiDie("Error: Could not open $fn<BR>Hint: Check your TMP directory!\n");
+	open (FILE, ">$fn") || do {
+		$cgi_lib_errors[0] = 7; die (7);
+	       };
         binmode (FILE);  # write files accurately
       }
       substr($buf, 0, $lpos+4) = '';
@@ -307,16 +335,20 @@ $errflag = !(eval <<'END_MULTIPART');
 END_MULTIPART
     if ($errflag) {
       local ($errmsg, $value);
-      $errmsg = $@ || $errflag;
+      $errmsg = int($@) || '-1';
       foreach $value (values %insfn) {
         unlink(split("\0",$value));
       }
-      &CgiDie($errmsg);
+      $cgi_lib_errors[0] = $errmsg;
+      return (@cgi_lib_errors);
+      #&CgiDie($errmsg);
     } else {
       # everything's ok.
     }
   } else {
-    &CgiDie("Error: Unknown Content-type (or you prohibit multipart forms)!\n");
+    $cgi_lib_errors[0] = 8;
+    return (@cgi_lib_errors);
+    #&CgiDie("Error: Unknown Content-type (or you prohibit multipart forms)!\n");
   }
 
   # no-ops to avoid warnings
@@ -326,7 +358,7 @@ END_MULTIPART
 
   $^W = $perlwarn;
 
-  return ($errflag ? undef :  scalar(@in)); 
+  return ($errflag ? () :  @cgi_lib_errors); 
 }
 
 
@@ -440,19 +472,8 @@ sub CgiError {
   local (@msg) = @_;
   local ($i,$name);
 
-  if (!@msg) {
-    $name = &MyFullUrl;
-    
-    @msg = ("Error: script $name encountered fatal error\n");
-  };
-  print "Content-type: text/html\n\n";
-  print "<br><font color='red'><h3>";
-  foreach $i (0 .. $#msg) {
-    print STDOUT "<p>$msg[$i]</p>\n";
-  }
-  print STDOUT "</h3></font>";
-  
-  exit;
+  $cgi_lib_errors[0] = $msg[0];
+  return (@cgi_lib_errors);
 }
 
 

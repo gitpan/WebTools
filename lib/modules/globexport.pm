@@ -26,11 +26,11 @@ require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.26";
+    $VERSION = "1.27";
     @ISA = qw(Exporter);
     $sys_askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa '.
                          '%global_hashes @multipart_headers $parsedform $sys_globvars $contenttype $query '.
-                         '$sys_script_cached_source @sys_pre_defined_vars';
+                         '$sys_script_cached_source @sys_pre_defined_vars $exceed_post_limit';
     
  $query = '';
  $n = 0;
@@ -38,6 +38,8 @@ use vars qw($VERSION @ISA @EXPORT);
  $parsedform = 0;
  $globexport::sys_script_cached_source = '';
  @globexport::sys_pre_defined_vars = ();
+ $globexport::exceed_post_limit = 0;
+ my $file = '';
  #####################################################################
  # Load config.pl
  #####################################################################
@@ -122,29 +124,58 @@ use vars qw($VERSION @ISA @EXPORT);
  #####################################################################
  my %in = %out;
  my $sys_parsed = 0;
- my ($file) = $out{'file'};
- if($file eq '')
+ my $sys_pre_load_redirected_file = '';
+ $file = $out{'file'};
+
+ if($file eq '' && exists($ENV{'PATH_TRANSLATED'}))
    {
-    my $rurl = $ENV{PATH_INFO} || $ENV{REDIRECT_URL};
-    if ($rurl eq '')
-      {
-	$rurl = $ENV{REQUEST_URI};
-	$rurl =~ s/\?.*//;
-      }
-    if(($rurl ne '') and !($rurl =~ m/(\.cgi|\.pl)^/si))
+    my $rurl = $ENV{'PATH_TRANSLATED'};
+    if(($rurl ne '') && (-e $rurl))
      {
-      $rurl =~ s/\\/\//sg;
-      $rurl =~ m/\/([^\/]*)$/s;
-      $rurl =~ m/\/([^\/]*)$/s;
-      my $spth = $webtools::cgi_home_path;
-      if($webtools::perl_html_dir =~ m/^\.\/(.*)$/s)
+      local * REDIRECTEDFILE;
+      if(open(REDIRECTEDFILE, $rurl))
        {
-       	$spth .= $1;
+       	if(binmode (REDIRECTEDFILE))
+       	 {
+       	  my $cnt = read(REDIRECTEDFILE,$sys_pre_load_redirected_file,-s REDIRECTEDFILE);
+       	  if($cnt)
+       	   {
+       	    close (REDIRECTEDFILE);
+       	    $sys_pre_load_redirected_file =~ s/\r\n/\n/sg;
+       	    if(!($sys_pre_load_redirected_file =~ m/\n$/s)) {$sys_pre_load_redirected_file .= "\n";}
+       	    ###################################
+       	    # Parse Reditected File
+       	    ###################################
+       	    my $sys_value = '';
+       	    my $sys_key   = '';
+       	    
+       	    if($sys_pre_load_redirected_file =~ m/\$REDIRECT\_OPTIONS\ {0,}\{(\'|\")?file(\'|\")?\}\ {0,}\=\ {0,}(\'|\")?([^\'\"\;\n]{1,})(\'|\")?\;{0,}\n/si)
+       	     {
+       	      $sys_value = $4;
+       	      if($sys_value ne '') {$file = $sys_value;}
+       	     }
+     	    else
+       	     {
+       	      my $rurlZ = $rurl;
+       	      $rurlZ =~ s/\\/\//sg;
+       	      if($rurlZ =~ m/(.*)\/(.*)$/s)
+       	        {
+       	         $file = $2;
+       	        }
+       	     }
+       	    if($sys_pre_load_redirected_file =~ m/\$REDIRECT\_OPTIONS\ {0,}\{(\'|\")?home(\'|\")?\}\ {0,}\=\ {0,}(\'|\")?([^\'\"\;\n]{1,})(\'|\")?\;{0,}\n/si)
+       	     {
+       	      $sys_value = $4;
+       	      if($sys_value ne '') { chdir $sys_value; }
+       	     }
+       	   }
+       	  else {close (REDIRECTEDFILE);}
+       	 }
+       	else {close (REDIRECTEDFILE);}
        }
-      $rurl =~ m/$spth(.*)$/s;
-      $file = $1;
      }
    }
+   
  if($file ne '')
    {
     if(($webtools::perl_html_dir eq '') or ($webtools::perl_html_dir =~ m/^(\\|\/)$/si))
@@ -167,16 +198,20 @@ use vars qw($VERSION @ISA @EXPORT);
              my $exname;
              if($webtools::treat_htmls_ext[0] ne '')
               {
-               foreach $exname (@webtools::treat_htmls_ext)
+               if(!(-e $webtools::perl_html_dir.$p_file_name_N001))
                 {
-                 if(-e $webtools::perl_html_dir.$body.'.'.$exname)
+                 foreach $exname (@webtools::treat_htmls_ext)
                   {
-                   $p_file_name_N001 = $body.'.'.$exname;
-                  }
-                 else
-                  {
-               	   if($exname =~ m/^$ext$/i) {last;}
-                  }
+                   if(-e $webtools::perl_html_dir.$body.'.'.$exname)
+                    {
+                     $p_file_name_N001 = $body.'.'.$exname;
+                     last;
+                    }
+                   else
+                    {
+                     if($exname =~ m/^$ext$/i) {last;}
+                    }
+                 }
                 }
               }
              $p_file_checked_done_N001 = 1;
@@ -247,9 +282,113 @@ if(!$parsedform){
      $buf         # Buffer for data read from disk.
     );
 
+ my @sys_cgi_lib_res = ReadParse(\%cgi_data,\%cgi_cfn,\%cgi_ct,\%cgi_sfn,\@cgi_ar);
 
- ReadParse(\%cgi_data,\%cgi_cfn,\%cgi_ct,\%cgi_sfn,\@cgi_ar);
+ if(scalar(@sys_cgi_lib_res))
+  {
+   if($sys_cgi_lib_res[0] || $sys_cgi_lib_res[0] < 0)
+    {
+     my $sys_cgik;
+     foreach $sys_cgik (keys %cgi_sfn)
+      {
+       unlink($cgi_sfn{$sys_cgik});
+      }
+    }
+   if($sys_cgi_lib_res[0] == 1)
+    {
+     print STDOUT "Content-type: text/html\n\n";
+     print STDOUT "<br><font color='red'><h3>";
+     print STDOUT "<p>Too long GET request<BR>Hint: You are restricted in length with GET method!</p>\n";
+     print STDOUT "</h3></font>";
+     exit;
+    }
+   if($sys_cgi_lib_res[0] == 2)
+    {
+     print STDOUT "Content-type: text/html\n\n";
+     print STDOUT "<br><font color='red'><h3>";
+     print STDOUT "<p>Error: Unknown request method\n</p>\n";
+     print STDOUT "</h3></font>";
+     exit;
+    }
+   if($sys_cgi_lib_res[0] == 3)
+    {
+     print STDOUT "Content-type: text/html\n\n";
+     print STDOUT "<br><font color='red'><h3>";
+     print STDOUT "<p>Error: Boundary not provided(probably a bug in your server)\n</p>\n";
+     print STDOUT "</h3></font>";
+     exit;
+    }
+   if($sys_cgi_lib_res[0] == 4)
+    {
+     print STDOUT "Content-type: text/html\n\n";
+     print STDOUT "<br><font color='red'><h3>";
+     print STDOUT "<p>Error: Invalid request method for  multipart/form-data\n</p>\n";
+     print STDOUT "</h3></font>";
+     exit;
+    }
+   if($sys_cgi_lib_res[0] == 5)
+    {
+     print STDOUT "Content-type: text/html\n\n";
+     print STDOUT "<br><font color='red'><h3>";
+     print STDOUT "<p>Error: reached end of input while seeking boundary of multipart. Format of CGI input is wrong.\n</p>\n";
+     print STDOUT "</h3></font>";
+     exit;
+    }
+   if($sys_cgi_lib_res[0] == 6)
+    {
+     print STDOUT "Content-type: text/html\n\n";
+     print STDOUT "<br><font color='red'><h3>";
+     print STDOUT "<p>Error: reached end of input while seeking end of headers. Format of CGI input is wrong.</p>\n";
+     print STDOUT "</h3></font>";
+     exit;
+    }
+   if($sys_cgi_lib_res[0] == 7)
+    {
+     print STDOUT "Content-type: text/html\n\n";
+     print STDOUT "<br><font color='red'><h3>";
+     print STDOUT "<p>Could not create file<BR>Hint: Check your TMP ('$webtools::tmp') directory!</p>\n";
+     print STDOUT "</h3></font>";
+     exit;
+    }
+   if($sys_cgi_lib_res[0] == -1)
+    {
+     print STDOUT "Content-type: text/html\n\n";
+     print STDOUT "<br><font color='red'><h3>";
+     print STDOUT "<p>Unknown fatal error with input stream parsing<BR>Hint: Check your TMP ('$webtools::tmp') directory!</p>\n";
+     print STDOUT "</h3></font>";
+     exit;
+    }
+   if($sys_cgi_lib_res[0] == -2)
+    {print "Content-type: text/html\n\nfsfdsf";
+     $SIG{'ALRM'} = sub {
+        print STDOUT "Content-type: text/html\n\n";
+        print STDOUT "<br><font color='red'><h3>";
+        print STDOUT "<p>Too long POST request<BR>Hint: You are restricted in length with POST method!<BR>Hint: Your script lifetime probably is too short to be able to accept all data!</p>\n";
+        print STDOUT "</h3></font>";
+        exit;
+       };
+     eval {alarm($webtools::cgi_script_timeout);};
+     while(<STDIN>){}
+     $globexport::exceed_post_limit = 1;
+    }  
+  }
  
+ my $sys_up_filename;
+ my %sys_up_rnh = %cgi_sfn;
+ foreach $sys_up_filename (keys %sys_up_rnh)
+  {
+   if((!exists($cgi_cfn{$sys_up_filename})) || ($cgi_cfn{$sys_up_filename} eq ''))
+    {
+     unlink($sys_up_rnh{$sys_up_filename});
+     delete($sys_up_rnh{$sys_up_filename});
+     delete($cgi_cfn{$sys_up_filename});
+    }
+  }
+ 
+ if(($cgi_data{'file'} eq '') and ($file ne ''))
+  {
+   $cgi_data{'file'} = $file;
+  }
  $contenttype = 'single';
  @formdataa = @cgi_ar;
  %formdatah = %cgi_data;
@@ -267,7 +406,7 @@ if(!$parsedform){
    my $sys_askqwvar_v = $formdatah{$sys_askqwvar_k};
    if(exists($formdatah{$sys_askqwvar_k}))
      {
-      if($sys_askqwvar_k =~ m/^[A-Za-z0-9_]+$/so)
+      if($sys_askqwvar_k =~ m/^[A-Za-z0-9_]+$/s)
         {
          if(!($sys_askqwvar_k =~ m/^sys\_/si))
           {
@@ -281,7 +420,7 @@ if(!$parsedform){
           }
         }
      }
-   if($sys_askqwvar_k =~ m/^\%inputhash\_([A-Z0-9]+?)\_([A-Z0-9_]+)$/sio)
+   if($sys_askqwvar_k =~ m/^\%inputhash\_([A-Z0-9]+?)\_([A-Z0-9_]+)$/si)
      {
       my $sys_askqwvar_L_hn = $1;
       my $sys_askqwvar_L_vn = $2;
@@ -313,7 +452,7 @@ if(!$parsedform){
   {
       my ($sys_askqwvar_n,$sys_askqwvar_v) = ($sys_askqwvar_l,$Cookies{$sys_askqwvar_l});
       $sys_askqwvar_n =~ s/ //sgo;
-      if($sys_askqwvar_n =~ m/^[A-Za-z0-9_]+$/so)
+      if($sys_askqwvar_n =~ m/^[A-Za-z0-9_]+$/s)
         {
          if(!($sys_askqwvar_n =~ m/^sys\_/si))
           {

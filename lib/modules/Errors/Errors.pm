@@ -20,7 +20,7 @@ $Errors::Errors::sys_exit_called = 0;
 BEGIN
  {
   use vars qw($VERSION @ISA @EXPORT);
-  $VERSION = "1.16";
+  $VERSION = "1.26";
   @ISA = qw(Exporter);
   @EXPORT = qw();
  }

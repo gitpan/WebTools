@@ -88,6 +88,7 @@ sub remove_SF_OldSessions
 {
  my $sess_flat_path = shift(@_);
  my ($sess_flat_sessTime) = shift(@_) || time();
+ local *ODFILE;
  reset_SF_cache();
  if(!($sess_flat_path =~ m/\/$/s)) {$sess_flat_path .= '/';}
  opendir(ODFILE,$sess_flat_path);
@@ -171,8 +172,10 @@ sub create_SF_File
   {
    unlink($sess_flat_findFile);
   }
+ my $sess_orig_mask = umask 0177;   # umask 0177 is equal to mask 0600 (wr-------)
  open(CSFLL,">".$sess_flat_findFile) or return(undef);
  close(CSFLL);
+ umask $sess_orig_mask;
  return(1);
 }
 
@@ -242,6 +245,7 @@ sub write_SF_lowlevel
     $sess_flat_size,$sess_flat_atime,$sess_flat_mtime,$sess_flat_ctime,$sess_flat_blksize,$sess_flat_blocks)= stat($sess_flat_nFile);
    $sess_flat_fl = 1;
   }
+ my $sess_orig_mask = umask 0177;   # umask 0177 is equal to mask 0600 (wr-------)
  open(WSFLL,">".$sess_flat_nFile) or return(undef);
  binmode(WSFLL);
  if(!(print WSFLL $sess_flat_data))
@@ -249,6 +253,7 @@ sub write_SF_lowlevel
     $sess_flat_dat = undef;
    }
  close(WSFLL);
+ umask $sess_orig_mask;
  if($sess_flat_fl) {utime ($sess_flat_atime,$sess_flat_mtime,$sess_flat_nFile);}
  return($sess_flat_dat);
 }

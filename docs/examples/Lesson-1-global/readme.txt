@@ -64,7 +64,7 @@ Here I want to demonstrate how you can access variables become from GET/POST
   keyOfHash     - is hash key. It must be construct of follow chars: [A-Za-z0-9_]
 
   Follow HTML code is valid:
-  <input type="text" name="%inputhash_example_first_name" value="Hrisy">
+  <input type="text" name="%inputhash_example_first_name" value="Desi">
   <input type="text" name="%inputhash_example_age" value="20">
 
   If post these form elements to WebTools script, then you will be able to

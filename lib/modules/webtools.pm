@@ -2,19 +2,12 @@ package webtools;
 ####################################################
 # Perl`s WEB module
 ####################################################
-
-# Copyright (c) 2001, Julian Lishev, Sofia 2002
-# All rights reserved.
-# This code is free software; you can redistribute
-# it and/or modify it under the same terms 
-# as Perl itself.
-
 ###########################################
 # BEGIN Section start here
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.26";
+    $VERSION = "1.27";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -552,7 +545,7 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
   $| = 1;
   if(!$is and !($sys_stdouthandle_header and $sys_stdouthandle_content_ok))
    {
-    $print_header_buffer = "X-Powered-By: WebTools/1.26\n".$print_header_buffer; # Print version of this tool.
+    $print_header_buffer = "X-Powered-By: WebTools/1.27\n".$print_header_buffer; # Print version of this tool.
    }
   if ((!$sys_cookie_accepted) and ($sys_local_sess_id ne ''))
    {
@@ -1238,25 +1231,56 @@ sub load_session_data   # ($session_ID,$database_handler) // Load DATA from tabl
 }
 sub read_redirected_script_file
 {
- my $p_file_name_N001 = '';
- my $rurl = $ENV{PATH_INFO} || $ENV{REDIRECT_URL};
- if ($rurl eq '')
+ my $p_file_name_N00 = '';
+ my $sys_pre_load_redirected_file = '';
+ 
+ if(exists($ENV{'PATH_TRANSLATED'}))
    {
-    $rurl = $ENV{REQUEST_URI};
-    $rurl =~ s/\?.*//;
-   }
- if(($rurl ne '') and !($rurl =~ m/(\.cgi|\.pl)^/si))
-   {
-    $rurl =~ s/\\/\//sg;
-    $rurl =~ m/\/([^\/]*)$/s;
-    $rurl =~ m/\/([^\/]*)$/s;
-    my $spth = $webtools::cgi_home_path;
-    if($webtools::perl_html_dir =~ m/^\.\/(.*)$/s)
-      {
-       $spth .= $1;
-      }
-    $rurl =~ m/$spth(.*)$/s;
-    $p_file_name_N001 = $1;
+    my $rurl = $ENV{'PATH_TRANSLATED'};
+    if(($rurl ne '') && (-e $rurl))
+     {
+      local * REDIRECTEDFILE;
+      if(open(REDIRECTEDFILE, $rurl))
+       {
+       	if(binmode (REDIRECTEDFILE))
+       	 {
+       	  my $cnt = read(REDIRECTEDFILE,$sys_pre_load_redirected_file,-s REDIRECTEDFILE);
+       	  if($cnt)
+       	   {
+       	    close (REDIRECTEDFILE);
+       	    $sys_pre_load_redirected_file =~ s/\r\n/\n/sg;
+       	    if(!($sys_pre_load_redirected_file =~ m/\n$/s)) {$sys_pre_load_redirected_file .= "\n";}
+       	    ###################################
+       	    # Parse Reditected File
+       	    ###################################
+       	    my $sys_value = '';
+       	    my $sys_key   = '';
+       	    
+       	    if($sys_pre_load_redirected_file =~ m/\$REDIRECT\_OPTIONS\ {0,}\{(\'|\")?file(\'|\")?\}\ {0,}\=\ {0,}(\'|\")?([^\'\"\;\n]{1,})(\'|\")?\;{0,}\n/si)
+       	     {
+       	      $sys_value = $4;
+       	      if($sys_value ne '') {$p_file_name_N001 = $sys_value;}
+       	     }
+     	    else
+       	     {
+       	      my $rurlZ = $rurl;
+       	      $rurlZ =~ s/\\/\//sg;
+       	      if($rurlZ =~ m/(.*)\/(.*)$/s)
+       	        {
+       	         $p_file_name_N001 = $2;
+       	        }
+       	     }
+       	    if($sys_pre_load_redirected_file =~ m/\$REDIRECT\_OPTIONS\ {0,}\{(\'|\")?home(\'|\")?\}\ {0,}\=\ {0,}(\'|\")?([^\'\"\;\n]{1,})(\'|\")?\;{0,}\n/si)
+       	     {
+       	      $sys_value = $4;
+       	      if($sys_value ne '') { chdir $sys_value; }
+       	     }
+       	   }
+       	  else {close (REDIRECTEDFILE);}
+       	 }
+       	else {close (REDIRECTEDFILE);}
+       }
+     }
    }
  return($p_file_name_N001);
 }
@@ -1291,16 +1315,20 @@ sub RunScript
           my $exname;
           if($treat_htmls_ext[0] ne '')
            {
-            foreach $exname (@treat_htmls_ext)
+            if(!(-e $perl_html_dir.$p_file_name_N001))
              {
-              if(-e $perl_html_dir.$body.'.'.$exname)
+              foreach $exname (@treat_htmls_ext)
                {
-                $p_file_name_N001 = $body.'.'.$exname;
-               }
-              else
-               {
-               	if($exname =~ m/^$ext$/i) {last;}
-               }
+                if(-e $perl_html_dir.$body.'.'.$exname)
+                 {
+                  $p_file_name_N001 = $body.'.'.$exname;
+                  last;
+                 }
+                else
+                 {
+               	  if($exname =~ m/^$ext$/i) {last;}
+                 }
+              }
              }
            }
           $p_file_checked_done_N001 = 1;
@@ -1547,7 +1575,7 @@ sub save_database_handlers
 ##########################################################################
 # Load (reload) database driver
 # PROTO: load_database_driver($driver);
-# where: $driver can be: 'mysql','flat','access' and 'sess_flat'
+# where: $driver can be: 'mysql','flat','access', 'sess_flat' and 'none'
 ##########################################################################
 sub load_database_driver
 {
@@ -1698,6 +1726,41 @@ sub load_database_driver
       }
     }
    }
+ if($new_driver =~ m/^none$/si)
+  {
+   &save_database_handlers();
+   
+   $webtools::sys__subs__->{'DB_OnExit'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'hideerror'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_connect'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_connect2'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'test_connect'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_disconnect'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_query'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_fetchrow'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_affected_rows'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_inserted_id'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_create_db'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_drop_db'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_select_db'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_num_fields'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_num_rows'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_data_seek'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_errmsg'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_errno'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'sql_quote'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'unsupported_types'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'session_clear_expired'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'session_expire_update'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'insert_sessions_row'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'DB_OnDestroy'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'SignUpUser'} = \&none_DB_Empty_Sub;
+   $webtools::sys__subs__->{'SignInUser'} = \&none_DB_Empty_Sub;
+  }
+ return(1);
+}
+sub none_DB_Empty_Sub
+{
  return(1);
 }
 ##########################################################################
@@ -1752,7 +1815,10 @@ sub onExit
           unlink ($full_path_to_file); 
         }
     }
- if($todo ne 'withOutDB') {DB_OnDestroy($webtools::system_database_handle);}
+ if($todo ne 'withOutDB')
+  {
+   if($webtools::db_support ne "") {DB_OnDestroy($webtools::system_database_handle);}
+  }
 EVAL_TERMINATOR
  eval $delete_uploaded_files;
  return(1);
@@ -2017,12 +2083,12 @@ sub sys_make_template_code
      }
    return($sys_my_pre_process_sys_code);
   }
- 
+
  # ----- Make code for XREADER -----
  if($sys_my_pre_process_tempf =~ m/\<XREADER:.+?\:(.*?)\:(.*?)\>/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($webtools::system_database_handle eq undef)
+     if(($webtools::system_database_handle eq undef) and ($webtools::db_support ne ''))
         {
           $rztl_sconn = sql_connect(); 
         }
@@ -2039,7 +2105,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\%\%XREADER:.+?\:(.*?)\:(.*?)\%\%/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($webtools::system_database_handle eq undef)
+     if(($webtools::system_database_handle eq undef) and ($webtools::db_support ne ''))
         {
           $rztl_sconn = sql_connect(); 
         }
@@ -2057,7 +2123,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\<S\©L\:\d{1,}\:(.*?)\:.+?\:.+?\:.+?\:.+?\:S\©L\>/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($webtools::system_database_handle eq undef)
+     if(($webtools::system_database_handle eq undef) and ($webtools::db_support ne ''))
         {
           $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
@@ -2075,7 +2141,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\%\%SQL\:\d{1,}\:(.*?)\:.+?\:.+?\:.+?\:.+?\:SQL\%\%/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($webtools::system_database_handle eq undef)
+     if(($webtools::system_database_handle eq undef) and ($webtools::db_support ne ''))
         {
           $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
@@ -2094,7 +2160,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\<S\©LVAR\:(.+?)\:S\©L\>/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($webtools::system_database_handle eq undef)
+     if(($webtools::system_database_handle eq undef) and ($webtools::db_support ne ''))
         {
           $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
@@ -2112,7 +2178,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\%\%SQLVAR\:(.+?)\%\%/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($webtools::system_database_handle eq undef)
+     if(($webtools::system_database_handle eq undef) and ($webtools::db_support ne ''))
         {
           $rztl_sconn = sql_connect(); 
           if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
@@ -2131,7 +2197,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\<MENUSELECT\:\$(.*?)\:(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\>/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($webtools::system_database_handle eq undef)
+     if(($webtools::system_database_handle eq undef) and ($webtools::db_support ne ''))
         {
           $rztl_sconn = sql_connect();
         }
@@ -2149,7 +2215,7 @@ sub sys_make_template_code
  if($sys_my_pre_process_tempf =~ m/\%\%MENUSELECT\:\$(.*?)\:(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\%\%/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
-     if($webtools::system_database_handle eq undef)
+     if(($webtools::system_database_handle eq undef) and ($webtools::db_support ne ''))
         {
           $rztl_sconn = sql_connect();
         }
@@ -2550,11 +2616,5 @@ It brings in self many features of modern Web developing:
 =back
 
  Please read HELP.doc and see all examples in docs/examples directory
-
-=head1 AUTHOR
-
- Julian Lishev - Bulgaria, Sofia, 
- e-mail: julian@proscriptum.com, 
- www.proscriptum.com
 
 =cut

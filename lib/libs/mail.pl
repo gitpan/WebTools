@@ -2,7 +2,7 @@
 # Author: Julian Lishev, All rights reserved!
 # Helpers: Krasimir Krystev & Svetoslav Marinov
 #################################################
-# Subs: send_mail, mail, mx_lookup,
+# Subs: send_mail, mail, mx_lookup, mail_check
 #       raw_mx_lookup, raw_dns_record_lookup
 #       set_attached_files,
 #       remove_mail_attachment,
@@ -10,7 +10,7 @@
 #       get_mime_encoding
 #       set_mime_encoding
 # Prereqired modules:
-#       MIME::QuotedPrint and MIME::Base64
+#       MIME::Base64
 #################################################
 # send_mail(FROM,TO,SUBJECT,BODY,AS_HTML);
 #################################################
@@ -18,21 +18,12 @@
 # MX records, using UDP datagrams sent direct
 # to DNS server.
 #################################################
-# Note: Standart module MIME::QuotedPrint discard
-# rule 4 from RFC 2045, so "\n" is not converted
-# to CRLF. QMAIL refuse to accept HTML(quoted-
-# printable) and you can use in THIS case only
-# "text" e-mails with mail() function! (code: 451)
-# However to solve this problem, mail() function 
-# substitute "\n" with "\r\n". This seems help to
-# remove this "bug" and QMAIL accept HTML mails!
-# Other mail servers are not strict as QMAIL is!
-# Anyway try to use send_mail() function (via
-# sendmail) before using mail()!
-#################################################
+
 use Socket;
 use IO::Socket;
 use FileHandle;
+
+open (STDERR,'>>/dev/null');
 
 %mole_attached_files = ();  # Please use "set_mail_attachment" and "remove_mail_attachment"
                             # instead of direct manipulating of hash.
@@ -49,20 +40,10 @@ $webtools::loaded_functions = $webtools::loaded_functions | 64;
 my $sys_dns_lookup_respsize;
 my $sys_dns_lookup_buf;
 my $sys_dns_lookup_id = 0;
+my $sys_mail_buf_size = 64*57;  # Must be multiple of 57!!!
 
 sub send_mail 
   {
-    eval 'use MIME::QuotedPrint;';
-    if($@ ne '')
-     {
-      ClearBuffer(); ClearHeader(); flush_print();
-      select(STDOUT);
-      CORE::print '<B><font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
-      CORE::print "<font color='red'>Error: Sorry but you can't send e-mails till Perl module MIME::QuotedPrint is not available!</font><BR>";
-      CORE::print "Hint: Contact your administrator and ask for assistance<BR>";
-      CORE::print '</font></B>';
-      die ':QUIT:';
-     }
     local($from, $to, $subject, $messagebody, $is_html) = @_;
     my %inp = @_;
     my ($r1,$k1,$v1) = exists_insensetive('to',%inp);
@@ -97,7 +78,7 @@ sub send_mail
       {
        if ($debug_mail ne 'on') 
          {
-          $messagebody = encode_qp($messagebody);
+          $messagebody = safe_encode_qp($messagebody,$crlf);
          }
       }
     $fromuser = $from;
@@ -224,7 +205,7 @@ sub real_send_mail
        $html .= 'Content-Transfer-Encoding: quoted-printable';
        $html .= $crlf;
        $html .= $crlf;
-       $html .= encode_qp($messagebody);
+       $html .= safe_encode_qp($messagebody,$crlf);
        $html .= $a_last_boundary;
        if(!(print (MAIL $html))){return(-1);} # -1 Can`t send to SendMail
        $html = '';
@@ -260,7 +241,7 @@ sub real_send_mail
     $html .= $crlf;
     while($data = <ATTCH>)
     {
-    $html .= encode_base64($data);
+    $html .= encode_base64($data,$crlf);
     if(!(print (MAIL $html))){return(-1);} # -1 Can`t send to SendMail
     $html = '';
     }
@@ -353,7 +334,7 @@ sub readAttach
 ################################################
 # This is a direct MAIL client
 # It can send e-mails without external
-# software (like sendmail,host,nslookup)
+# help software (like sendmail,host,nslookup)
 ################################################
 sub mail
 {
@@ -418,7 +399,7 @@ sub mail
   my %inp;
   my %backup = %mole_attached_files;
   my $mail__count_of_attempts_to_send = $inp{'counts'} || $mail_count_of_attempts_to_send;
-  foreach $mcas (1..$mail__count_of_attempts_to_send)
+  for($mcas=1;$mcas<=$mail__count_of_attempts_to_send;$mcas++)
    {
     %mole_attached_files = %backup;
     $iterative = 0;
@@ -461,7 +442,9 @@ sub mail
          {
           $last_error = $code;
           $last_data  = $data;
-          $iterative = 5;
+          $iterative = $webtools::mail_count_of_iterative_loops;
+          if(($last_error == 550) or ($last_error == 552) or ($last_error == 553))
+            {$mcas = $mail__count_of_attempts_to_send;} # In these cases don't wait!
           if($mcas == $mail__count_of_attempts_to_send)
            {
             push(@results,$last_error."\t".$input{'to'}."\t".$last_data);
@@ -483,8 +466,8 @@ sub talk_to_smpt
 {
  my %inp = @_;
  my $crlf = $sys_CRLF;
- my ($timeout,$from,$to,$subject,$body,$replyto,$raw,$ns_lookup,$qfrom,$text,$dns);
- my ($peer,$user,$ip,$data,$fdom,$html,$charset,$priority) = ();
+ my ($timeout,$from,$to,$subject,$body,$replyto,$raw,$ns_lookup,$qfrom,$text,$dns,$check);
+ my ($peer,$user,$ip,$data,$fdom,$html,$charset,$priority,$raw_from) = ();
  my @res = ();
  
  if(exists($inp{'timeout'})) {$timeout = $inp{'timeout'};}
@@ -492,6 +475,15 @@ sub talk_to_smpt
 
  if(exists($inp{'from'})) {$from = 'From: '.$inp{'from'}.$crlf; $qfrom = $inp{'from'};}
  else {$from = ''; $qfrom = '';}
+ 
+ $raw_from = $inp{'from'};
+ if($raw_from =~ m/^(.*)\<(.*?)\>(.*)$/si)
+  {
+   $raw_from = $2;
+  }
+  
+ if(exists($inp{'check'})) {$check = $inp{'check'}; $check = $check=~m/^(Y|YES|1|ON|TRUE)$/si ? 1 : 0;}
+ else {$check = 0;}
  
  if(exists($inp{'to'})) {$to = 'To: '.$inp{'to'}.$crlf;}
  else {return((-1,'FATAL:Empty TO'));}                                   # No receiver!
@@ -558,7 +550,6 @@ sub talk_to_smpt
  
  my $proto = getprotobyname('tcp');
  local *Sock;
- socket(Sock, AF_INET, SOCK_STREAM, $proto);
  my $port = 25;
  
  my $query = $peer;
@@ -595,16 +586,15 @@ else
  }
 
  my $flag_succ = 0;
- 
+
  foreach $ip (@ips)
   {
    $ip =~ m/^\d{1,5}\t(.*?)$/s;
    $ip = $1;
-   
    my $inet_res = inet_aton($ip);
    if($inet_res eq undef) {return((-1,"FATAL:Can't resolve host (invalid email)"));}
-   
    my $sin = sockaddr_in($port,$inet_res);
+   socket(Sock, AF_INET, SOCK_STREAM, $proto);
    $isconnected = connect(Sock,$sin);
    if ($isconnected)
      {					       # ?Mail server? not responding!?
@@ -614,6 +604,7 @@ else
          $flag_succ = 1;
          last;
         }
+      close Sock;
      }
    else
     {
@@ -626,13 +617,15 @@ else
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 250) {return(($res[0],$res[1]));}
 
-    if(send(Sock,"MAIL FROM:<$qfrom>".$crlf,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
+    if(send(Sock,"MAIL FROM:<$raw_from>".$crlf,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 250) {return(($res[0],$res[1]));}
     
     if(send(Sock,"RCPT TO:<$user\@$peer>".$crlf,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 250) {return(($res[0],$res[1]));}     # 251,551 (redirect) ?
+    
+    if($check == 0){
 
     if(send(Sock,"DATA".$crlf,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
     @res = ReadFromSocket(Sock,$timeout);
@@ -651,11 +644,13 @@ else
      }
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 250) {return(($res[0],$res[1]));}
+    
+    }
     if(send(Sock,"QUIT".$crlf.'.'.$crlf,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
     @res = ReadFromSocket(Sock,$timeout);
     if($res[0] != 221) {return(($res[0],$res[1]));}
     close (Sock);
-    return((220,$res[1]));					   # OK, mail sent!
+    return((220,$res[1]));					   # OK, mail sent or user checked!
    }
   return(($res[0],$res[1]));
 }
@@ -679,7 +674,7 @@ sub mx_lookup
  $nslookup .= " -q=MX $domain";
  $host .= " -t MX $domain";
 
- if(!($dns =~ m/^[0-9\.]+$/)) {
+ if(!($dns =~ m/^[0-9\.\ \,]+$/)) {
  # Try to get MX recors through 'host' program
  $! = 0;
  @digout =  `$host`;
@@ -762,11 +757,14 @@ sub ReadFromSocket
    my $timeout = $_[1];
    my $rbits = "";
    my $done = 0;
-   vec($rbits, fileno(Hand), 1) = 1;
+   my $filehand;
    my $finish_time = time() + $timeout;
    while (!$done && $timeout > 0)          # Keep trying if we have time
       {
-       my $nfound = select($rbits, undef, undef, $timeout); # Wait for packet
+       $filehand = fileno(Hand);
+       if($filehand eq undef) {return (0);} # Is still socket opened?
+       vec($rbits, $filehand, 1) = 1;
+       my $nfound = select($rbits, undef, undef, 0.5); # Wait for packet
        $timeout = $finish_time - time();   # Get remaining time
        if (!defined($nfound))              # Hmm, a strange error
         {
@@ -774,7 +772,18 @@ sub ReadFromSocket
         }
        else
         {
-          if ($nfound == 0) { return (0); }
+          if($nfound <= 0)
+           {
+            if($timeout <= 0)
+              {
+               return (0);
+              }
+            else
+              {
+               next;
+              }
+           }
+          # Done... data wait us.
           while ($line = <Hand>)
             {
              $l_line .= $line."<BR>";
@@ -815,17 +824,6 @@ sub mail_data
                   'jpe','image/jpeg','pgn','image/png','html','text/html','htm','text/html','mpeg','video/mpeg',
                   'mpg','video/mpeg','mpe','video/mpeg','avi','video/x-msvideo','movie','video/x-sgi-movie');
  
- eval 'use MIME::QuotedPrint;';
- if($@ ne '')
-  {
-   ClearBuffer(); ClearHeader(); flush_print();
-   select(STDOUT);
-   CORE::print '<B><font face="Verdana, Arial, Helvetica, sans-serif" size="2">';
-   CORE::print "<font color='red'>Error: Sorry but you can't send e-mails till Perl module MIME::QuotedPrint is not available!</font><BR>";
-   CORE::print "Hint: Contact your administrator and ask for assistance<BR>";
-   CORE::print '</font></B>';
-   die ':QUIT:';
-  }
  eval 'use MIME::Base64;';
  if($@ ne '')
   {
@@ -837,7 +835,7 @@ sub mail_data
    CORE::print '</font></B>';
    die ':QUIT:';
   }
- 
+
  my $crlf = $sys_CRLF;
  my $boundary = "=_MZ8dd988d1d73016OQ104bWebTools050010191".(int(rand()*1000000000)+192837460)."PE";
  my $next_boundary = $crlf.'--'.$boundary.$crlf;
@@ -996,8 +994,7 @@ sub mail_data
        $html .= 'Content-Transfer-Encoding: quoted-printable';
        $html .= $crlf;
        $html .= $crlf;
-       my $val = encode_qp($body);
-       $val =~ s/\n/$crlf/sg;
+       my $val = safe_encode_qp($body,$crlf);
        $html .= $val;
        if($text ne '')
         {
@@ -1010,8 +1007,7 @@ sub mail_data
          $html .= 'Content-Transfer-Encoding: quoted-printable';
          $html .= $crlf;
          $html .= $crlf;
-         my $val = encode_qp($text);
-         $val =~ s/\n/$crlf/sg;
+         my $val = safe_encode_qp($text,$crlf);
          $html .= $val;
         }
        $html .= $a_last_boundary;
@@ -1029,8 +1025,7 @@ sub mail_data
         $html .= 'Content-Transfer-Encoding: quoted-printable';
         $html .= $crlf;
         $html .= $crlf;
-        my $val = encode_qp($text);
-        $val =~ s/\n/$crlf/sg;
+        my $val = safe_encode_qp($text,$crlf);
         $html .= $val;
         $html .= $a_last_boundary;
         if(send(Hand,$html,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
@@ -1077,16 +1072,20 @@ sub mail_data
         $html .= 'Content-Disposition: attachment; filename="'.$file.'"';
         $html .= $crlf;
         $html .= $crlf;
-        while($data = <ATTCH>)
+        my $bkp = $/;
+        my $cnt = -s ATTCH;
+        while($cnt > 0)
         {
+          my $part = $cnt > $sys_mail_buf_size ? $sys_mail_buf_size : $cnt;
+          $cnt -= $part;
+          read(ATTCH,$data,$part);
           my $val;
-          if($sys_mime_encoding =~ m/^quoted\-printable$/si) {$val = encode_qp($data);}
+          if($sys_mime_encoding =~ m/^quoted\-printable$/si) {$val = safe_encode_qp($data,$crlf);}
           if($sys_mime_encoding =~ m/^8bit$/si) {$val = $data; }
-          if($sys_mime_encoding =~ m/^(base64|)$/si) {$val = encode_base64($data);}
-          $val =~ s/\n/$crlf/sg;
+          if($sys_mime_encoding =~ m/^(base64|)$/si) {$val = encode_base64($data,$crlf);}
           $html .= $val;
-        if(send(Hand,$html,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
-        $html = '';
+          if(send(Hand,$html,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
+          $html = '';
         }
         close (ATTCH);
        }
@@ -1115,8 +1114,7 @@ sub mail_data
        $html .= 'Content-Transfer-Encoding: quoted-printable';
        $html .= $crlf;
        $html .= $crlf;
-       my $val = encode_qp($body);
-       $val =~ s/\n/$crlf/sg;
+       my $val = safe_encode_qp($body,$crlf);
        $html .= $val;
        if($text ne '')
         {
@@ -1129,8 +1127,7 @@ sub mail_data
          $html .= 'Content-Transfer-Encoding: quoted-printable';
          $html .= $crlf;
          $html .= $crlf;
-         my $val = encode_qp($text);
-         $val =~ s/\n/$crlf/sg;
+         my $val = safe_encode_qp($text,$crlf);
          $html .= $val;
         }
        $html .= $a_last_boundary;
@@ -1148,8 +1145,7 @@ sub mail_data
         $html .= 'Content-Transfer-Encoding: quoted-printable';
         $html .= $crlf;
         $html .= $crlf;
-        my $val = encode_qp($text);
-        $val =~ s/\n/$crlf/sg;
+        my $val = safe_encode_qp($text,$crlf);
         $html .= $val;
         $html .= $a_last_boundary;
         if(send(Hand,$html,0) eq undef){return((-1,"Can't sent to socket"));} # -1 Can`t send to socket
@@ -1198,7 +1194,6 @@ sub raw_mx_lookup
  my $dns      = shift || dns_nameserver();       # DNS Server
  my $line;
  my @mx_recs  = ();
- 
  my @recs = &raw_dns_record_lookup($hostname,'MX',$dns);
  if(($recs[0] eq '0') or ($recs[0] == -1)) {return (@recs);}
  if(scalar(@recs) == 0) {return(@mx_recs);}
@@ -1226,7 +1221,8 @@ sub raw_mx_lookup
 # HINFO    host information
 # MX       mail exchange
 # ANY      request for any known records
-# PROTO: raw_dns_record_lookup($host[,$record_type,$nserver]);
+# PROTO: raw_dns_record_lookup($host[,$record_type,$nserver,
+#                              $timeout]);
 # return values:
 # All queries can return array of lines with mixed RTypes,
 # in follow format:
@@ -1246,14 +1242,17 @@ sub raw_dns_record_lookup
  my $hostname = shift;
  my $r_type   = uc(shift) || 'A';
  my $dns      = shift || dns_nameserver();       # DNS Server
+ my $timeout  = shift || 10;
  my $proto    = getprotobyname('udp');
  my $port     = getservbyname('domain', 'udp');  # Port 53
- my ($lformat,$question,$sock,$flag_recv,$rin,$rout);
+ my ($lformat,$question,$sock,$flag_recv,$rin,$rout,$s_timer,$e_timer);
+ my $timer = 0;
+ my $counter = 0;
  my $count    = 0;
  my @labels   = ();
  my @recs  = ();
  my %records  = (A=>1, NS=>2, CNAME=>5, SOA=>6, PTR=>12, HINFO=>13, MX=>15, ANY=>255);
- 
+
  my $header = pack("n C2 n4",++$sys_dns_lookup_id,1,0,1,0,0,0);
  for(split(/\./,$hostname))
    {
@@ -1262,23 +1261,35 @@ sub raw_dns_record_lookup
     $labels[$count++]=$_;
    }
  $question = pack($lformat."C n2",@labels,0,$records{$r_type},1);
- $sock = new IO::Socket::INET(PeerAddr=>$dns,PeerPort=>$port,Proto=>$proto);
- $flag_recv = 0;
  
- foreach(1..3)  # Send query up to three times
+ my @dns_ips = split(/\,/s,$dns);
+ while(1)
   {
-   $sock->send($header.$question);
-   $rin = '';
-   vec($rin, fileno($sock), 1) = 1;
-   while (select($rout = $rin, undef, undef, 4.0))
+   if($counter > 360) {last;}
+   foreach $dns (@dns_ips)
     {
-     if(recv($sock, $sys_dns_lookup_buf, 512, 0)) {$flag_recv=1;last;}
+     $dns =~ s/^\ {1,}//sg;
+     $dns =~ s/\ {1,}$//sg;
+     $sock = new IO::Socket::INET(PeerAddr=>$dns,PeerPort=>$port,Proto=>$proto,Timeout=>5);
+     $flag_recv = 0;
+     $s_timer = time();
+     $sock->send($header.$question);
+     $rin = '';
+     vec($rin, fileno($sock), 1) = 1;
+     while (select($rout = $rin, undef, undef, 5))
+      {
+       if(recv($sock, $sys_dns_lookup_buf, 512, 0)) {$flag_recv=1;last;}
+      }
+     close($sock);
+     $e_timer = time();
+     $timer += $e_timer - $s_timer;
+     if(($timer > $timeout) and (!$flag_recv)) {return(-1);}
+     if($flag_recv) {last;}
     }
    if($flag_recv) {last;}
+   $counter++
   }
- close($sock);
  if(!$flag_recv) {return(-1);}
- 
  $sys_dns_lookup_respsize = length($sys_dns_lookup_buf);
  my ($id,$qr_opcode_aa_tc_rd,$rd_ra,
      $qdcount,$ancount,$nscount,$arcount) = unpack("n C2 n4",$sys_dns_lookup_buf);
@@ -1306,7 +1317,7 @@ sub raw_dns_record_lookup
      $position +=10;
      
      # All answares are with same structure but different records need
-     # different paring!
+     # different parsing!
 
      # MX record parse
      if($rtype eq $records{'MX'})
@@ -1476,12 +1487,22 @@ sub dns_nameserver
  my @lines = ();
  my $line;
  my $nameserver = 'localhost';    # assume 'localhost' as default nameserver
+ my $host;
  eval << 'TERM_CODE';
  use Sys::Hostname;
- my $host = &Sys::Hostname::hostname(); # Get local host
+ $host = &Sys::Hostname::hostname(); # Get local host
  $nameserver = $host || 'localhost';
 TERM_CODE
  my $host = $nameserver;
+ 
+ if($^O =~ m/Win32/si)
+  {
+   my $dns_ips = mail_get_win32_NameServer();
+   if($dns_ips != -1)
+    {
+     return($dns_ips);
+    }
+  }
  
  if(-e $name) # If resolv.conf is available
   {
@@ -1515,6 +1536,63 @@ TERM_CODE
  return($nameserver); # Return found IP address (or your server IP)
 }
 
+sub mail_get_win32_NameServer
+{
+ my @dns_ips = ();
+ my @results = ();
+ my %uniq = ();
+ my $entry;
+ my $data;
+ my $eval_code =<< 'Win32CODE';
+ use Win32::TieRegistry( Delimiter=>"/", ArrayValues=>0 );
+ my $data = $Registry->{"LMachine/SYSTEM/CurrentControlSet/Services/Tcpip/Parameters/NameServer"};
+ if($data eq '')           # Win 2000/XP ?
+  {
+   my $diskKey = $Registry->{"LMachine/SYSTEM/CurrentControlSet/Services/Tcpip/Parameters/Interfaces"};
+   if($diskKey)
+    {
+     foreach $entry (keys(%$diskKey))
+      {
+       $data = $Registry->{"LMachine/SYSTEM/CurrentControlSet/Services/Tcpip/Parameters/Interfaces/".$entry."NameServer"};
+       if($data ne '') {push(@dns_ips,$data);}
+      }
+     }
+  }
+ else                     # NT 4
+  {
+   push(@dns_ips,$data);
+  }
+ foreach $entry (@dns_ips)
+  {
+   $entry =~ s/\,/\ /sg;
+   $entry =~ s/\;/\ /sg;
+   $entry =~ s/\ {2,}/\ /sg;
+   my @ips = split(/\ /,$entry);
+   my $ip;
+   foreach $ip (@ips)
+    {
+     if($ip ne '')
+      {
+       if(!exists($uniq{$ip}))
+        {
+         push(@results,$ip);
+        }
+       else
+        {
+         $uniq{$ip} = 1;
+        }
+      }
+    } 
+  }
+Win32CODE
+ eval $eval_code;
+ if($@ eq '')
+  {
+   return join(',',@results);
+  }
+ return(-1);
+}
+
 sub mail_default_DATE
 {
  my $now_string = localtime;
@@ -1539,6 +1617,71 @@ sub get_mime_encoding
  my $file = shift;
  $file = $sys_mail_original_names{$file};
  return($sys_mime_encoding{$file});
+}
+
+# Via this function you can encode in Quote Printable even binary files
+sub safe_encode_qp
+{
+  my $data = shift;
+  my $crlf = shift;
+  $data =~ s/([^A-Za-z0-9\'\(\)\*\+\,\-\/\<\>\:\;\?\_])/sprintf("=%02X", ord($1))/seg;
+  my $result = '';
+  my $ptr = 0;
+  my $len = length($data);
+  while (1)
+   {
+    my $copy = substr($data,$ptr,75);
+    my $cp = length($copy);
+    if($cp == 0) {last;}
+    if($cp > 72)
+     {
+      if($copy =~ m/^(.*)\=$/s) {$copy = $1; $cp-=1;}
+      elsif($copy =~ m/^(.*)\=\w{1}$/s) {$copy = $1; $cp-=2;}
+      elsif($copy =~ m/^(.*)\=\w{2}$/s) {$copy = $1; $cp-=3;}
+     }
+    $ptr += $cp;
+    $result .= $copy.'='.$crlf;
+   }
+  return($result);
+}
+
+################################################
+# Check validity of email. This check is not
+# only lexical. This check is REAL. It try to
+# simulate mail sending to this åmail!
+# If server not exists or reject user, sub
+# assume that user is invalid.
+################################################
+sub mail_check
+{
+ my %input = @_;
+ $input{'check'} = 'YES';
+ my $email = $input{'email'};
+ delete $input{'email'};
+ $input{'to'} = $email;
+ my $username = rand();
+ $username =~ s/[^0-9]//sg;
+ $username =~ m/^(\d{1,4})/s;
+ $username = 'user'.$1;
+ # This email is provied only if you forgot to setup 'from' mail!
+ # DON'T RUN SCRIPT WITH THIS E-MAIL!
+ if($input{'from'} eq '') {$input{'from'} = $username.'@isc.org';}
+ my @results = mail(%input);
+ my @checked = ();
+ my $r;
+ foreach $r (@results)
+  {
+   $r =~ m/^(.*?)\t(.*?)\t(.*)$/s;
+   my $code = $1;
+   my $mail = $2;
+   my $errm = $3;
+   if($code == 220)
+      {
+       push(@checked,"$mail\t1");
+      }
+   else { push(@checked,"$mail\t0"); }
+  }
+ return(@checked);
 }
 
 $mail_program = find_mail_program();

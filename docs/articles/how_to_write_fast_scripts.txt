@@ -102,7 +102,7 @@ Lets see this webtools script example:
 90.  //-->
 
 
- Probably you don't know what this script do? Howevre this script may be a part 
+ Probably you don't know what this script do? However this script may be a part 
 of real script but before you start writing scripts like this you should notice 
 follow things:
 

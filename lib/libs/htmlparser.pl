@@ -1,14 +1,21 @@
 #########################################################################
 # Xreader HTML Parser
+# Vers 2.0
+# Last modified: 26.07.2002
 #########################################################################
 
-####################################################
+#########################################################################
 # Parse whole HTML with hash!
-# PROTO: $html = html_parse($html,%data);
-####################################################
+# PROTO: $html = html_parse($html,$hash_ref,%data);
+# Where: $html is html code where script parsing;
+#        $hash_ref is reference to hash with "old" values of parsed,
+#              tags;
+#        %data is hash with "name" : "value" for tags.
+#########################################################################
 sub html_parse
 {
  my ($html) = shift;
+ my $hashref = ref($_[0]) ? shift : undef;
  $html =~ s/\r\n/\n/sgi;
  my %inp = @_;
  my @forms = ();
@@ -23,26 +30,28 @@ sub html_parse
   {
    foreach $k (keys %inp)
     {
-     $html = html_parse_input($k,$inp{$k},$html);
+     $html = html_parse_input($k,$inp{$k},$html,$hashref);
      $html = html_parse_select($k,$inp{$k},$html);
-     $html = html_parse_textarea($k,$inp{$k},$html);
-     $html = html_parse_frame($k,$inp{$k},$html);
-     $html = html_parse_link($k,$inp{$k},$html);
-     $html = html_parse_meta($k,$inp{$k},$html);
-     $html = html_parse_img($k,$inp{$k},$html);
+     $html = html_parse_textarea($k,$inp{$k},$html,$hashref);
+     $html = html_parse_frame($k,$inp{$k},$html,$hashref);
+     $html = html_parse_link($k,$inp{$k},$html,$hashref);
+     $html = html_parse_meta($k,$inp{$k},$html,$hashref);
+     $html = html_parse_img($k,$inp{$k},$html,$hashref);
     }
    $result .= $html;
   }
  return($result);
 }
-####################################################
+#########################################################################
 # Parse one FORM
-# PROTO: $html = html_parse_form($form,$html,%data);
-####################################################
+# PROTO: $html = html_parse_form($form,$html,
+#                                $hash_ref,%data);
+#########################################################################
 sub html_parse_form
 {
  my ($name) = shift;
  my ($html) = shift;
+ my $hashref = ref($_[0]) ? shift : undef;
  $html =~ s/\r\n/\n/sgi;
  my %inp = @_;
  my ($uniq) = generate_unique_string($html);
@@ -59,24 +68,24 @@ sub html_parse_form
      $k = $temp;
      foreach $key (keys %inp)
       {
-       $v = html_parse_input($key,$inp{$key},$v);
+       $v = html_parse_input($key,$inp{$key},$v,$hashref);
        $v = html_parse_select($key,$inp{$key},$v);
-       $v = html_parse_textarea($key,$inp{$key},$v);
-       $v = html_parse_frame($key,$inp{$key},$v);
-       $v = html_parse_link($key,$inp{$key},$v);
-       $v = html_parse_meta($key,$inp{$key},$v);
-       $v = html_parse_img($key,$inp{$key},$v);
+       $v = html_parse_textarea($key,$inp{$key},$v,$hashref);
+       $v = html_parse_frame($key,$inp{$key},$v,$hashref);
+       $v = html_parse_link($key,$inp{$key},$v,$hashref);
+       $v = html_parse_meta($key,$inp{$key},$v,$hashref);
+       $v = html_parse_img($key,$inp{$key},$v,$hashref);
       }
      substr($data,index($data,$k),length($k),$v);
  };#sie;
 
  return($data);
 }
-###############################################
+#########################################################################
 # Parse one select filed
 # PROTO: 
 # $html = html_parse_select($name,$val,$html);
-###############################################
+#########################################################################
 sub html_parse_select
 {
  my ($name) = shift;
@@ -102,37 +111,41 @@ sub html_parse_select
  return($data);
 }
 
-###############################################
+#########################################################################
 # Parse one textarea filed
 # PROTO: 
-# $html = html_parse_textarea($name,$val,$html);
-###############################################
+# $html = html_parse_textarea($name,$val,$html,$hash_ref);
+#########################################################################
 sub html_parse_textarea
 {
  my ($name) = shift;
  my ($value) = shift;
  my ($html) = shift;
+ my $hashref = ref($_[0]) ? shift : undef;
  my $data = $html;
 
  $html =~ s#(\<TEXTAREA[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)($name)(\ |\"|\')(.*?)\>(.*?)(\<\/TEXTAREA\>)#do{
      my $begin = $1.$2.$3.$4.$5.$6.'>';
+     if($hashref ne undef){$hashref->{$name} = $7;}
      my $end = $8;
+     
      $data =~ s/(\<TEXTAREA[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)($name)(\ |\"|\')(.*?)\>(.*?)\<\/TEXTAREA\>/$begin$value$end/si;
  };#sie;
 
  return($data);
 }
 
-###############################################
+#########################################################################
 # Parse one input filed
 # PROTO: 
-# $html = html_parse_input($name,$val,$html);
-###############################################
+# $html = html_parse_input($name,$val,$html,$hash_ref);
+#########################################################################
 sub html_parse_input
 {
  my ($name) = shift;
  my ($value) = shift;
  my ($html) = shift;
+ my $hashref = ref($_[0]) ? shift : undef;
  my ($uniq) = generate_unique_string($html);
  my $html_parser_counter = '0';
  my $data = $html;
@@ -166,6 +179,7 @@ sub html_parse_input
         my $prev = $1.$2;
         my $l = $3;
         $l =~ s/^\ {0,}(\"|\'|)([^\'\"]+)?(\"|\'|)(.*)$/\"$value\"$4\>/si;
+        if($hashref ne undef){$hashref->{$name} = $2;}
         $v = $prev.$l;
         if(!($v =~ m/\>\ {0,}$/)){$v .= '>';}
         substr($data,index($data,$k),length($k),$v);
@@ -189,16 +203,17 @@ sub html_parse_input
  return($data);
 }
 
-###############################################
+#########################################################################
 # Parse one <frame> tag
 # PROTO: 
-# $html = html_parse_frame($name,$val,$html);
-###############################################
+# $html = html_parse_frame($name,$val,$html,$hash_ref);
+#########################################################################
 sub html_parse_frame
 {
  my ($name) = shift;
  my ($value) = shift;
  my ($html) = shift;
+ my $hashref = ref($_[0]) ? shift : undef;
  my ($uniq) = generate_unique_string($html);
  my $html_parser_counter = '0';
  my $data = $html;
@@ -218,6 +233,7 @@ sub html_parse_frame
         my $prev = $1.$2;
         my $l = $3;
         $l =~ s/^\ {0,}(\"|\'|)([^\'\"]+)?(\"|\'|)(.*)$/\"$value\"$4\>/si;
+        if($hashref ne undef){$hashref->{$name} = $2;}
         $v = $prev.$l;
         if(!($v =~ m/\>\ {0,}$/)){$v .= '>';}
         substr($data,index($data,$k),length($k),$v);
@@ -240,16 +256,17 @@ sub html_parse_frame
  return($data);
 }
 
-###############################################
+#########################################################################
 # Parse one <img> tag
 # PROTO: 
-# $html = html_parse_img($name,$val,$html);
-###############################################
+# $html = html_parse_img($name,$val,$html,$hash_ref);
+#########################################################################
 sub html_parse_img
 {
  my ($name) = shift;
  my ($value) = shift;
  my ($html) = shift;
+ my $hashref = ref($_[0]) ? shift : undef;
  my ($uniq) = generate_unique_string($html);
  my $html_parser_counter = '0';
  my $data = $html;
@@ -269,6 +286,7 @@ sub html_parse_img
         my $prev = $1.$2;
         my $l = $3;
         $l =~ s/^\ {0,}(\"|\'|)([^\'\"]+)?(\"|\'|)(.*)$/\"$value\"$4\>/si;
+        if($hashref ne undef){$hashref->{$name} = $2;}
         $v = $prev.$l;
         if(!($v =~ m/\>\ {0,}$/)){$v .= '>';}
         substr($data,index($data,$k),length($k),$v);
@@ -291,16 +309,17 @@ sub html_parse_img
  return($data);
 }
 
-###############################################
+#########################################################################
 # Parse one <A NAME=... HREF=...> tag
 # PROTO: 
-# $html = html_parse_link($name,$val,$html);
-###############################################
+# $html = html_parse_link($name,$val,$html,$hash_ref);
+#########################################################################
 sub html_parse_link
 {
  my ($name) = shift;
  my ($value) = shift;
  my ($html) = shift;
+ my $hashref = ref($_[0]) ? shift : undef;
  my ($uniq) = generate_unique_string($html);
  my $html_parser_counter = '0';
  my $data = $html;
@@ -320,6 +339,7 @@ sub html_parse_link
         my $prev = $1.$2;
         my $l = $3;
         $l =~ s/^\ {0,}(\"|\'|)([^\'\"]+)?(\"|\'|)(.*)$/\"$value\"$4\>/si;
+        if($hashref ne undef){$hashref->{$name} = $2;}
         $v = $prev.$l;
         if(!($v =~ m/\>\ {0,}$/)){$v .= '>';}
         substr($data,index($data,$k),length($k),$v);
@@ -342,16 +362,17 @@ sub html_parse_link
  return($data);
 }
 
-###############################################
-# Parse one <META HTTP-EQUIV.. CONTENT..> tag
+#########################################################################
+# Parse one <META NAME=... CONTENT=...> tag
 # PROTO: 
-# $html = html_parse_meta($name,$val,$html);
-###############################################
+# $html = html_parse_meta($name,$val,$html,$hash_ref);
+#########################################################################
 sub html_parse_meta
 {
  my ($name) = shift;
  my ($value) = shift;
  my ($html) = shift;
+ my $hashref = ref($_[0]) ? shift : undef;
  my ($uniq) = generate_unique_string($html);
  my $html_parser_counter = '0';
  my $data = $html;
@@ -361,16 +382,17 @@ sub html_parse_meta
  my @k_t = ();
  my @v_t = ();
 
- $html =~ s#(\<A[^\<\>]*?)( HTTP\-EQUIV\ {0,})([\=\ \"\']+)($name)(\ |\"|\')(.*?)\>#do{
+ $html =~ s#(\<META[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)($name)(\ |\"|\')(.*?)\>#do{
      $temp = $uniq.":".$html_parser_counter.":";
      $v = $1.$2.$3.$4.$5.$6;
-     $data =~ s/(\<A[^\<\>]*?)( HTTP\-EQUIV\ {0,})([\=\ \"\']+)$name(\ |\"|\')(.*?)\>/$temp/si;
+     $data =~ s/(\<META[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)$name(\ |\"|\')(.*?)\>/$temp/si;
      $k = $temp;
       if($v =~ m/^(.*?)( CONTENT\ {0,}\=)(.*)?$/si)
        {
         my $prev = $1.$2;
         my $l = $3;
         $l =~ s/^\ {0,}(\"|\'|)([^\'\"]+)?(\"|\'|)(.*)$/\"$value\"$4\>/si;
+        if($hashref ne undef){$hashref->{$name} = $2;}
         $v = $prev.$l;
         if(!($v =~ m/\>\ {0,}$/)){$v .= '>';}
         substr($data,index($data,$k),length($k),$v);
@@ -392,7 +414,7 @@ sub html_parse_meta
 
  return($data);
 }
-
+#########################################################################
 sub generate_unique_string
 {
  my $body = shift;
@@ -406,7 +428,7 @@ sub generate_unique_string
  $start = '<=_'.$start.'_=>';
  return($start);
 }
-
+#########################################################################
 sub html_parse_remove_attribute
 {
  my ($tag,$v) = @_;
@@ -427,7 +449,7 @@ sub html_parse_remove_attribute
    }
  return($copy);
 }
-
+#########################################################################
 sub html_parse_select_options
 {
  my ($value,$html) = @_;

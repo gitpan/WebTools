@@ -1,7 +1,7 @@
       INSTALL
       TERMS AND PRIVACY:
       WebTools
-      Copyright (c) 2001, Julian Lishev, Sofia 2001. All rights reserved.
+      Copyright (c) 2001, Julian Lishev, Sofia 2002. All rights reserved.
       This code is free software; you can use it, redistribute it and/or modify 
       it, but WITHOUT ANY WARRANTY, under the same terms as Perl itself. 
       Please keep structure of package and don't modify file names because you 
@@ -50,7 +50,7 @@
       First of all you must have webtools package. It must be packed into one 
       tar.gz file.
       Please copy this .gz file into some directory and run follow commands:
-      tar -zxvf WebTools-1.26.tar.gz
+      tar -zxvf WebTools-1.27.tar.gz
       cd WebTools-1.2
       perl Makefile.PL
       make
@@ -124,7 +124,7 @@
       july.newald.proscriptum.com)
       His full cgi-bin directory is: /home/july/public_html/cgi-bin
       So  his webtools directory can be: /home/july/public_html/cgi-bin/webtools
-      Now we can upload WebTools-1.26.tar.gz to our home directory and after 
+      Now we can upload WebTools-1.27.tar.gz to our home directory and after 
       that to install script.
       After installation our process.cgi has permission mode set to 0755, 
       directories have permission modes: 0755 and any other files: 0444
@@ -294,8 +294,8 @@
       #-----------------------------------------------------------------------------------------
       # Step by Step Installation example:
       #-----------------------------------------------------------------------------------------
-      tar -zxvf WebTools-1.26.tar.gz
-      cd WebTools-1.26
+      tar -zxvf WebTools-1.27.tar.gz
+      cd WebTools-1.27
       perl Makefile.pl
               > /usr/local/apache/cgi-bin/webtools/
       make
@@ -303,7 +303,7 @@
       make permissions
       make clean
       cd ..
-      rm -rf WebTools-1.26
+      rm -rf WebTools-1.27
       cd /usr/local/apache/cgi-bin/webtools
       ls -l -a
       perl -c process.cgi     # Must be "ok"

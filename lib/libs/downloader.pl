@@ -1,15 +1,16 @@
 #######################################################
 # Perl`s Download Library
+# This is a part of WebTools library!
 #######################################################
 # Ver 4.0
 #######################################################
-use strict;      # Perl was here...
+use strict;
 
 my %sys_MIMETYPES = ('zip','application/zip','exe','application/octet-stream','doc','application/msword',
               'report','application/zip','mpga','audio/mpeg','mp3','audio/mpeg','gz','application/x-gzip',
               'gzip','application/x-gzip','xls','application/vnd.ms-excel');
 my $sys_kill_flag = 0;
-my $sys_length = 2048;             # Each print() will be limited of this size!
+my $sys_length = 2048;
 my $sys_period = 1;
 my $sys_last_sent_byte;
 $webtools::loaded_functions = $webtools::loaded_functions | 256;
@@ -162,7 +163,7 @@ sub downloader_SendFile
  eval '$stdouthandle::sys_stdouthandle_header = 1;';
   
  print "MIME-Type: 1.0\n";
- print "X-Powered-By: WebTools/1.26\n";
+ print "X-Powered-By: WebTools/1.27\n";
  print "Content-Disposition: filename=\"$name\"\n";
  print "Content-Transfer-Encoding: binary\n";
  print "Content-Type: ".$type.";name=\"$name\"\n\n";
@@ -221,7 +222,7 @@ sub downloader_SendMemFile
  eval '$stdouthandle::sys_stdouthandle_header = 1;';
   
  print "MIME-Type: 1.0\n";
- print "X-Powered-By: WebTools/1.26\n";
+ print "X-Powered-By: WebTools/1.27\n";
  print "Content-Disposition: filename=\"$name\"\n";
  print "Content-Transfer-Encoding: binary\n";
  print "Content-Type: ".$type.";name=\"$name\"\n\n";
