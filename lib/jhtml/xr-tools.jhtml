@@ -1,0 +1,227 @@
+This HTML code is for "sub Categorieshtml_b"
+<©N®1®1®®©>
+<script language="JavaScript">
+ <!-- hide from old browsers
+  function Submitit(act)
+    {
+     document.form1.action.value = act;
+     if(act == "delete")
+       {
+       	if(confirm("Are you shure you want to delete?") == true)
+       	  {
+       	   document.form1.submit();
+       	  }
+       }
+     else
+       {
+       	document.form1.submit();
+       }
+     return(0);
+    }   
+ // -- end of hidding -->
+</script>
+<TABLE WIDTH="560" CELLSPACING="0" CELLPADDING="10">
+<TR>
+    <TD>
+     <FONT SIZE="-1">
+     <table width="100%" bgcolor="#CFD2DD" cellspacing=0 cellpadding=0 border=0><tr>
+     <td><b><FONT SIZE="-1">Driver`s Categories</font></b></td>
+     <td align="right"><B><FONT SIZE="-1">Admin Tools</font></B></td>
+     </tr></table>
+     <FORM NAME="form1" METHOD="POST" ACTION="/cgi-bin/demo/process.cgi?file=category.html">
+     <INPUT TYPE="hidden" NAME="action" VALUE="show">
+<˜©˜>
+
+This HTML code is for "sub ShowCategories"
+<©N®2®1®®©>
+<INPUT CLASS="BoldBtn" TYPE="button" NAME="showedit" ID=b1 VALUE="Show/Edit" onclick="Submitit('showedit');">&nbsp;
+ <INPUT CLASS="BoldBtn" TYPE="button" NAME="del" ID=b2 VALUE="Delete" onclick="Submitit('delete');">
+ <BR><BR>
+ <table width="100%" bgcolor="#CFD2DD" cellspacing=0 cellpadding=0 border=0><tr>
+ <td><b><FONT SIZE="-1">Add New Driver`s Category</FONT></b></td>
+ <td align="right"><B><FONT SIZE="-1">Admin Tools</FONT></B></td>
+ </tr></table><br>
+ <b>New Category:</b> <INPUT TYPE="TEXT" NAME="category" VALUE="">
+ <INPUT CLASS="BoldBtn" TYPE="button" NAME="add" ID=b3 VALUE="Add" onclick="Submitit('add');">
+</FORM>
+</FONT>
+</TD>
+</TR>
+</TABLE>
+<˜©˜>
+
+This HTML code is for "sub ShowEditCategory"
+<©N®3®1®®©>
+<script language="JavaScript">
+ <!-- hide from old browsers
+  function Submitit(act)
+    {
+     document.form1.action.value = act;
+     if((act == "delete") || (act == "deldriver"))
+       {
+       	if(confirm("Are you shure you want to delete?") == true)
+       	  {
+       	   document.form1.submit();
+       	  }
+       }
+     else
+       {
+       	document.form1.submit();
+       }
+     return(0);
+    }   
+ // -- end of hidding -->
+</script>
+<TABLE WIDTH="560" CELLSPACING="0" CELLPADDING="10">
+<TR>
+    <TD>
+     <FONT SIZE="-1">
+     <table width="100%" bgcolor="#CFD2DD" cellspacing=0 cellpadding=0 border=0><tr>
+     <td><b><FONT SIZE="-1">Category "
+<˜©˜>
+
+This HTML code is for "sub ShowEditCategory"
+<©N®4®1®®©>
+"</font></b></td>
+ <td align="right"><B><FONT SIZE="-1">Admin Tools</font></B></td>
+ </tr></table>
+ <FORM NAME="form1" METHOD="POST" ACTION="/cgi-bin/demo/process.cgi?file=category.html">
+ <INPUT TYPE="hidden" NAME="action" VALUE="show">
+ <b>Visibility of category:&nbsp;</b>
+<˜©˜>
+
+This HTML code is for "sub ShowEditCategory"
+<©N®5®1®®©>
+<INPUT CLASS="BoldBtn" TYPE="button" NAME="update" ID=b1 VALUE="Update" onclick="Submitit('updatecategory');">&nbsp;
+ <BR><BR>
+ <table width="100%" bgcolor="#CFD2DD" cellspacing=0 cellpadding=0 border=0><tr>
+ <td><b><FONT SIZE="-1">Drivers</FONT></b></td>
+ <td align="right"><B><FONT SIZE="-1">Admin Tools</FONT></B></td>
+ </tr></table><br>
+<˜©˜>
+
+This HTML code is for "sub ShowEditCategory"
+<©N®6®1®®©>
+<BR>
+ <table width="100%" bgcolor="#CFD2DD" cellspacing=0 cellpadding=0 border=0><tr>
+ <td><b><FONT SIZE="-1">New Driver</FONT></b></td>
+ <td align="right"><B><FONT SIZE="-1">Admin Tools</FONT></B></td>
+ </tr></table><br>
+ <table>
+  <tr>
+    <td><font size=-1><b>First Name:</b></font></td><td><INPUT TYPE="TEXT" NAME="driver_f" VALUE=""></td>
+  </tr>
+  <tr>
+    <td><font size=-1><b>Last Name:</b></font></td><td><INPUT TYPE="TEXT" NAME="driver_l" VALUE=""></td>
+  </tr>
+  <tr>
+    <td><font size=-1><b>Value:</b></font></td><td><INPUT TYPE="TEXT" NAME="driver_v" VALUE=""></td>
+  </tr>
+  <tr>
+    <td><font size=-1><b>Qualify:</b></font></td><td><INPUT TYPE="TEXT" NAME="driver_q" VALUE=""></td>
+  </tr>
+  <tr>
+    <td><font size=-1><b>Visible:</b></font></td><td><INPUT TYPE="checkbox" NAME="chkdbox" VALUE="1" checked></td>
+  </tr>
+ </table>
+ <INPUT CLASS="BoldBtn" TYPE="button" NAME="adddrv" ID=b3 VALUE="Add" onclick="Submitit('adddriver');">
+</FORM>
+</FONT>
+</TD>
+</TR>
+</TABLE>
+<˜©˜>
+
+This HTML code is for "sub HTMLTableTREdit"
+<©N®7®1®®©>
+<INPUT NAME="id_<§VAR§>" TYPE="hidden" VALUE="<§VAR§>">
+<TR <§VAR§>>
+<TD><§VAR§>
+<INPUT SIZE=10 NAME="fname_<§VAR§>" TYPE="text" VALUE="<§VAR§>"></TD><§VAR§>
+<TD><INPUT SIZE=10  NAME="lname_<§VAR§>" TYPE="text" VALUE="<§VAR§>"></TD><§VAR§>
+<TD><INPUT SIZE=4  NAME="qname_<§VAR§>" TYPE="text" VALUE="<§VAR§>"></TD><§VAR§>
+ <TD>$<INPUT SIZE=8  NAME="vname_<§VAR§>" TYPE="text" VALUE="<§VAR§>"></TD><§VAR§>
+ <TD><SELECT NAME="select_<§VAR§>" SIZE="1">
+ <§VAR§>
+ <TD><INPUT CLASS="BoldBtn" TYPE="button" VALUE="Update" NAME="update" onclick="document.form1.drid.value=<§VAR§>; Submitit('updatedriver');"></td>
+ <TD><INPUT CLASS="BoldBtn" TYPE="button" VALUE="Delete" NAME="del" onclick="document.form1.drid.value=<§VAR§>; Submitit('deldriver');"></td><§VAR§>
+ </TR><§VAR§>
+<˜©˜>
+
+This HTML code is for "sub ShowAllDrivers"
+<©N®8®1®®©>
+<B><h3><§VAR§></h3></B>
+<TABLE width="500" BORDER="0" CELLSPACING="1" CELLPADDING="1" bgcolor="silver">
+<˜©˜>
+
+This HTML code is for "sub ShowAllDrivers"
+<©N®9®1®®©>
+<TR bgcolor="white" width="100%">
+<TD WIDTH="50%" ALIGN=LEFT VALIGN=TOP><FONT face="VERDANA, ARIAL" size=-1><§VAR§></font></TD>
+<TD WIDTH="20%" ALIGN=CENTER VALIGN=TOP><FONT face="VERDANA, ARIAL" size=-1><§VAR§></font></TD>
+<TD WIDTH="30%" ALIGN=RIGHT VALIGN=TOP><FONT face="VERDANA, ARIAL" size=-1>&nbsp;$<§VAR§></FONT></TD>
+</TR>
+<˜©˜>
+
+This HTML code is for "sub ShowAllDrivers"
+<©N®10®1®®©>
+<FONT SIZE=-1>
+<FORM NAME="SORTFORM" ACTION="/cgi-bin/demo/process.cgi?file=drivers.html&action=show" METHOD=POST>
+<B>Sort By: </B>
+<SELECT NAME="by">
+ <OPTION VALUE="Name" <§VAR§>>Name</OPTION>
+ <OPTION VALUE="Value" <§VAR§>>Value</OPTION>
+ <OPTION VALUE="QLF" <§VAR§>>QLF</OPTION>
+</SELECT>&nbsp;
+<B>Direction: </B>
+<SELECT NAME="dir">
+ <OPTION VALUE="Down" <§VAR§>>Down</OPTION>
+ <OPTION VALUE="Up" <§VAR§>>Up</OPTION>
+</SELECT>&nbsp;&nbsp;&nbsp;<INPUT type="submit" value="Sort">
+</FORM>
+</FONT>
+<˜©˜>
+
+This HTML code is for "sub ShowAllDrivers"
+<©N®11®1®®©>
+<FONT SIZE=-1>
+<B>Sort By: </B>
+<SELECT NAME="by">
+ <OPTION VALUE="Name" <§VAR§>>Name</OPTION>
+ <OPTION VALUE="Value" <§VAR§>>Value</OPTION>
+ <OPTION VALUE="QLF" <§VAR§>>QLF</OPTION>
+</SELECT>&nbsp;
+<B>Direction: </B>
+<SELECT NAME="dir">
+ <OPTION VALUE="Down" <§VAR§>>Down</OPTION>
+ <OPTION VALUE="Up" <§VAR§>>Up</OPTION>
+</SELECT>&nbsp;&nbsp;&nbsp;<INPUT type="submit" value="Sort" onclick="javascript:document.form1.action.value='show';">
+</FONT>
+<BR><BR>
+<˜©˜>
+
+This HTML code is for "sub ShowAllDriversOSR2"
+<©N®12®1®®©>
+<FONT SIZE=-1>
+<FORM NAME="SORTFORM" ACTION="/cgi-bin/demo/process.cgi?file=drivers.html&action=show" METHOD=POST>
+<B>Sort By: </B>
+<SELECT NAME="by">
+ <OPTION VALUE="Name" <§VAR§>>Name</OPTION>
+ <OPTION VALUE="Value" <§VAR§>>Value</OPTION>
+</SELECT>&nbsp;
+<B>Direction: </B>
+<SELECT NAME="dir">
+ <OPTION VALUE="Down" <§VAR§>>Down</OPTION>
+ <OPTION VALUE="Up" <§VAR§>>Up</OPTION>
+</SELECT>&nbsp;&nbsp;&nbsp;<INPUT type="submit" value="Sort">
+</FORM>
+</FONT>
+<˜©˜>
+
+This HTML code is for "sub ShowAllDrivers"
+<©N®13®1®®©>
+<TR bgcolor="white" width="100%">
+<TD WIDTH="50%" ALIGN=LEFT VALIGN=TOP><FONT face="VERDANA, ARIAL" size=-1><§VAR§></font></TD>
+<TD WIDTH="30%" ALIGN=RIGHT VALIGN=TOP><FONT face="VERDANA, ARIAL" size=-1>&nbsp;$<§VAR§></FONT></TD>
+</TR>
+<˜©˜>

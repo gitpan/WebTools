@@ -1,0 +1,75 @@
+<html>
+<head>
+<title>README-MySQL</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<div align="center">
+  <p><b><font color="#000000" size="4">MySQL</font></b></p>
+  <p align="left">&nbsp;&nbsp;&nbsp;<b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">This 
+    README file regards MySQL users and this help is all information that I can 
+    give to you!<br>
+    <br>
+    Installation:<br>
+    &nbsp;&nbsp;&nbsp;Before you can use MySQL server you may need to install 
+    some standart modules:<br>
+    First you need: </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/TIMB/DBI-1.20.tar.gz">DBI</a></font><font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
+    and also you need MySQL DBD module: </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/JWIED/Msql-Mysql-modules-1.2216.tar.gz">MySQL</a></font><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br>
+    After successful installation please run 'mysql' client with your adminstrator 
+    user and make new user for your webtools project (or use some other old user):<br>
+    <br>
+    &nbsp;&nbsp;&nbsp;<font color="#990000">&gt; mysql -u root_user -p<br>
+    <br>
+    &nbsp;&nbsp;&nbsp;mysql&gt; use mysql;<br>
+    &nbsp;&nbsp;&nbsp;mysql&gt; insert into user values ('localhost', 'webtools_user', 
+    password('its_password'),<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    'Y', 'Y', 'Y', 'Y', 'Y', 'Y', 'N', 'N', 'N', 'N', 'N', 'N', 'N', 'N');<br>
+    &nbsp;&nbsp;&nbsp;mysql&gt; exit<br>
+    <br>
+    &nbsp;&nbsp;&nbsp;&gt; mysqladmin reload<br>
+    &nbsp;&nbsp;&nbsp;&gt; cd &nbsp;&nbsp;to_your_<font color="#000066">webtools_db_strutures</font>_directory</font><br>
+    <br>
+    Now, edit '<font color="#006600">mysql-webtoolsdb.sql</font>' (please coordinate 
+    information from '<font color="#006600">config.pl</font>' and '<font color="#006600">mysql-webtoolsdb.sql</font>' 
+    file). <br>
+    Now you can create structure needed by webtools:<br>
+    <br>
+    &nbsp;&nbsp;&nbsp;<font color="#990000">&gt; mysql -u webtools_user -p &lt; 
+    mysql-webtoolsdb.sql<br>
+    <br>
+    <font color="#000000">Well database is ready! Now don't forget to configure 
+    follow sections of 'config.pl':<br>
+    <br>
+    <font color="#006600">#[Name_Of_Project]<br>
+    $projectname = '<font color="#990000">webtools</font>'; &nbsp;&nbsp;&nbsp;&nbsp;# 
+    Name of project! (be careful!) </font></font></font></font></b></p>
+  <p align="left"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#006600"><b>#[SQL]<br>
+    $db_support = 'db_mysql';&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# MySQL 
+    driver. <br>
+    $sql_host = '<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">localhost</font></font>';&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 
+    Your address to SQL server.<br>
+    $sql_port = '3306'; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 
+    Your port of SQL server.<br>
+    $sql_user = '<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">webtools_user</font></font>'; 
+    &nbsp;&nbsp;# using user<br>
+    $sql_pass = '<font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#990000">its_password</font></font>'; 
+    &nbsp;&nbsp;&nbsp;&nbsp;# and password<br>
+    $mysqlbequiet = '1';&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+    # MySQL be QUIET?</b></font></p>
+  <p align="left"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#006600"><b>#[DataBase]<br>
+    $sql_database_sessions = <font color="#990000">$projectname</font>.'db';&nbsp;&nbsp; 
+    &nbsp;&nbsp;&nbsp;&nbsp;# Database name.<br>
+    $sql_sessions_table = <font color="#990000">$projectname</font>.'_sessions'; 
+    # Session table.<br>
+    $sql_user_table = <font color="#990000">$projectname</font>.'_users'; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;# 
+    Contain all users (and admin too).</b></font></p>
+  <p align="left"><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">Evrything 
+    is ok and now you can run your tests/examples...enjoy!</font></b><br>
+    <br>
+    <b><font face="Verdana, Arial, Helvetica, sans-serif" size="-1">Author:<br>
+    <a href="mailto:jlishev@cpan.org">julian@proscriptum.com</a></font></b></p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,561 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1033\deflangfe1033{\fonttbl{\f0\froman\fcharset204{\*\fname Times New Roman;}Times New Roman CYR;}{\f1\froman\fprq2\fcharset0 Times New Roman;}{\f2\fswiss\fprq2\fcharset0 Verdana;}{\f3\fnil\fprq2\fcharset2 Wingdings;}}
+{\colortbl ;\red255\green0\blue0;\red0\green0\blue0;\red0\green0\blue127;\red0\green127\blue0;\red127\green0\blue0;\red0\green0\blue128;\red128\green0\blue0;\red0\green128\blue0;\red0\green255\blue255;\red153\green51\blue0;\red51\green153\blue102;\red255\green204\blue0;\red0\green0\blue255;\red128\green0\blue128;\red0\green127\blue127;}
+\viewkind4\uc1\pard\nowidctlpar\qc\cf1\b\f0\fs40 HELP\par
+\pard\nowidctlpar            \ul\fs32 Contents:\f1\par
+\pard\nowidctlpar\fi-375\li375\tx375\cf2\ulnone\fs28 1. Overview\f0\par
+\f1 2. Web\f0  Tools\f1\par
+3. \f0 GlobExport\f1\par
+4. \f0 STDoutHandle\f1\par
+5. \f0 Xreader\par
+\f1 6. \f0 Config\par
+\f1 7. Various stuff\f0\par
+\f1 8. Author\f0\par
+\pard\nowidctlpar\cf3\f2\fs24\par
+\par
+\fs32 1. Overview\par
+\cf0\b0\fs24 WebTools was projected to reduce maximum development work in web projects! It decide most of common tasks, so you can think about more important things at all. Note that this package is not 10-15 kb\par
+and you need a time to learn everything about it. But don\rquote t afraid to\par
+start. I am sure that it will be helpful for you :)\cf3\b\fs32\par
+\fs24    This document is not a real help it is reference! For more information and help please see examples!\lang1026\par
+\lang1033\fs32 2. Web Tools\par
+\b0\fs24     \par
+\cf2    This module capsulate most of functionally that Web developer need for its projects! \par
+   Mainly is support: sessions, user accounts, html-perl code (php like), Database support and more..\par
+\cf3\b\fs32\par
+\cf4\ul\fs28 Exported Variables\par
+\par
+\cf3\ulnone\fs24 *SESSIONSTDOUT \par
+       \cf5\fs20 Standard OUTput handler used by webtools to emulate\par
+        PRINT-like operators.\fs24\par
+\cf3 %SESREG \par
+       \cf5\fs20 Hash contained all registered variables with \ldblquote this\rdblquote  session.\par
+\cf3\fs24 %SIGNALS\par
+       \cf5\fs20 Hash contained all catched signals from user's script.\par
+\cf3\fs24 %cfghash \par
+       \cf5\fs20 Configuration hash contained all options from \ldblquote config.pl\rdblquote  file.\fs24\par
+\cf3 %sess_cookies \par
+       \cf5\fs20 Contain all cookies received from stream.\par
+\cf3\fs24 %uploaded_files\par
+       \cf5\fs20 Contain filenames of all uploaded files via multipart form!\par
+         These are names of files on local machine (i.e. your web server)\par
+         You can open and read these files from your server\rquote s tmp directory!\par
+         Note that you must to clean up by yourself (please delete these files\par
+         after you had use it)        \par
+\cf3\fs24 $sess_cpg  \par
+       \cf5\fs20 That show type of session support and can be: \ldblquote cookie\rdblquote  or \ldblquote get/post\rdblquote\par
+\cf3\fs24 $sentcontent \par
+       \cf5\fs20 Show whether Send_Content() where called! (i.e. data were flushed to browser)\par
+\cf6\fs24 $ip_restrict_mode\par
+\cf7\fs20          Set 'on' or 'off' restriction of session by IP\par
+\cf3\fs24 $apacheshtdocs \par
+       \cf5\fs20 This is apache`s htdocs directory.\fs24\par
+\cf3 $reg_buffer \par
+       \cf5\fs20 Contain register session file!\par
+\cf3\fs24 $cookie_path_cgi \par
+       \cf5\fs20 That is PATH added to cookies (e.g: /cgi-bin)\fs24  \par
+\cf3 $cookie_domain_cgi\par
+       \cf5\fs20 That is DOMAIN added to cookies (e.g: .july.bg)\fs24  \par
+\cf3 $cookie_exp_date_cgi\par
+       \cf5\fs20 That is DATE added to cookies\fs24\par
+\cf3 $secure_cookie_cgi\par
+       \cf5\fs20 That is SECURE atribute added to cookies (e.g: 1 or 0)\fs24  \par
+\cf3 $session_started \par
+        \cf5\fs20 Show whether session_start were started!\cf3\fs24\par
+$print_header_buffer \par
+        \cf5\fs20 Here is a place where script holds headers (only!)\fs24\par
+\cf3 $print_flush_buffer \par
+        \cf5\fs20 Here is a place where script holds body!\cf3\fs24\par
+$sql_host \par
+        \cf5\fs20 Variables that contain SQL host from confing.pl\cf3\fs24\par
+$sql_user \par
+        \cf5\fs20 Variables that contain user name from confing.pl,\par
+          used for accessing SQL server.\cf3\par
+\fs24 $sql_pass \par
+        \cf5\fs20 Variables that contain user pass from confing.pl, \par
+          used for accessing SQL server.\cf3\par
+\fs24 $sql_database_sessions \fs20\par
+          \cf5 That is database name of session\rquote s table.\par
+\cf3\fs24 $sql_sessions_table \par
+        \cf5\fs20 That is a name of session\rquote s table.\par
+\cf3\fs24 $cgi_script_timeout\par
+        \cf5\fs20 That is a expiration time of script i.e. maximum running \par
+          time of script. Default it\rquote s value is 120 seconds! If you\par
+          need more time for your script, please don\rquote t change\par
+          that var directly, please use function set_script_timeout\par
+          If you thing you need more time for all your scripts at\par
+          all then change this var (it is found into config.pl)\par
+\cf3\fs24 $cgi_lib_forbid_mulipart\par
+\cf5\fs22          If you want to protect yourself from multipart spam\par
+         turn this to 'on' (Default it is set to \lquote off\rquote )\par
+         If you disable this variable you will not longer receive\par
+         Multipart forms via POST!\par
+\fs24\par
+\cf4\ul\fs28 Exported Functions\par
+\cf3\ulnone\fs24\par
+hideerror \par
+     \cf5\fs20 Function that will be executed when error occur in SQL server.\cf3\fs24\par
+sql_query \par
+     \cf5\fs20 SQL query function.\cf3\fs24  \fs20 $result = \cf1 sql_query \cf3 (\cf4 $query,$DBHandler\cf3 );\par
+\fs24 sql_fetchrow \par
+     \cf5\fs20 SQL function that fetching rows from SQL server. \par
+      \cf3 @arr =\cf5  \cf1 sql_fetchrow\cf3  (\cf4 $result_handler\cf3 );\cf5\par
+\cf3\fs24 sql_affected_rows \par
+      \cf5\fs20 SQL function that show a count of affected rows. \par
+       \cf3 $number = \cf1 sql_affected_rows \cf3 (\cf4 $result_handler\cf3 );\par
+\fs24 sql_inserted_id \par
+      \cf5\fs20 SQL function that show current inserted ID number.\par
+       \cf3 $number = \cf1 sql_inserted_id\cf3  (\cf4 $result_handler\cf3 );\fs24\par
+sql_num_rows \par
+      \cf5\fs20 SQL function that show a count of affected rows.\par
+       \cf3 $number = \cf1 sql_ num_fields\cf3  (\cf4 $result_handler\cf3 );\fs24\par
+sql_quote \par
+      \cf5\fs20 Quote one scalar.\par
+\cf3        $quoted_string = \cf1 sql_quote\cf3  (\cf4 $unquoted,$DBHandler\cf3 );\par
+\fs24 sql_connect \par
+\cf5\fs20        Connect SQL server. No params needed!\par
+       Return \cf3 $DBHandler\cf5  as result.\par
+\cf3\fs24 sql_connect \par
+\cf5\fs20        Connect SQL server. Same as previous but it's take up to 6 parameters.\par
+       \cf3 $DBHandler\cf5  \cf3 = \cf1 sql_quote\cf3  \cf6 (\cf8 $host,$database,$user,$pass,[$port],[$full_path]\cf6 );\cf5\par
+       \cf8 $host \cf5 is needfull only for \cf6 MySQL DB\cf5 ; \cf8 $database \cf5 is \cf6 DNS\cf5  for \cf6 Access DB\cf5 , normal\par
+       DB name for \cf6 MySQL\cf5  and file name (without path and without ext eg.: 'july');\par
+       \cf8 $port \cf5 is proper only for \cf6 MySQL DB\cf5 ; \cf8 $full_path \cf5 is a path to \cf6 Flat DB \cf5 file (eg.: ./db/)\par
+       NOTE: You should specify all parameters except these in "[]" (if not applyable)\par
+\cf6\fs24 sql_select_db\cf5\fs20\line        Select new database.\par
+       \cf3 $new_DBHandler = \cf1 sql_select_db\cf3  (\cf4 $new_database,$DBHandler\cf3 );\par
+\cf7        As result of this function new database are now activated (selected) but you \line        \cf1 must\cf7  save (and \cf1 use\cf7 ) the \cf1 new one Database Handler instead of previous one!\par
+\cf3\fs24 sql_disconnect \par
+\cf5\fs20        Disconnect SQL server. No params needed!\par
+       Return \cf3 1\cf5  as result.\line\cf6\fs24 sql_errmsg\cf5\fs20  \line        Return error message.\par
+      \cf3 $err_mes = \cf1 sql_errmsg\cf3  (\cf4 $DBHandler\cf3 );\par
+\cf6\fs24 sql_errno\cf5\fs20\line        Return error number.\par
+      \cf3 $err_numb = \cf1 sql_errno\cf3  (\cf4 $DBHandler\cf3 );\par
+\cf6\fs24 sql_data_seek\cf5\fs20\line        Move result handler to some row number.\par
+      \cf3 $res = \cf1 sql_data_seek\cf3  (\cf4 $row_number,$result_handler\cf3 );\par
+\fs24 DB_OnDestroy \par
+\cf5\fs20        Event on destroy DB handler!\par
+\cf3\fs24 DB_OnExit\b0\par
+\cf5\b\fs20        Event on script exit!\par
+\cf9 ________________________________________________\ul\par
+\cf3\ulnone\fs24\par
+session_start\par
+\cf5\fs20        Start SESSION. It can be inherited or created as is.\par
+\cf3        $SID = \cf1 session_start \cf3 (\cf4 $DBHandler,$NewSessionFLAG\cf3 );\line\cf7        Where $NewSessionFLAG can be 1 or 0 (1 - will create absolutely new session\par
+       (old session is ignored), 0 - will inherit old session if any)\fs24\par
+\cf3 session_register \par
+\cf5\fs20        Register one buffer (compressed vars) into Session table.\par
+\cf3        $result = \cf1 session_register \cf3 (\cf4 $Buffer,$DBHandler\cf3 );\fs24\par
+session_destroy \par
+\cf5\fs20        Destroy current session\par
+\cf3        $SID = \cf1 session_destroy \cf3 (\cf4 $DBHandler\cf3 );\par
+\fs24 session_ip_restrict\par
+\cf5\fs20        Set mode of session restriction by IP. Valid \cf8 modes\cf5  are: 'on' and 'off'\par
+\cf3        \cf1 session_ip_restrict \cf3 (\cf4 $mode\cf3 );\par
+\fs24 session_id \par
+\cf5\fs20        Return current $SID as result.\par
+\cf3\fs24 session_clear_expired \par
+      \cf5\fs20 Clear all expired records from database.\par
+\cf3        $SID = \cf1 session_clear_expired \cf3 (\cf4 $DBHandler\cf3 );\fs24\par
+session_id_adder\par
+      \cf5\fs20 Add SID ident to all links and forms in source!\par
+\cf3        $result_source = \cf1 session_id_adder \cf3 (\cf4 $source\cf3 );\fs24\par
+session_expire_update \par
+      \cf5\fs20 Update current session`s time up to now.\par
+\cf3        $result = \cf1 session_expire_update \cf3 (\cf4 $DBHandler\cf3 );\fs24\par
+action_sid_adder \par
+\cf5\fs20        Add SID indents to all forms in source!\par
+\cf3        $result_source = \cf1 action_sid_adder \cf3 (\cf4 $source\cf3 );\fs24\par
+href_sid_adder \par
+\cf5\fs20        Add SID ident to all links in source!\par
+\cf3        $result_source = \cf1 href_sid_adder \cf3 (\cf4 $source\cf3 );\fs24\par
+convert_ses_time \par
+\cf5\fs20        Convert session time to \ldblquote codded\rdblquote  integer.\par
+\cf3        $coded_string = \cf1 convert_ses_time \cf3 (\cf4 $source_time,$count_of_new_str\cf3 );\fs24\par
+new_session \par
+\cf5\fs20        Show whether new session were started.\par
+\cf3\fs24 GetCurrentSID\par
+\cf5\fs20        Return current Session ID.\par
+\cf3\fs24 register_var \par
+      \cf5\fs20 Register one variable (scalar , array or hash) into current session.\par
+\cf3        $coded_buffer = \cf1 register_var \cf3 (\cf4 $type,$name,@val\cf3 );\line\cf10        where \cf11 $type\cf10  could be \cf12 scalar, array or hash\cf10 , \cf11 $name\cf10  can be any \par
+       permitted variable name under whom module will save data.\par
+       \cf11 @val\cf10  is a array that contain data for registration. It could be also\par
+       just scalar or even hash\fs24\par
+\cf3 unregister_var \par
+\cf5\fs20        UnRegister one variable (scalar or array)\par
+      \cf3  $coded_buffer = \cf1 unregister_var \cf3 (\cf4 $name,$buffer\cf3 );\fs24\par
+read_scalar \par
+      \cf5\fs20 Read one scalar from DB (Already Registrated!!!)\par
+\cf3        $scalar = \cf1 read_scalar \cf3 (\cf4 $name\cf3 );\fs24\par
+read_array\par
+      \cf5\fs20 Read one array from DB (Already Registrated!!!)\par
+\cf3        @array = \cf1 read_array \cf3 (\cf4 $name\cf3 );\par
+\fs24 read_hash\par
+      \cf5\fs20 Read one hash from DB (Already Registrated!!!)\par
+\cf3        %hash = \cf1 read_hash \cf3 (\cf4 $name\cf3 );\fs24\par
+update_var \par
+      \cf5\fs20 Update one variable from $reg_buffer.\par
+\cf3        $coded_buffer = \cf1 update_var \cf3 (\cf4 $type,$name,$buffer,@new_val\cf3 );\fs24\par
+exists_var \par
+     \cf5\fs20  Check whether one variable is putted into $reg_var!\par
+\cf3        $bool_result = \cf1 exists_var \cf3 (\cf4 $type,$name,$buffer\cf3 );\par
+\fs24 session_set_id_name\par
+     \cf5\fs20  Set name of session (labeled) (exmpl: \lquote sid\rquote )\par
+\cf3        \cf1 session_set_id_name \cf3 (\cf4 $new_sid_label\cf3 );\par
+\fs24 session_id_name \par
+     \cf5\fs20  Get current name of sesson (exmpl: \lquote pid\rquote ,\rquote sid\rquote\'85)\par
+\cf1        session_id_name \cf3 ();\par
+\fs24 session_expiration\par
+     \cf5\fs20  Get current expiration date (exmpl: \lquote +1h\rquote )\par
+\cf1        session_expiration \cf3 ();\par
+\fs24 session_cookie_path\par
+     \cf5\fs20  Get current session cookie`s pat (exmpl: \lquote /cgi-bin/\rquote )\par
+\cf1        session_cookie_path \cf3 ();\par
+\cf9 ________________________________________________\par
+\ul\par
+\cf3\ulnone\fs24 delete_cookie\par
+\cf5\fs20       High level delete cookie function. It can get only 1 param!\par
+\cf1       delete_cookie \cf3 (\cf4 $name\cf3 );\par
+\fs24 write_cookie\par
+\cf5\fs20       High level write cookie function. It can get up to 6 params!\par
+\cf1       write_cookie \cf3 (\cf4 $name,$value,$expr_date,$path,$domain\cf3 );\par
+\cf5       Params from 3 to 6 are not required!\par
+\cf3\fs24 read_cookie \par
+\cf5\fs20       High level read cookie function. It can get only 1 param!\par
+\cf1       read_cookie \cf3 (\cf4 $name\cf3 );\fs24\par
+GetCookies\par
+\cf5\fs20       Get all cookies(or only wished) and put them all into %Cookies.\par
+      Don`t call this function directrly! (Use: read_cookie() instead!)\cf3\par
+\fs24 SetCookies\par
+\cf5\fs20       Set cookie(or cookies) and return raw cookie string!\par
+      Don`t call this function directrly! (Use: write_cookie() instead!)\cf3\fs24\par
+SetCookieExpDate\par
+\cf5\fs20       Set cookie`s expiration for a cookie!\par
+\cf3\fs24 SetCookiePath\par
+\cf5\fs20       Set cookie`s path for a cookie!\cf3\fs24\par
+SetCookieDomain\par
+\cf5\fs20       Set cookie`s domain for a cookie!\cf3\fs24\par
+SetSecureCookie\par
+\cf5\fs20       Set cookie`s secure attribute for a cookie!\cf3\fs24\par
+GetCompressedCookies\par
+\cf5\fs20       Get all compressed cookies (like common function)\par
+\cf3\fs24 SetCompressedCookies\par
+\cf5\fs20       Set compressed cookies (like common function)\par
+\cf9 ________________________________________________\ul\par
+\cf3\ulnone\fs24\par
+Header \par
+\cf5\fs20       Write one Header filed. \par
+\cf1       Header \cf3 (type=>\cf4\rquote type\rquote\cf3  , val=>\cf4\rquote value\rquote\cf3 );\par
+      \cf5 Type can be: \lquote content\rquote ,\rquote  cookie\rquote , \lquote raw\rquote ,\rquote  modified\rquote ,\rquote  MIME\rquote ,\rquote  window\rquote ,\par
+           \rquote Pragma\rquote ,\rquote  Expires\rquote ,\rquote  Referer\rquote .\par
+      And respective example`s values for val are:\par
+       \lquote text/html\rquote ,\rquote name=July;Path=/\rquote ,\rquote full featured row field!\rquote , \lquote some DATE\rquote ,\par
+       \lquote 1.0\rquote , \lquote some window target\rquote , \lquote nocache\rquote , \lquote some DATE\rquote .\par
+      Most wanted type is row!!! NOTE: You can`t access HTTP Header\par
+      anyway except Header function!\par
+\cf3\fs24 Parse_Form \par
+\cf5\fs20       Not implemented (only for back ware compatibility)!\par
+\cf3\fs24 b_print \par
+\cf5\fs20       Not implemented (only for back ware compatibility)!\par
+\cf3\fs24 ClearBuffer \par
+\cf5\fs20       Clear current printed body data! (thit way only!)\par
+\cf3\fs24 ClearHeader\par
+\cf5\fs20       Clear current printed header data! (this way only!)\par
+\cf3\fs24 flush_print \par
+\cf5\fs20       At the end of script this function automatically flush all header\rquote s \par
+      and body`s data!!! (automatically session, cookies and so on\'85)\par
+\cf3\fs24 read_form \par
+\cf5\fs20       Read one var form input form (not need!!! All vars from forms\par
+      and cookies are global variables!)\par
+\cf3\fs24 read_form_array \par
+\cf5\fs20       Same like previous but reading is from array not from hash!\par
+\cf3\fs24 read_var \par
+\cf5\fs20       Read one scalar from browser (via cookie or just via link/form... \par
+       - no mater :-)))  (Well I sad\'85not need anymore \f3 J\b0\f2\par
+\cf9\b ________________________________________________\ul\par
+\cf3\ulnone\fs24\par
+RunScript \par
+\cf5\fs20       Well that is main function at all! :-))) It eval (first compile html\par
+      Code into Perl code) all.\par
+\cf3\fs24 set_script_timeout\par
+\cf5\fs20       That function set script\rquote s timeout (in seconds), after which scripts\par
+      terminate automatically! This prevent from infinitive scripts!\line       $res =  \cf4 set_script_timeout\cf5  (\cf3 $time_out_in_sec\cf5 );\par
+\cf3\fs24 r_str \par
+rand_srand \par
+\cf5\fs20       Random string generator (and initial sub)\par
+\cf9 ________________________________________________\ul\par
+\cf3\ulnone\fs24\par
+SignUpUser \par
+\cf5\fs20       $res =  \cf4 SignUpUser\cf5  (\cf3 $user,$pass,$data,$dbh\cf5 );\par
+      $res can be 1 - success and 0 - \f3 L\f2\par
+\cf3\fs24 SignInUser \par
+\cf5\fs20       ($ID,$DATA) = \cf4 SignInUser\cf5  (\cf3 $user,$pass,$dbh\cf5 );\par
+       $ID is Id on user\par
+       $DATA is custom data on same user!\par
+\cf9 ________________________________________________\par
+\ul\par
+\cf2\ulnone\b0\fs24    That module support base signals from Unix/Linux. So you can handle follow SIGs:\par
+\par
+\lquote\cf13\b OnFlush\cf2\b0\rquote   - That event will happened when script prepare to print all data (Header and Body).\par
+\par
+\lquote\cf13\b OnError\cf2\b0\rquote   -  That event will happened when some internal script error appear.\par
+\par
+\lquote\cf13\b OnExit\cf2\b0\rquote     - That event will happened when script exit.\par
+\par
+\lquote\cf13\b OnTerm\cf2\b0\rquote   - You can use this event when connection between server and browser is broken (used signals: TERM,STOP,PIPE)\par
+\par
+\lquote\cf13\b OnTimeOut\cf2\b0\rquote  - This event will happened when your scripts lifetime is down (Default it is 120 seconds) (used signal: ALRM)\par
+\par
+To use these events you must initialize global hash %SIGNALS whit proper reference to sub.\par
+Example\lang1026 :\lang1033\par
+\lang1026    \lang1033\par
+\lang1026    \lang1033\b $SIGNALS\{\lquote OnTimeOut\rquote\} = \\&MyDefaultTimeOutSubroutine;\par
+\lang1026\b0    \lang1033\par
+\lang1026    \lang1033\b sub MyDefaultTimeOutSubroutine \{ print \ldblquote Timeout!!!\rdblquote ; \}\lang1026\par
+\lang1033\b0\par
+Note: All events are case-sensitive!\par
+\cf3\b\fs32\par
+3. GlobExport\par
+\cf2\b0\fs24\par
+  This module is used indirect from scripts (included by webtools.pm). It parses input data from form (POST), from GET and from Cookies. All input data are exports to global variables!\par
+\par
+  There is not support functions for this module (constructor and destructor are automatically called).\par
+\par
+\cf3\b\fs32 4. STDoutHandle\par
+\cf2\b0\fs24\par
+ This module catch standard output (STDOUT) and printed data are buffered on default.\par
+\par
+\par
+\cf3\b\fs32 5. XReader\par
+\cf2\b0\fs24\par
+  This module is very cool its supply possibility of script to use extern templates (html code and SQL inline)\par
+ \par
+  That function read from file HTML data (with some\par
+futures) and substitute SQL queries and vars with\par
+respective values!\par
+\par
+\cf5\b\fs22 $scalar\cf2\b0\fs24  = \cf1\b\fs22 xreader\cf2 (\cf3 $N_of_part,$filename\cf2 );\par
+\par
+\fs20 For more information see \cf8 docs/examples/Lesson-8-xreader\cf2\par
+\fs22\par
+\cf3\fs32 6. Config.pl\par
+\par
+\cf2\fs22 Typical configuration for "Web Tools\rdblquote\par
+\b0\fs24  \par
+\b [\cf14 Name_Of_Project\cf2 ]\par
+\cf13 $projectname \cf2 = 'webtools';   \cf1\fs20 # !!!\fs24\par
+\cf2\fs20 # This is a name of project. Also this name is a base for other parameters in this configuration file \par
+\par
+\fs24 [\cf14 SQL\cf2 ]\par
+\cf13 $db_support\cf2  = 'db_flat';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Name of database driver. Can be: db_mysql, db_access, db_flat\par
+\par
+\cf13\fs24 $sql_host\cf2  = 'localhost';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # host/ip to DB server (MySQL)\par
+\par
+\cf13\fs24 $sql_port\cf2  = '3306';\par
+\fs20 # Port of SQL server\par
+\fs24\par
+\cf13 $sql_user\cf2  = 'me';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # User name used to connect SQL server\par
+\par
+\cf13\fs24 $sql_pass \cf2 = 'secret_password';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # ... and DB password\par
+\fs24\par
+\cf13 $mysqlbequiet \cf2 = '1';\par
+\fs20 # If you use MySQL then: Must be QUIET?\par
+\fs24\par
+[\cf14 DataBase\cf2 ]\par
+\cf13 $sql_database_sessions \cf2 =  \cf13 $projectname\cf2 .'db';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Database name (name some like project!?!?!). If need change it!\par
+\fs24\par
+\cf13 $sql_sessions_table \cf2 =  $projectname.'_sessions';    \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Name of session table.\par
+\par
+\cf13\fs24 $sql_user_table \cf2 = \cf13 $projectname\cf2 .'_users';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Table that contain all users (and admin too)\par
+\fs24\par
+[\cf14 CHECK\cf2 ]\par
+\cf1 $check_module_functions \cf2 = '\cf1 on\cf2 ';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # SCRIPTS RUN IN CHECK MODE! After first check(test),\par
+# please turn this '\cf1 off\cf2 '!\par
+#\cf6  YOU CAN ALWAYS TURN THIS ON WHEN YOU WANT TO CHECK\par
+# YOUR CURRENT CONFIGURATION WITHOUT ANY OPPRESSION\cf1 !!!\par
+\cf2\fs24\par
+\par
+[\cf14 Secure\cf2 ]\par
+\cf13 $wait_attempt\cf2  = '4';\par
+\fs20 # Count of attempts when database is flocked\par
+\par
+\cf13\fs24 $wait_for_open\cf2  = '2.0';\par
+\fs20 # Time between two attempts (in sec)\par
+\par
+\cf13\fs24 $sess_time\cf2  = '2';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Expire time on session: 60 minutes\par
+\par
+\fs24 %dts = \fs20 ('second' => 's','minute' => 'm', 'hour' => 'h', 'month' => 'M', 'year' => 'y');\par
+\par
+\cf13\fs24 $sys_conf_d\cf2  = 'hour';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Type of sess time dimension\par
+\par
+\fs24 $sys_c_d_h = $dts\{$sys_conf_d\};\par
+\fs20 # \cf8 s\cf2 (econds) \cf8 m\cf2 (inutes) \cf8 h\cf2 (our) \cf8 d\cf2 (ay) \cf8 now\cf2  \cf8 M\cf2 (onths) \cf8 y\cf2 (ears)\par
+\par
+\fs24 $sesstimead = '+'.$sess_time.$sys_c_d_h;\par
+\par
+$sess_datetype = $sys_conf_d;\par
+\fs20 # Type of sess time dimension\par
+\par
+\cf13\fs24 $rand_sid_length \cf2 = '16';\par
+\fs20 # Length of SID string!\par
+\par
+\cf13\fs24 $sess_cookie\cf2  = 'sesstime';\par
+\fs20 # 'sesstime' - cookie expire when session expired. Enter any other value to expire cookie when user close browser.\par
+\par
+\cf13\fs24 $tmp\cf2  = '/tmp';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Please set full path to your temp directory \par
+\fs24\par
+\cf13 $l_sid\cf2  = 'sid';\par
+\fs20 # Session label ID used by module\par
+\par
+\cf13\fs24 $referrer\cf2  = '';\par
+\fs20 # Please look at 'allowed.pl' for more info about 'referrer' restriction\par
+\fs24\par
+\cf13 $cgi_lib_forbid_mulipart\cf2  = 'off';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # If you want to protect yourself from multipart spam  turn this '\cf8 on\cf2 ' (you will be no longer able to use multipart forms)!\par
+\fs24\par
+\cf13 $cgi_lib_maxdata \cf2    = 300000;   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Set maximum bytes to accept via POST (some king of multipart \par
+# protection)\par
+# \cf1 Please note that you can't set this to 0!!!\par
+\cf2\par
+\cf13\fs24 $cgi_script_timeout\cf2  = 120;   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Expiration time of script! (120 seconds default). After expiration script \par
+# will be terminated!\par
+# \cf1 Please note that you can't set this to 0!!! You always must know how much time you need!\par
+\cf2\fs24\par
+\cf13 $ip_restrict_mode\cf2    = 'on';\par
+\fs20 # Set 'on' to restrict session by IP! If you have proxy problems with \par
+# restricted IPs, please set 'off' or use proper\par
+# function to set mode of this variable! (see: session_ip_restrict function)\par
+\fs24\par
+[\cf14 Debug\cf2 ]\par
+\cf13 $debugging\cf2  = 'on';\par
+\fs20 # Set debugging mode\par
+\par
+\cf13\fs24 $debug_mail\cf2  = 'on';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Show whether real mail must by sent or must by saved into mail \par
+# directory!\par
+\fs24\par
+[\cf14 Mail\cf2 ]\par
+\cf13 $sendmail \cf2 = '/usr/sbin/sendmail';\par
+\fs20 # Real full path to sendmail\par
+\fs24\par
+[\cf14 Other\cf2 ]\par
+\cf13 $var_printing_mode \cf2 = 'buffered';   \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Default output is buffered, leave this variable empty if you need output of \par
+# your script to flush immediately!\par
+\par
+\cf13\fs24 $uni_sep\cf2  = '\'a9';\par
+\fs20 # Col separator\par
+\par
+\cf13\fs24 $uni_sep_t \cf2 = '\\\'a9';\par
+\fs20 # Col separator (slashed)\par
+\fs24\par
+\cf13 $uni_gr_sep \cf2 = ':';\par
+\fs20 # Row separator\par
+\fs24\par
+\cf13 $uni_gr_sep_t \cf2 = '\\:';\par
+\fs20 # Row separator (slashed)\par
+\fs24\par
+\cf13 $uni_esc \cf2 = '%';\par
+\fs20 # Escape char\par
+\fs24\par
+\cf13 $charset\cf2  = 'n5b0xzlQWdgfNXytCMAwq1TYu7SVBmUIvcOPZ2aprER9kjh3sHJKL8e4oiDFG6';\par
+\fs20 # Please mix well this chars to get higher security of your session ID :-)\par
+\fs24\par
+\cf13 $cpg_priority\cf2  = 'cookie';\par
+\fs20 # Show order of value fetching! There is 2 values: '\cf8 cookie\cf2 ' and '\cf8 get/post\cf2 '.\par
+# '\cf8 cookie\cf2 ' means that cookie's variable has higher priority!\par
+\fs24\par
+\cf13 $sess_cpg\cf2  = 'cookie';\par
+\fs20 # Type of session support: (It can be '\cf8 cookie\cf2 ' or Session ID can be moved by links or forms ('\cf8 get/post\cf2 ')\par
+\par
+\cf13\fs24 $sess_force_flat \cf2 = 'on';  \cf1\fs20 # !!!\cf2\fs24\par
+\fs20 # Session support via DB or via file! (possible values are: '\cf8 on\cf2 ' and '\cf8 off\cf2 ')\par
+# When you haven't DB support in your hand, you still can use sessions without DataBase!\par
+# To begin using DB instead of flat files just set "this" variable "\cf8 off\cf2 " (that is more secure and more compatible!)\par
+# Most session functions required "dbh" but you can leave it empty or to supply real db handler: no matter!\par
+# \cf14 NOTE: Use flat files when you haven't 500 opened sessions in "\cf8 tmp\cf14 " directory or more!\par
+\cf2\par
+\cf13\fs24 $support_email\cf2  = 'support@your_host.com';\par
+\fs20 # Support e-mail for unexpected errors! :)\par
+\fs24\par
+\cf13 @treat_htmls_ext\cf2  = (\par
+\fs20 # Order of html files location: Default, module first look for:\par
+# "html","htm","whtml" and "cgihtml". If you specify in URL\par
+# ...?file=env.html script will ignore extension and will look for\par
+# file with extension orderd in @treat_htmls_ext array\par
+# If you leave this array empty then no lookups will be made!\par
+# Order of below array is realy important!\par
+# Example:\par
+# If your real file is: env.cgi and you want script to\par
+# look for env.html then with array below you will never successed!\par
+# That is true because find operation will be breaked when script found\par
+# extension you look for  i.e. in our case (env.)html and after that it\par
+# won\rquote t continue! So if you want to run files that match our example\par
+# file then follow array should look like this: \par
+# (\lquote htm\rquote ,\rquote whtml\rquote ,\rquote cgihtml\rquote ,\rquote cgi\rquote ,\rquote html\rquote )\par
+\par
+ \fs24 'html',\par
+ 'htm',\par
+ 'whtml',\par
+ 'cgihtml',\par
+ 'cgi',\par
+ );\par
+\par
+[\cf14 PATHS\cf2 ]\par
+\cf13 $driver_path\cf2  = './drivers/';\par
+\fs20 # Path to your DB Drivers (please keep structure)\par
+\par
+\cf13\fs24 $library_path \cf2 = './libs/';\par
+\fs20 # Path to your Libraries (please keep structure)\par
+\fs24\par
+\cf13 $db_path\cf2  = './db/';\par
+\fs20 # Path to your DBs and tables (please keep structure)\par
+\fs24\par
+\cf13 $mailsender_path \cf2 = './mail/';\par
+\fs20 # Path to your DBs and tables (please keep structure)\par
+\cf13\fs24\par
+$xreader_path \cf2 = './jhtml/';\par
+\fs20 # Path to your xreader files(jhtml-s) (please keep structure)\par
+\fs24\par
+\cf13 $perl_html_dir \cf2 = './htmls/';\fs20\par
+# Path to your perl\rquote s(webtools scripts) html files\par
+\fs24\par
+\cf13 $apacheshtdocs \cf2 = 'c:/Apache/htdocs/';\fs20\par
+# Path to your apache htdocs directory('/usr/local/apache/htdocs/')  (please keep structure)\par
+\cf13\fs24\par
+$cgi_home_path \cf2 = Get_CGI_Directory();\par
+\fs20 # Get webtools cgi-bin directory (exmp: '/cgi-bin/webtools/') \par
+# NOTE: This path is not absolute and is not an HTTP!!! (actualy part of HTTP)\par
+\cf13\fs24\par
+$http_home_path \cf2 = '/dw/webtools/';\par
+\fs20 # Please change this to your http path!\par
+# NOTE: This path is not absolute and is not an HTTP!!! (actualy part of HTTP)\par
+\par
+\b0\fs22\par
+\cf6\b\fs32 7. \ul Various stuff\line\line\cf2\ulnone\fs20 That section regards various questions.\line\line 1. Highlighting for UltraEdit text editor.\par
+   If you want to have feature of highlighting with UltraEdit please open your webtools/docs/WORDFILE.TXT \par
+Now go to your UltraEdit directory and open WORDFILE.TXT and add to this file contain of webtools/docs/WORDFILE.TXT file!\line Edit follow line: \par
+/L7"WebTools" .... \par
+you may need to change number of language supprt (default is 7: /L7....). \par
+Save changes of UltraEdit wordfile. Now UltraEdit will highlight files with extensions: whtml and cgihtml :-)\b0\fs22\par
+\par
+\cf3\b\fs32 8. \cf1\ul AUTHOR\ulnone :\ul\par
+\cf4\ulnone\fs28 Julian Lishev\par
+\cf3\fs24 email:\cf1\fs32  \cf15\fs24 julian@proscriptum.com\par
+\cf3\fs22 Sofia, Bulgaria\par
+\par
+}
+ 
