@@ -18,6 +18,7 @@ $sess_flat_ptrInBuffer = 0;
 $sess_flat_allFiles = 0;
 $sess_flat_boundary = '';
 $sess_flat_file_prefix = '';
+$sess_flat_file_size_limit = 0;
 
 sub reset_SF_cache
 {
@@ -27,6 +28,8 @@ sub reset_SF_cache
  $sess_flat_allFiles = 0;              # Global processed files up to now.
  $sess_flat_boundary = '|';
  $sess_flat_file_prefix = 'webtools_sess_';
+ $sess_flat_file_size_limit = 1048576; # Maximum size of flat size (1Mb)
+ $webtools::loaded_functions = $webtools::loaded_functions | 16;
 }
 
 # Init variables
@@ -65,16 +68,6 @@ sub read_SF_NextFiles
     }
   }
  return(@sess_flat_requestedFiles);
-}
-
-sub reset_SF_cache
-{
- @sess_flat_requestedFiles  = ();      # Buffer for requested files!
- $sess_flat_countOfReqFiles = 500;     # Maximum files into buffer.
- $sess_flat_ptrInBuffer = 0;           # Current pointer into buffer.
- $sess_flat_allFiles = 0;              # Global processed files up to now.
- $sess_flat_boundary = '|';
- $sess_flat_file_prefix = 'webtools_sess_';
 }
 
 sub get_SF_NextFile
@@ -228,7 +221,7 @@ sub read_SF_lowlevel
  my ($sess_flat_findSid) = shift(@_);
  open(RSFLL,$sess_flat_findSid) or return(undef);
  binmode(RSFLL);
- if(read(RSFLL,$sess_flat_dat,65535) eq undef)
+ if(read(RSFLL,$sess_flat_dat,$sess_flat_file_size_limit) eq undef)
    {
     $sess_flat_dat = undef;
    }

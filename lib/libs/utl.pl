@@ -23,6 +23,7 @@
 ##############################################################
 
 $utl_escape_factor = "\t" ne "\011";
+$webtools::loaded_functions = $webtools::loaded_functions | 128;
 if ($utl_escape_factor) {
 @utl_char_table = (
 0,  1,  2,  3,  55, 45, 46, 47, 22, 5,  21, 11, 12, 13, 14, 15,

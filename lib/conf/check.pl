@@ -156,17 +156,54 @@ sub check_configuration
    print STDOUT "<LI> Multipart support...";
    if($cgi_lib_forbid_mulipart eq 'off')
     {
-     print STDOUT "  is on";
+     print STDOUT " on";
     }
    else
     {
-     print STDOUT " is off (multipart spam protected)";
+     print STDOUT " off (multipart spam protected)";
+    }
+   
+   print STDOUT "<LI> Restrict sessions by IP...";
+   if($ip_restrict_mode =~ m/^on$/is)
+    {
+     print STDOUT " on";
+    }
+   else
+    {
+     print STDOUT " off";
+    }
+   
+   print STDOUT "<LI> Restrict script execution by IP...";
+   if($run_restrict_mode =~ m/^on$/is)
+    {
+     print STDOUT " on";
+    }
+   else
+    {
+     print STDOUT " off";
+    }
+   
+   print STDOUT "<LI> Printing mode...";
+   if($var_printing_mode =~ m/^buffered$/is)
+    {
+     print STDOUT " buffered";
+    }
+   else
+    {
+     print STDOUT " non buffered";
+    }
+   
+   print STDOUT "<LI> Searching row: ";
+   my $trow;
+   foreach $trow (@treat_htmls_ext)
+    {
+     print $trow."&nbsp;&nbsp;";
     }
    
    print STDOUT "<LI> Debugging mode is";
    print STDOUT "...$debugging";
 
-   print STDOUT '</B></font>';
+   print STDOUT '</B></font><BR>';
    
 EVAL_TERMINATOR
 

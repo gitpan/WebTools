@@ -370,7 +370,7 @@ return($data);
 ### Function N: 4 ########################################################
 # Parameters: $expire - expire time in seconds,
 #             $last_minutes - remaining time before session expiration!
-#	      $notify - Message that will notify user that his session 
+# 	      $notify - Message that will notify user that his session 
 #                       will expire after few minutes.
 #             $alert -  Message that will notify user that session is
 #                       already expired! :(
@@ -426,5 +426,7 @@ sub session_expire_notify
 TERMINATOR_JS
 return($data);
 }
+
+$webtools::loaded_functions = $webtools::loaded_functions | 2048;
 
 1;

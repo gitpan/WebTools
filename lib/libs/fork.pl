@@ -48,5 +48,5 @@ sub ForkScript
  # Don't forget to call: set_script_timeout($wished_timelife_in_seconds);
  return(1);
 }
-
+$webtools::loaded_functions = $webtools::loaded_functions | 1024;
 1;

@@ -12,6 +12,7 @@ my %MIMETYPES = ('zip','application/zip','exe','application/octet-stream','doc',
 my $kill_flag = 0;
 my $lenght = 2048;             # Each print() will be limited of this size!
 my $period = 1;
+$webtools::loaded_functions = $webtools::loaded_functions | 256;
 ###########################################
 # Download File
 ###########################################

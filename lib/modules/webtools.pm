@@ -17,7 +17,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.005";
+    $VERSION = "1.10";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -50,12 +50,12 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
         ClearBuffer ClearHeader $print_header_buffer $print_flush_buffer 
         r_str rand_srand b_print LoadCfgFile Parse_Form 
         *SESSIONSTDOUT $reg_buffer $print_header_buffer $print_flush_buffer 
-        $sentcontent $apacheshtdocs %SIGNALS 
+        $sentcontent $apacheshtdocs %SIGNALS $loaded_functions 
        );
 
  #################################
  # PLEASE DO NOT MODIFY ANYTHING!
- # Please see file config.ini !!!
+ # Please see file config.pl !!!
  #################################
  $| = 1;                     # Flush imediatly!   
  $sentcontent = 0;           # Show whether Send_Content() where called!
@@ -72,6 +72,7 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
  $secure_cookie_cgi = '0';
  %SIGNALS = ();
  $flag_onFlush_Event = 0;
+ $syspre_process_counter = 0;
  
  tie(*SESSIONSTDOUT,'stdouthandle');
  select(SESSIONSTDOUT);
@@ -122,10 +123,10 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
 THAT_TERM_SIG_STR
   	   eval $q;
   	  }
-  	if(exists($SIGNALS{'OnTerm'}))
+  	if(exists($webtools::SIGNALS{'OnTerm'}))
           {
            eval {
-      	         my $OnEvent_code = $SIGNALS{'OnTerm'};
+      	         my $OnEvent_code = $webtools::SIGNALS{'OnTerm'};
       	         &$OnEvent_code;
       	        };
           }
@@ -152,7 +153,7 @@ sub StartUpInit
  my $cnf = PathMaker('./conf/','../conf/');
  require $cnf.'config.pl';
  my $add = PathMaker('./modules/additionals','./additionals');
-
+ $webtools::loaded_functions = 0;
  eval "require '$library_path"."utl.pl'";
  if($@) {DieAlert('Error: Can`t open library utl!');}
  eval "require '$library_path"."cookie.pl'";
@@ -167,9 +168,9 @@ sub StartUpInit
  #  #  #  #  #    #  #  #  #     #     # #   #      #  #             #
  #  ###   ###     ###   #  ##  #####    #    #####  #  ##            #
  #####################################################################
- if($db_support eq 'db_mysql') { require $driver_path.'db_mysql.pl'; }
- if($db_support eq 'db_access') { require $driver_path.'db_access.pl'; }
- if($db_support eq 'db_flat') { require $driver_path.'db_flat.pl'; }
+ if($db_support eq 'db_mysql') { require $driver_path.'db_mysql.pl'; $webtools::loaded_functions = $webtools::loaded_functions | 1;}
+ if($db_support eq 'db_access') { require $driver_path.'db_access.pl'; $webtools::loaded_functions = $webtools::loaded_functions | 2;}
+ if($db_support eq 'db_flat') { require $driver_path.'db_flat.pl'; $webtools::loaded_functions = $webtools::loaded_functions | 4;}
  # TODO: more lines and more db engines
 }
 ##########################################
@@ -503,7 +504,7 @@ sub LoadCfgFile
  {
   my ($a) = @_;
  ################################################################
- # Loading values from 'config.ini'
+ # Loading values from 'config.pl'
  ################################################################ 
    require 'config.pl';
    $Mysql::QUIET = $mysqlbequiet;
@@ -531,7 +532,7 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
 {
  my ($clear) = @_;
 if($clear == 1) { $sess_header_flushed = 1; return;}
- my $oldslcthnd = select(STDOUT);           # Select an real output handler
+ my $oldslcthnd = select(STDOUT);           # Select real output handler
  $i = 0;
  if ($flag_onFlush_Event == 0)
  {
@@ -545,10 +546,10 @@ if($clear == 1) { $sess_header_flushed = 1; return;}
        $flag_onFlush_Event = 0;
       }
  }
- if(!$sess_header_flushed)                  # If Header is not flushed...
+ if(!$sess_header_flushed)                  # If Header was not flushed...
  {
   $| = 1;
-  $print_header_buffer = "X-Powered-By: WebTools/1.005\n".$print_header_buffer; # Print version of this tool.
+  $print_header_buffer = "X-Powered-By: WebTools/1.10\n".$print_header_buffer; # Print version of this tool.
   if(($sess_cpg eq 'cookie') and ($local_sess_id ne ''))
     {
      if($sess_cookie ne 'sesstime')
@@ -1209,6 +1210,13 @@ sub load_session_data   # ($session_ID,$database_handler) // Load DATA from tabl
 sub RunScript
 {
  Parse_Form();
+ if(($perl_html_dir eq '') or ($perl_html_dir =~ m/^(\\|\/)$/si))
+   {
+    print "<BR><h3><B><font color='red'>Security hole!!!</font> Your default script direcotry (htmls) is leaved empty or<BR>";
+    print " it is pointed to your ROOT directory! <BR>";
+    print "Script abort immediately!</h3></B>";
+    die ':QUIT:';
+   }
  $p_file_name_N001 = read_form('file');
  $p_file_checked_done_N001 = 0;
  if ($p_file_name_N001 =~ m/^[A-Za-z0-9-_.\/]*$/is)
@@ -1259,13 +1267,15 @@ sub RunScript
    $p_file_buf_N001 =~ s/\r\n/\n/gs;
    $p_file_buf_N001 =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>\n?/$2/gsi;
    $p_file_buf_N001 =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>\n?//gsi;
+   $p_file_buf_N001 = pre_process_templates($p_file_buf_N001);  # Process all build-in templates
+   
    # Remove all the COMMENTS!!! That will reduce perl computing and printing!                
    ExecuteHTMLfile($p_file_name_N001,$p_file_buf_N001);  
    onExit();
-   if(exists($SIGNALS{'OnExit'}))
+   if(exists($webtools::SIGNALS{'OnExit'}))
      {
       eval {
-      	    my $OnExit_code = $SIGNALS{'OnExit'};
+      	    my $OnExit_code = $webtools::SIGNALS{'OnExit'};
       	    &$OnExit_code;
       	   };
      }
@@ -1318,10 +1328,10 @@ sub ExecuteHTMLfile
     onExit();
     if($cd =~ m/\:QUIT\:(.*)/i) 
       {
-       if(exists($SIGNALS{'OnError'}))
+       if(exists($webtools::SIGNALS{'OnError'}))
          {
           eval {
-      	        my $OnEvent_code = $SIGNALS{'OnError'};
+      	        my $OnEvent_code = $webtools::SIGNALS{'OnError'};
       	        &$OnEvent_code($1);
       	       };
          }
@@ -1378,10 +1388,10 @@ sub delete_cookie
 ########################################################
 sub Default_CGI_Script_ALARM_SUB
  {
-  if(exists($SIGNALS{'OnTimeOut'}))
+  if(exists($webtools::SIGNALS{'OnTimeOut'}))
      {
       eval {
-      	    my $OnEvent_code = $SIGNALS{'OnTimeOut'};
+      	    my $OnEvent_code = $webtools::SIGNALS{'OnTimeOut'};
       	    &$OnEvent_code;
       	   };
      }
@@ -1471,6 +1481,286 @@ sub onLockedFileErrorEvent
  onExit();
  exit;
 }
+
+# Follow code process all supported INLINE tags for fast code writings!
+sub pre_process_templates ($)
+{
+ my $sys_temp_buffer = shift(@_);
+ my $sys_binlinet = '\<\!\-\-\©INLINE\©\>';   # <!--©INLINE©>
+ my $sys_einlinet = '\<\/\©INLINE\©\-\-\>';   # </©INLINE©-->
+ my $sys_binlinep = '\<\!\-\-\©INPERL\©\>';   # <!--©INPERL©>
+ my $sys_einlinep = '\<\/\©INPERL\©\-\-\>';   # </©INPERL©-->
+ my $sys_include_file = '\<\!\-\-\©INCLUDE\©(.*?)\©\-\-\>';   # <!--©INCLUDE©file.ext©-->
+ 
+ my $work_buffer = $sys_temp_buffer;
+ 
+ $sys_temp_buffer =~ s#$sys_include_file#do{
+    my $sys_prd_template;
+    if(open(SYS_PRE_PROCESS_TEMPLATES_FILE,$1))
+     {
+      binmode(SYS_PRE_PROCESS_TEMPLATES_FILE);
+      local $/ = undef;
+      $sys_prd_template = <SYS_PRE_PROCESS_TEMPLATES_FILE>;
+      $sys_prd_template =~ s/\r\n/\n/gs;
+      $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>\n?/$2/gsi;
+      $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>\n?//gsi;
+      close(SYS_PRE_PROCESS_TEMPLATES_FILE);
+     }
+    else {$sys_prd_template = '';}
+    $work_buffer =~ s/$sys_include_file/$sys_prd_template/si;
+   };#sgie;
+ 
+ $sys_temp_buffer = $work_buffer;
+ 
+ $sys_temp_buffer =~ s#$sys_binlinet(.*?)$sys_einlinet#do{
+    my $sys_prd_template = sys_make_template_code($1,'h');
+    $work_buffer =~ s/$sys_binlinet(.*?)$sys_einlinet/$sys_prd_template/si;
+   };#sgie;
+ 
+ $sys_temp_buffer = $work_buffer;
+ $sys_temp_buffer =~ s#$sys_binlinep(.*?)$sys_einlinep#do{
+    my $sys_prd_template = sys_make_template_code($1,'p');
+    $work_buffer =~ s/$sys_binlinep(.*?)$sys_einlinep/$sys_prd_template/si;
+   };#sgie;
+ 
+ return($work_buffer);
+}
+
+# This sub process all supported form INLINE template formats
+sub sys_make_template_code
+{
+ my $sys_my_pre_process_tempf = shift(@_);
+ my $sys_my_pre_process_ph_b = "<?perl \n";
+ my $sys_my_pre_process_ph_e = "\n?>";
+ my $sys_my_pre_process_print = "print ";
+ $syspre_process_counter++;
+ 
+ if($_[0] eq 'p')
+   {
+    $sys_my_pre_process_ph_b = "\n";
+    $sys_my_pre_process_ph_e = "\n";
+    $sys_my_pre_process_print = '$_ = ';
+   }
+ 
+ # ----- Make code for simple TEMPLATES -----
+ # example: <§TEMPLATE:7:$val:§>
+ if($sys_my_pre_process_tempf =~ m/\<\§TEMPLATE\:(\d{1,})\:(.*?)\:\§\>/si)
+  {
+   my $sys_my_pre_process_num = $1;
+   my $sys_my_pre_process_val = $2;
+   if($sys_my_pre_process_val =~ m/^(\$|\@|\%)/s)
+     {
+      $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.$sys_my_pre_process_print.'('.$sys_my_pre_process_val.');'.$sys_my_pre_process_ph_e;
+     }
+   else
+     {
+      $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.$sys_my_pre_process_print."('".$sys_my_pre_process_val."');".$sys_my_pre_process_ph_e;
+     }
+   return($sys_my_pre_process_sys_code);
+  }
+  
+ # ----- Make code for XREADER -----
+ if($sys_my_pre_process_tempf =~ m/\<XREADER:\d{1,}\:(.*?)\:(.*?)\>/si)
+  {
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# if($system_database_handle eq undef)
+        {
+          my $rztl_sconn = sql_connect(); 
+          if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
+        }
+     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     xreader_dbh($system_database_handle);#;
+     
+   $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
+   eval $sys_my_pre_process_tmp_eval;
+   
+   $sys_my_pre_process_sys_code .= "\n".$sys_my_pre_process_print.'sys_run_time_process_xread('.'$sys_my_pre_process_val_N_'.$syspre_process_counter.');'.$sys_my_pre_process_ph_e;
+   return($sys_my_pre_process_sys_code);
+  }
+  
+ # ----- Make code for SQL Templates -----
+ if($sys_my_pre_process_tempf =~ m/\<S\©L\:\d{1,}\:(.*?)\:\d{1,}\:\d{1,}\:\d{1,}\:\d{1,}\:S\©L\>/si)
+  {
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# if($system_database_handle eq undef)
+        {
+          my $rztl_sconn = sql_connect(); 
+          if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
+        }
+     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     xreader_dbh($system_database_handle);#;
+
+   $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
+   eval $sys_my_pre_process_tmp_eval;
+   
+   $sys_my_pre_process_sys_code .= "\n".$sys_my_pre_process_print.'sys_run_time_process_sql('.'$sys_my_pre_process_val_N_'.$syspre_process_counter.');'.$sys_my_pre_process_ph_e;
+   return($sys_my_pre_process_sys_code);
+  }
+  
+ # ----- Make code for SQLVAR Templates -----
+ if($sys_my_pre_process_tempf =~ m/\<S\©LVAR\:(.+?)\:S\©L\>/si)
+  {
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# if($system_database_handle eq undef)
+        {
+          my $rztl_sconn = sql_connect(); 
+          if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
+        }
+     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     xreader_dbh($system_database_handle);#;
+
+   $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
+   eval $sys_my_pre_process_tmp_eval;
+   
+   $sys_my_pre_process_sys_code .= "\n".$sys_my_pre_process_print.'sys_run_time_process_sqlvar('.'$sys_my_pre_process_val_N_'.$syspre_process_counter.');'.$sys_my_pre_process_ph_e;
+   return($sys_my_pre_process_sys_code);
+  }
+  
+ # ----- Make code for MENUSELECT -----
+ if($sys_my_pre_process_tempf =~ m/\<MENUSELECT\:\$(.*?)\:(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\>/si)
+  {
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# if($system_database_handle eq undef)
+        {
+          my $rztl_sconn = sql_connect(); 
+          if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
+        }
+     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     xreader_dbh($system_database_handle);#;
+
+   $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
+   eval $sys_my_pre_process_tmp_eval;
+   
+   $sys_my_pre_process_sys_code .= "\n".$sys_my_pre_process_print.'sys_run_time_process_menuselect('.'$sys_my_pre_process_val_N_'.$syspre_process_counter.');'.$sys_my_pre_process_ph_e;
+   return($sys_my_pre_process_sys_code);
+  }
+  
+ return('<?perl print "?Err?"; ?>');
+}
+
+# That sub process XREAD template in run-time and it is a part of INLINE feature.
+# example: <XREADER:1:bestbuy.jhtml:$first_param,$second_param>
+sub sys_run_time_process_xread
+{
+ my $sys_my_pre_process_tempf = shift(@_);
+ if($sys_my_pre_process_tempf =~ m/\<XREADER:(\d{1,})\:(.*?)\:(.*?)\>/si)
+  {
+   my $sys_my_pre_process_numb = $1;
+   my $sys_my_pre_process_file = $2;
+   my $sys_my_pre_process_vals = $3;
+   my @sys_my_pre_process_aval = split('\,',$sys_my_pre_process_vals);
+   my @sys_my_pre_process_all = ();
+   foreach $sys_my_pre_process_aself (@sys_my_pre_process_aval)
+    {
+     if($sys_my_pre_process_aself =~ m/^(\$|\@|\%)/s)
+      {
+       my $sys_my_pre_process_eval = 'push (@sys_my_pre_process_all,'.$sys_my_pre_process_aself.');';
+       eval $sys_my_pre_process_eval;
+      }
+     else
+      {
+       my $sys_my_pre_process_eval = 'push (@sys_my_pre_process_all,'."'".$sys_my_pre_process_aself."'".');';
+       eval $sys_my_pre_process_eval;
+      }
+    }
+   $sys_my_pre_process_sys_code = xreader($sys_my_pre_process_numb,$sys_my_pre_process_file,@sys_my_pre_process_all);
+   return($sys_my_pre_process_sys_code);
+  }
+}
+
+# That sub process SQL template in run-time and it is a part of INLINE feature.
+# example: <S©L:1:"select USER,ID from demo_users where id=1;":1:1:1:1:S©L>
+sub sys_run_time_process_sql
+{
+ my $sys_my_pre_process_tempf = shift(@_);
+ if($sys_my_pre_process_tempf =~ m/(\<S\©L\:\d{1,}\:)(.*?)(\:\d{1,}\:\d{1,}\:\d{1,}\:\d{1,}\:S\©L\>)/si)
+  {
+   my $sys_my_pre_process_beg  = $1;
+   my $sys_my_pre_process_data = $2;
+   my $sys_my_pre_process_end  = $3;
+   my $sys_my_pre_process_tmp  = 0;
+   my $sys_pre_process_replce = '';
+  
+   if($sys_my_pre_process_data =~ m/([\ \']{0,})\$(.*?)([\'\ \;\"])/si)
+     {
+      my $sys_pre_process_tmp_1 = $1;
+      my $sys_pre_process_tmp_2 = $2;
+      my $sys_pre_process_tmp_3 = $3;
+      my $sys_pre_process_tmp_4 = '$sys_pre_process_replce = $'.$sys_pre_process_tmp_2.';';
+      eval $sys_pre_process_tmp_4;
+      $sys_pre_process_replce = $sys_pre_process_tmp_1.$sys_pre_process_replce.$sys_pre_process_tmp_3;
+      $sys_my_pre_process_data =~ s/([\ \']{0,})\$(.*?)([\'\ \;\"])/$sys_pre_process_replce/si;
+     }
+   $sys_my_pre_process_tempf = $sys_my_pre_process_beg.$sys_my_pre_process_data.$sys_my_pre_process_end;
+   return(_mem_xreader($sys_my_pre_process_tempf));
+  }
+}
+
+# That sub process SQLVAR template's variables in run-time and it is a part of INLINE feature.
+# example: <S©LVAR:1:S©L>
+sub sys_run_time_process_sqlvar
+{
+ my $sys_my_pre_process_tempf = shift(@_);
+ if($sys_my_pre_process_tempf =~ m/(\<S\©LVAR)(\:.*?\:)(S\©L\>)/si)
+  {
+   my $sys_my_pre_process_beg  = $1;
+   my $sys_my_pre_process_data = $2;
+   my $sys_my_pre_process_end  = $3;
+   my $sys_my_pre_process_tmp  = 0;
+   my $sys_pre_process_replce = '';
+  
+   if($sys_my_pre_process_data =~ m/(\:)\$(.*?)(\:)/si)
+     {
+      my $sys_pre_process_tmp_1 = $1;
+      my $sys_pre_process_tmp_2 = $2;
+      my $sys_pre_process_tmp_3 = $3;
+      my $sys_pre_process_tmp_4 = '$sys_pre_process_replce = $'.$sys_pre_process_tmp_2.';';
+      eval $sys_pre_process_tmp_4;
+      $sys_pre_process_replce = $sys_pre_process_tmp_1.$sys_pre_process_replce.$sys_pre_process_tmp_3;
+      $sys_my_pre_process_data =~ s/(\:)\$(.*?)(\:)/$sys_pre_process_replce/si;
+     }
+   $sys_my_pre_process_tempf = $sys_my_pre_process_beg.$sys_my_pre_process_data.$sys_my_pre_process_end;
+   return(_mem_xreader($sys_my_pre_process_tempf));
+  }
+}
+
+# That sub process MENUSELECT template in run-time and it is a part of INLINE feature.
+# exmp: <MENUSELECT:$SOURCE:"SELECT MenuState FROM MyTable WHERE Condition1 = $C1 AND ...":\@DB_VALUES:\@TEMPLATE_NUMBERS:\@HTML_VALUES:$dbh:>
+sub sys_run_time_process_menuselect
+{
+ my $sys_my_pre_process_tempf = shift(@_);
+ if($sys_my_pre_process_tempf =~ m/\<MENUSELECT\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\>/si)
+  {
+   my $sys_my_pre_process_src  = $1;
+   my $sys_my_pre_process_sql  = $2;
+   my $sys_my_pre_process_dbv  = $3;
+   my $sys_my_pre_process_tem  = $4;
+   my $sys_my_pre_process_htm  = $5;
+   my $sys_my_pre_process_dbh  = $6;
+   my $sys_pre_process_replce = '';
+
+   my $sys_my_pre_process_tmp = '$sys_my_pre_process_src = $'.$sys_my_pre_process_src.';';
+   eval $sys_my_pre_process_tmp;
+   $sys_my_pre_process_tmp = '$sys_my_pre_process_dbv = $'.$sys_my_pre_process_dbv.';';
+   eval $sys_my_pre_process_tmp;
+   $sys_my_pre_process_tmp = '$sys_my_pre_process_tem = $'.$sys_my_pre_process_tem.';';
+   eval $sys_my_pre_process_tmp;
+   $sys_my_pre_process_tmp = '$sys_my_pre_process_htm = $'.$sys_my_pre_process_htm.';';
+   eval $sys_my_pre_process_tmp;
+   $sys_my_pre_process_tmp = '$sys_my_pre_process_sql = $'.$sys_my_pre_process_sql.';';
+   eval $sys_my_pre_process_tmp;
+   $sys_my_pre_process_tmp = '$sys_my_pre_process_dbh = $'.$sys_my_pre_process_dbh.';';
+   eval $sys_my_pre_process_tmp;
+
+   if(($sys_my_pre_process_dbh eq '') or ($sys_my_pre_process_dbh eq undef))
+      {$sys_my_pre_process_dbh = $system_database_handle;}
+   
+   my @sys_my_pre_process_dbv_a  = @$sys_my_pre_process_dbv;
+   my @sys_my_pre_process_tem_a  = @$sys_my_pre_process_tem;
+   my @sys_my_pre_process_htm_a  = @$sys_my_pre_process_htm;
+
+   $sys_my_pre_process_src = MenuSelect($sys_my_pre_process_src,$sys_my_pre_process_sql,$sys_my_pre_process_dbv,
+                                        $sys_my_pre_process_tem,$sys_my_pre_process_htm,$sys_my_pre_process_dbh);
+   return($sys_my_pre_process_src);
+  }
+}
+
 
 1;  # Well done...
 __END__

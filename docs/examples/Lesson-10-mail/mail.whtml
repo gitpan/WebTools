@@ -1,0 +1,15 @@
+<?perl
+require 'mail.pl';
+
+($code,$data) = mail(to=>'foo@bar.com',from=>'someone@somewhere.com',subject=>'Good News!',
+                     body=>'<html><HR>See hello!<HR></html>',html=>1,date=>'10:12:11',
+                     priority=>'High',timeout=>30);
+  if($code == 220)
+    {
+     print "Mail sent!";
+    }
+  else
+    {
+     print "Error code: $code";
+    }
+?>

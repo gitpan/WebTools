@@ -19,6 +19,7 @@
 
 $usystem_database_handle = undef;
 my $access_local_id_counter = 0;
+my $db_access_read_size_limit = 1048576;   # Maximum bytes per db read (1MB)
 
 eval 'use DBI;';
 if($@ ne '')
@@ -71,7 +72,7 @@ sub sql_connect   # No params needed!
        $oldh = $SIG{'__WARN__'};
        $SIG{'__WARN__'} = "hideerror";
        my $OurSQL = DBI->connect("DBI:ODBC:"."$sql_database_sessions",$sql_user,$sql_pass,{RaiseError => 0, PrintError => 1, AutoCommit => 1}) or hideerror();
-       $OurSQL->{LongReadLen} = 262144;     # 256KB MAX READ!
+       $OurSQL->{LongReadLen} = $db_access_read_size_limit;
        $SIG{'__WARN__'} = $oldh;
        $system_database_handle = $OurSQL;   # That is current opened DB Handler!
        select($oldslcthnd);
@@ -97,7 +98,7 @@ sub test_connect
      $oldh = $SIG{'__WARN__'};
      $SIG{'__WARN__'} = '';
      my $OurSQL = DBI->connect("DBI:ODBC:"."$sql_database_sessions",$sql_user,$sql_pass,{RaiseError => 0, PrintError => 1, AutoCommit => 1}) or return(0);
-     $OurSQL->{LongReadLen} = 262144;     # 256KB MAX READ!
+     $OurSQL->{LongReadLen} = $db_access_read_size_limit;
      $SIG{'__WARN__'} = $oldh;
      $system_database_handle = $OurSQL;   # That is current opened DB Handler!
      select($oldslcthnd);
@@ -110,7 +111,7 @@ sub sql_connect2
      $oldh = $SIG{'__WARN__'};
      $SIG{'__WARN__'} = "hideerror";
      my $OurSQL = DBI->connect("DBI:ODBC:"."$db",$sql_user,$sql_pass) or hideerror();
-     $OurSQL->{LongReadLen} = 262144; # 256KB MAX READ!
+     $OurSQL->{LongReadLen} = $db_access_read_size_limit;
      $SIG{'__WARN__'} = $oldh;
      $system_database_handle = $OurSQL;   # That is current opened DB Handler!
      select($oldslcthnd);

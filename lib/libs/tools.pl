@@ -12,7 +12,7 @@
 
 #####################################################################
 require "./libs/xreader.pl";
-
+$webtools::loaded_functions = $webtools::loaded_functions | 32;
 # $bool = CheckLength($int_var, $min_val, $max_val);
 sub CheckLength
 {

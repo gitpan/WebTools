@@ -327,6 +327,45 @@ sub wordwrap
  return($res);
 }
 
-# TODO: More and more... :-)
+# @mail_addrs = mx_lookup($domain,[path_to_nslookup]);
+sub mx_lookup
+{
+ eval {use Socket;};
+ my $result;
+ my $domain = shift;
+ my @digout;
+ my $line;
+ my @mxrecs = ();
+ my $nslookup = $_[0] ne '' ? shift(@_) : 'nslookup';
+ my $qrt = $domain;
+ $qrt =~ s/\./\\\./sig;
+ $nslookup .= " -q=MX $domain";
+ @digout =  `$nslookup`;
+ foreach $line (@digout) 
+  {
+   if($line =~ m/^$qrt\x9(MX)?\ ?preference\ =\ (\d{1,5})\, mail\ exchanger\ =\ (.*?)$/si)
+    {
+     my $h = $3;
+     my $prority = $2;
+     if ($h =~ m/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/s)
+       {
+        $h = $1;
+        push(@mxrecs,$prority."\t".$h);
+       }
+     else
+       {
+        $h =~ s/\.$//s;
+        $h =~ s/^[\ \t\r\n]*//s;
+        $h =~ s/[\ \t\r\n]*$//s;
+        (undef, undef, undef, undef, @addrs) = gethostbyname($h);
+        $h  = inet_ntoa($addrs[0]);
+        push(@mxrecs,$prority."\t".$h);
+       }
+    }
+ }
+ return sort(@mxrecs);
+}
 
+# TODO: More and more... :-)
+$webtools::loaded_functions = $webtools::loaded_functions | 512;
 1;

@@ -41,12 +41,15 @@ $referrer = '/';                      # Referrer pages (servers)
 $cgi_lib_forbid_mulipart = 'off';     # If you want to protect yourself from multipart spam
                                       # turn this 'on' (you will be no longer able to use 
                                       # multipart forms)!
-$cgi_lib_maxdata    = 1000000;        # maximum bytes to accept via POST (1MB)
+$cgi_lib_maxdata    = 4194304;        # maximum bytes to accept via POST (4MB)
 $cgi_script_timeout = 120;            # Expiration time of script! (120 seconds default)
-$ip_restrict_mode   = 'on';           # Set 'on' to restrict session on IP! If get proxy problems
+$ip_restrict_mode   = 'off';          # Set 'on' to restrict session on IP! If get proxy problems
                                       # with restricted IPs, please set 'off' or use proper
                                       # function to set mode of this variable!
-
+$run_restrict_mode  = 'off';          # Set 'on' to restrict external web user to your scripts.
+                                      # If IP's of user not exists in DB/ips.pl WebTools will
+                                      # close script immediately!
+                                      
 #[Debug]
 $debugging = 'on';                    # Debugging mode
 $debug_mail = 'on';                   # Show whether real mail must by send
@@ -130,10 +133,12 @@ $loading_cfg_fail = 0;
 sub PathMaker                 # Make paths to your base webtools files!
  {
   my $pth = (-e $_[0]) ? $_[0] : $_[1];
-  if($pth ne '')
+  if($_[0] =~ m/^(\\|\/)$/si) {return ('/');}
+  if($_[0] ne '')
   {
     eval ("use lib \'$pth\';"); return($pth);
   }
+  return ('');
  }
  
 sub Get_CGI_Directory         

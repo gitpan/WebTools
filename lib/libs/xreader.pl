@@ -1,7 +1,7 @@
 #####################################################################
 # eXternal Reader
 # eXtended Reader
-# eXcalant Reader
+# eXcelant Reader
 #####################################################################
 
 # Copyright (c) 2001, Julian Lishev, Sofia 2001
@@ -25,6 +25,9 @@ $sys_xreader_buf = '';
 
 $sys_sql_dbh = undef;
 %sys_xreader_queries = {};
+my @sys_xreader_VARS = ();
+
+$webtools::loaded_functions = $webtools::loaded_functions | 8;
 
 #####################################################
 # That function read from file HTML data (with some
@@ -92,7 +95,7 @@ sub _xreader
  my $xparts;
  my $xprt_w;
  my $xprt_n;
- my @VARS = ();
+ @sys_xreader_VARS = ();
  
  $data =~ s/$x_sep_begin(.*?)$x_sep_end/do {
     $xprt_w = $1;
@@ -111,6 +114,17 @@ sub _xreader
     close (XFILE); 
     $/ = $old_n;
    }
+ return(_mem_xreader($xpart,@vals));
+}
+
+# This function process one template from memmory buffer
+sub _mem_xreader
+{
+ my ($xpart)  = shift(@_);
+ my @vals = @_;
+ my $xparts;
+ # my @sys_xreader_VARS = ();
+
  my @newar = split(/$x_var/s,$xpart);
  $xpart = '';
  foreach $l (@newar)
@@ -157,7 +171,7 @@ sub _xreader
        my $dn = 'Q'.$numb.'R'.$rq.'C'.$c;
        $res = $sys_xreader_queries{$dn};
        }
-     push(@VARS,$res); $var_counter++;
+     push(@sys_xreader_VARS,$res); $var_counter++;
      if(!$visible) { $res = ''; }
     }
   else { $res = ''; }
@@ -165,13 +179,12 @@ sub _xreader
  };/sige;
  $xpart = $xpartb;
  $xpart =~ s/$x_sqlvar/do{
-   my $cl = $VARS[$1-1];
+   my $cl = $sys_xreader_VARS[$1-1];
    $xpartb =~ s!$x_sqlvar!$cl!si;
  };/sige;
  $xpart = $xpartb;
  return($xpart);
 }
-
 ###################################
 sub xreader_dbh ($)  # Set default DB Handler for SQL operations!
 {
@@ -262,15 +275,23 @@ sub MenuSelect
   my @row = ();
   my $sa_size = $#SQL_arr;
   my $ptr = 0;
-  my $res = sql_query($q, $dbh);
-  if($res) {@row = sql_fetchrow($res);}
-  else { @row = (); }
+  my $res;
+  if($q =~ m/^\!(.*?)$/si)
+    {
+     @row = split(/\,/,$1);
+    }
+  else
+    {
+     $res = sql_query($q, $dbh);
+     if($res) {@row = sql_fetchrow($res);}
+     else { @row = (); }
+    }
   my $row_size = $#row;
   my $i;
-  for ($i=0;$i<$sa_size;$i++)
+  for ($i=0;$i<=$sa_size;$i++)
     {
      $res = $row[$ptr];
-     if($res == $SQL_arr[$i])
+     if($res eq $SQL_arr[$i])
        {
         my $row_number = $VAR_arr[$i];
         $var = ReplaceTemplateWith($row_number,$var,$MACH_arr[0]);
@@ -279,30 +300,16 @@ sub MenuSelect
         else {last;}
        }
     }
-  if(($row[0] == '') && ($row_size == 1))
+  if(($row[0] eq '') && ($row_size == 1))
     {
      $var = ReplaceTemplateWith($VAR_arr[0],$var,$MACH_arr[0]);
     }
-  my $va_size = sizeof($VAR_arr);
+  my $va_size = $#VAR_arr+1;
   for ($i=0;$i<$va_size;$i++)
     {
      $var = ReplaceTemplateWith($VAR_arr[$i],$var,$MACH_arr[1]);
     }
   return($var);
  }
-#############################################################
-# TODO: Make calling template functions as HTML tag...
-# -----------------------Example----------------------
-# Your name is:
-# <!--©INLINE©><S©L:1:"select USER,ID from demo_users where id=1;":1:1:1:1:S©L></©INLINE©-->!
-# <BR><!--©INLINE©><S©LVAR:1:S©L></©INLINE©-->`s ID is:
-# <!--©INLINE©><S©L:2:"":1:1:2:1:S©L></©INLINE©-->!<BR>
-# <!--©INLINE©><SHOP_ITEM:1:SELECT Product_ID FROM products WHERE Product_Hot='Y' AND Product_Avail='Y' AND Product_Category='0' LIMIT 0,1 :></©INLINE©-->
-# Message of the <B>day</B>: <!--©INLINE©><§TEMPLATE:7:$val:§></©INLINE©--><br>
-# <!--©INLINE©><MENUSELECT:$SOURCE:"SELECT MenuState FROM MyTable WHERE Condition1 = $C1 AND ...":\@DB_VALUES:\@TEMPLATE_NUMBERS:\@HTML_VALUES:$dbh:></©INLINE©-->
-# <!--©INLINE©><XREADER:1:bestbuy.jhtml:$first_param,$second_param></©INLINE©-->
-# ----------------------------------------------------
-# All must be in perl code..so loops must work!
-
 
 1;

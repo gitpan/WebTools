@@ -24,6 +24,7 @@ else
   print "\n";
  }
   chomp($path);
+  $path =~ s/\\/\//sg;
   if (!($path =~ m/\/$/))
    {
     $path .= '/';

@@ -33,7 +33,7 @@ require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.005";
+    $VERSION = "1.10";
     @ISA = qw(Exporter);
     $askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa @multipart_headers $parsedform $globvars $contenttype $query';
     
@@ -53,6 +53,19 @@ use vars qw($VERSION @ISA @EXPORT);
  eval "use lib \'$lib\';";
  eval "use lib \'$drv\';";
  
+ if($run_restrict_mode =~ m/^on$/si)
+  {
+   eval "require 'allowed.pl';";
+   if($@ eq '')
+     {
+      if(!Check_Remote_IP($ENV{'REMOTE_ADDR'}))
+        {
+         print "Content-type: text/html\n\n";
+         print "<H3><BR><B>You are <font color='red'>not allowed</font> to see that information, due current <font color='red'>restriction policy</font> for your host!<BR><BR>IP: ".$ENV{'REMOTE_ADDR'}."</B></H3>";
+         exit();    # Exit because IP restriction!
+        }
+     }
+   }
  require 'cookie.pl';
  require 'cgi-lib.pl';
  

@@ -18,7 +18,7 @@ $admin_pass = 'adminpassword';     # !!!EDIT!!!
         IP VARCHAR(20),
         EXPIRE INT,
         FLAG CHAR(1),
-        DATA VARCHAR(65535)
+        DATA VARCHAR(1048576)
         )
 TERMI
  sql_create_db($tab,$dbh);
@@ -27,7 +27,7 @@ $tab = << "TERMI";
         ID LONG,
         USER VARCHAR(30),
         PASSWORD VARCHAR(30),
-        DATA VARCHAR(65535)
+        DATA VARCHAR(1048576)
         )
 TERMI
  sql_create_db($tab,$dbh);

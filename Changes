@@ -14,3 +14,12 @@ Revision history for Perl sub system "WebTools"
 	- Library Php.pl were developed with base Php functions.
 	- Flat DB were updated basing on DBD::Sprite 0.26
 	- Were fixed problem with handling of some %SIG-nals in "downloader.pl"
+	
+1.10   24 Dec 2001
+          New features were added and some bugs removed
+        - Enhanced Templates support (INLINE, INPERL)
+        - INCLUDE function (perl/html) were added
+        - Mail client released (html mails, attachments)
+        - Security feature extended
+        - Session data's limit with forced Flat files
+          extended up to 1Mb

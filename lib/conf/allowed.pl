@@ -25,7 +25,7 @@ sub Check_Remote_IP
  foreach $l (@allowed_IPs)
   {
    $l =~ s/\./\\./sg;
-   $l =~ s/\*/.*?/sig;
+   $l =~ s/\*/\\d{0,3}/sig;
    $l = '^'.$l.'$';
    if($ip =~ m/$l/s)
      {

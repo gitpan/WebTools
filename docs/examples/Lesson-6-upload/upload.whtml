@@ -27,9 +27,12 @@
 
     # Proto: remove_mail_attachment(Original file name);  Remove attached file from attachment list
 
-    # Proto: send_mail(From,To,Subject,Body);
-    send_mail($from,$to,'SUBJECT: Upload Example ','See attached file!');
-
+    
+    set_mail_attachment($orgfile1,$fn1);                      # Push first file in attachment list
+    set_mail_attachment($orgfile2,$fn2);                      # and second one
+    
+    mail(to=>$to,from=>$from,subject=>'Test',body=>'<font color="red"> Just a small email test in HTML format!</font>',html=>1);
+    
     print "<HR>";
     print "E-mail SENT<BR>TO: $to <BR> FROM: $from<BR>\n";
     print "Attachments: <BR> ".$orgfile1."<BR> ".$orgfile2;
