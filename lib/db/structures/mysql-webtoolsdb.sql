@@ -6,7 +6,7 @@
 # >mysql -u USER -p < this_file.SQL
 ####################################
 
-create database webtoolsdb;   # Database is a good idea to be a same like in config.pl!
+create database webtoolsdb;   # Database is a good idea to be named on same way as it is in config.pl!
 use webtoolsdb;
 
 # There is session's records..

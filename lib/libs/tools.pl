@@ -164,8 +164,11 @@ sub MakeArray
  @a = split(/\™/s,$sclr);
  foreach $line (@a)
   {
-   $line = decode_separator($line, $escape, $row_sep, $col_sep);
-   push (@result, $line);
+   my ($a,$b) = split(/$col_sep/,$line);
+   $a = decode_separator($a, $escape, $row_sep, $col_sep);
+   $b = decode_separator($b, $escape, $row_sep, $col_sep);
+   push (@result,$a);
+   push (@result,$b);
   }
  return(@result);
 }

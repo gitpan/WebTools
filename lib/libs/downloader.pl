@@ -68,9 +68,9 @@ sub downloader_SendFile
  binmode(STDOUT);
  
  print "MIME-Type: 1.0\n";
- print "Content-Disposition: filename=$name\n";
+ print "Content-Disposition: filename=\"$name\"\n";
  print "Content-Transfer-Encoding: binary\n";
- print "Content-Type: ".$type.";name=$name\n\n";;
+ print "Content-Type: ".$type.";name=\"$name\"\n\n";;
  my $buffer = '';
  
  if($speed){$lenght = downloader_setSpeed($speed);}

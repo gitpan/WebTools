@@ -17,7 +17,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.10";
+    $VERSION = "1.11";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -41,7 +41,7 @@ use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
         sql_query sql_fetchrow sql_affected_rows sql_inserted_id hideerror sql_select_db 
         sql_num_rows sql_quote sql_connect sql_disconnect $sql_host $sql_user test_connect 
         sql_data_seek sql_errmsg sql_errno $sql_pass $sql_database_sessions 
-        $sql_sessions_table DB_OnDestroy DB_OnExit 
+        $sql_sessions_table DB_OnDestroy DB_OnExit $system_database_handle 
         
         Header read_form read_form_array read_var href_adder action_adder 
         attach_var disattach_var 
@@ -322,7 +322,7 @@ sub session_expiration
 }
 sub session_cookie_path
 {
-  return($sess_cookie_path);
+  return($cookie_path_cgi);
 }
 
 sub register_var
@@ -549,7 +549,7 @@ if($clear == 1) { $sess_header_flushed = 1; return;}
  if(!$sess_header_flushed)                  # If Header was not flushed...
  {
   $| = 1;
-  $print_header_buffer = "X-Powered-By: WebTools/1.10\n".$print_header_buffer; # Print version of this tool.
+  $print_header_buffer = "X-Powered-By: WebTools/1.11\n".$print_header_buffer; # Print version of this tool.
   if(($sess_cpg eq 'cookie') and ($local_sess_id ne ''))
     {
      if($sess_cookie ne 'sesstime')
@@ -1074,7 +1074,7 @@ sub close_session_file
     $r_q = " and IP = \'$ip\'";    # Restrict session on IP!
    }
   my $q = "update $sql_sessions_table set FLAG = \'0\' where S_ID = \'$sid\'".$r_q;
-  
+
   if($sess_force_flat eq 'off') ###DBD###
    {
     if (sql_query($q,$dbh) ne undef) { return(1); }
@@ -1083,6 +1083,7 @@ sub close_session_file
   else
   {
    ###FLAT###
+   $sess_force_flat = 'off';
    $re = csetflag_SF_File($tmp.'/',$sid);
    return(1);
   }

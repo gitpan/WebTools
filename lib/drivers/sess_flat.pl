@@ -37,7 +37,7 @@ reset_SF_cache();
 
 sub read_SF_NextFiles
 {
- *OD_FILE = shift(@_);
+ local *OD_FILE = shift(@_);
  my $sess_flat_path = shift(@_);
  my $sess_flat_cntFiles = shift(@_) || $sess_flat_countOfReqFiles;
  my $sess_flat_i;
@@ -72,7 +72,7 @@ sub read_SF_NextFiles
 
 sub get_SF_NextFile
 {
- *OD_FILE = shift(@_);
+ local *OD_FILE = shift(@_);
  my $sess_flat_path = shift(@_);
  my $sess_flat_cntFiles = shift(@_) || $sess_flat_countOfReqFiles;
  if(($sess_flat_cntFiles == $sess_flat_ptrInBuffer) || ($sess_flat_allFiles == 0))

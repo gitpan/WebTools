@@ -19,6 +19,7 @@
 
 $usystem_database_handle = undef;
 
+
 eval 'use DBI;';
 if($@ ne '')
  {
@@ -70,6 +71,7 @@ sub sql_connect   # No params needed!
     {
      if($#_ == -1)
       {
+       if($system_database_handle ne undef) {sql_disconnect($system_database_handle);}
        my $oldslcthnd = select(STDOUT);
        if($db_path =~ m/^\.\./s) {$db_path = './';}
        $oldh = $SIG{'__WARN__'};
@@ -172,14 +174,17 @@ sub sql_create_db   # ($table_description,$db_handler) -> Not DB! This is TABLE!
     {    
      my ($db,$DBH) = @_;
      $db =~ s/;$//s;
-     $DBH->do('CREATE TABLE '.$db);
-     return($DBH->do('CREATE TABLE '.$db));        # Just like Access Driver?
+     my $res = $DBH->do('CREATE TABLE '.$db);
+     $DBH->commit();
+     return($res);        # Just like Access Driver?
     }        
 sub sql_drop_db   # ($db_name,$db_handler) -> Not DB! This is TABLE!
     {    
      my ($db,$DBH) = @_;
      $db =~ s/;$//s;
-     return($DBH->do('DROP TABLE '.$db));
+     my $res = $DBH->do('DROP TABLE '.$db);
+     $DBH->commit();
+     return($res);
     } 
 sub sql_select_db
  {
@@ -303,6 +308,7 @@ sub insert_sessions_row   # ($session_id,$db_handler)
   {
    my $q = "INSERT INTO $sql_sessions_table VALUES(MAXVAL('ID|$sql_sessions_table'),?,?,?,?,?)";
    my $res = $dbh->do($q,undef,$sid,$ip,$inter,0,'');
+   $dbh->commit();
 
    if ($res eq '1')
      {
@@ -329,7 +335,7 @@ sub SignUpUser
  my ($user,$pass,$data,$dbh) = @_;
  my $ut = "SELECT USER FROM $sql_user_table WHERE USER=?";
  my $q = "INSERT INTO $sql_user_table VALUES (MAXVAL('ID|$sql_user_table'),?,?,?)";
-
+ 
  my $rut = $dbh->prepare($ut);
  $rut->execute($user);
 
@@ -339,6 +345,7 @@ sub SignUpUser
  else
   {
    my $res = $dbh->do($q,undef,$user,$pass,$data);
+   $dbh->commit();
    if ($res eq '1')
      {
        return(1);

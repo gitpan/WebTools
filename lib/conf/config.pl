@@ -1,5 +1,5 @@
 ###################################################################
-# Configuration file for "Web Tools"
+# Configuration file for "Web Tools" ver 1.11
 # Please edit here, don’t do that in Perl scripts!
 ###################################################################
 

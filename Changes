@@ -23,3 +23,6 @@ Revision history for Perl sub system "WebTools"
         - Security feature extended
         - Session data's limit with forced Flat files
           extended up to 1Mb
+          
+1.11   31 Dec 2001
+          Small bug fixes and documentation updates
