@@ -55,27 +55,26 @@ sub make_dump_html
   <A href="JavaScript: window.close();"><FONT COLOR="DARKBLUE" FACE="Verdana,Arial"><B>Close debug window</B></FONT></A><BR>
   ~;
    $full = $hf.$full.'<BR>'.$hf.'</BODY></HTML>';
-   my $data = "var data = '".dump_encoding_data($full)."';";
+   my $JS_DUMP_data = "var JS_DUMP_data = '".dump_encoding_data($full)."';";
    my $js = qq~
    <SCRIPT language="JavaScript">
    <!--
-   $data
-   var debug_window;
-   var w = 780;
-   var h = 450;
-   var winl = (screen.width-w)/2;
-   var wint = (screen.height-h)/2;
-   data = unescape(data);
+   $JS_DUMP_data
+   var JS_DUMP_debug_window;
+   var JS_DUMP_w = 780;
+   var JS_DUMP_h = 450;
+   var JS_DUMP_winl = (screen.width-JS_DUMP_w)/2;
+   var JS_DUMP_wint = (screen.height-JS_DUMP_h)/2;
+   JS_DUMP_data = unescape(JS_DUMP_data);
    function pop_up_debug_window(name)
     {
      window.focus();
-     debug_window = window.open('about:blank',name,'scrollbars=yes,width='+w+',height='+h);
-     debug_window.close();
-     debug_window = window.open('about:blank',name,'scrollbars=yes,width='+w+',height='+h);
-     debug_window.document.write(data);
-     debug_window.document.title = name;
-     debug_window.moveTo(winl,wint);
-     debug_window.focus();
+     JS_DUMP_debug_window = window.open('about:blank',name,'scrollbars=yes,width='+JS_DUMP_w+',height='+JS_DUMP_h+',top='+JS_DUMP_wint+',left='+JS_DUMP_winl);
+     JS_DUMP_debug_window.close(name);
+     JS_DUMP_debug_window = window.open('about:blank',name,'scrollbars=yes,width='+JS_DUMP_w+',height='+JS_DUMP_h+',top='+JS_DUMP_wint+',left='+JS_DUMP_winl);
+     JS_DUMP_debug_window.document.write(JS_DUMP_data);
+     JS_DUMP_debug_window.document.title = name;
+     JS_DUMP_debug_window.focus();
     }
    pop_up_debug_window('Debug');
    //-->
@@ -93,20 +92,19 @@ sub make_dump_html
    my $js = qq~
    <SCRIPT language="JavaScript">
    <!--
-   var flager=0;
-   var outer=0;
-   var wind;
-   var pos_x_1=0;
-   var pos_x_2=0;
-   var pos_y_1=0;
-   var pos_y_2=0;
-   var offset_x=0;
-   var offset_y=0;
-   var center_w=5;
-   var vis=1;
-   var begin_flag=0;
+   var JS_DUMP_flager=0;
+   var JS_DUMP_outer=0;
+   var JS_DUMP_pos_x_1=0;
+   var JS_DUMP_pos_x_2=0;
+   var JS_DUMP_pos_y_1=0;
+   var JS_DUMP_pos_y_2=0;
+   var JS_DUMP_offset_x=0;
+   var JS_DUMP_offset_y=0;
+   var JS_DUMP_center_w=5;
+   var JS_DUMP_vis=1;
+   var JS_DUMP_begin_flag=0;
    
-   function read_cookie(name)
+   function JS_DUMP_read_cookie(name)
    {
     var stop,index;
     
@@ -117,146 +115,146 @@ sub make_dump_html
     if (stop == -1) stop = document.cookie.length;
     return(unescape(document.cookie.substring(index, stop)));
    }
-   function write_cookie(name,value)
+   function JS_DUMP_write_cookie(name,value)
    {
     var cookie = name + "=" + value + ";";
     document.cookie = cookie;
    }
-   function alert_keycode(){
+   function JS_DUMP_alert_keycode(){
     if(event.keyCode == 11) // CTRL+L
      {
-      if(vis == 0)
+      if(JS_DUMP_vis == 0)
        {
-       	Open_Layer();
-       	vis = 1;
+       	JS_DUMP_Open_Layer();
+       	JS_DUMP_vis = 1;
        }
       else
        {
-       	Close_Layer();
-       	vis = 0;
+       	JS_DUMP_Close_Layer();
+       	JS_DUMP_vis = 0;
        }
      }
    }
-   function processkey(e){
+   function JS_DUMP_processkey(e){
     if(e.which == 11) // CTRL+L
      {
-      if(vis == 0)
+      if(JS_DUMP_vis == 0)
        {
-       	Open_Layer();
-       	vis = 1;
+       	JS_DUMP_Open_Layer();
+       	JS_DUMP_vis = 1;
        }
       else
        {
-       	Close_Layer();
-       	vis = 0;
+       	JS_DUMP_Close_Layer();
+       	JS_DUMP_vis = 0;
        }
      }
    }
    if(document.all){
-    document.onkeypress=alert_keycode
+    document.onkeypress=JS_DUMP_alert_keycode
    }
    else {
     document.captureEvents(Event.KEYPRESS)
-    document.onkeypress=processkey
+    document.onkeypress=JS_DUMP_processkey
    }
    
-   function flag(a)
+   function JS_DUMP_flag(a)
    {
-    flager = a;
+    JS_DUMP_flager = a;
    }
-   function outit(a)
+   function JS_DUMP_outit(a)
    {
-    outer = a;
+    JS_DUMP_outer = a;
    }
-   function get_x(a)
+   function JS_DUMP_get_x(a)
    {
-    if(begin_flag > 0) {begin_flag --;a=1;}
+    if(JS_DUMP_begin_flag > 0) {JS_DUMP_begin_flag --;a=1;}
     if(a == 1)
      {
-      pos_x_1 = 0;
-      return(read_cookie('sys_debug_cookie_x'));
+      JS_DUMP_pos_x_1 = 0;
+      return(JS_DUMP_read_cookie('sys_debug_cookie_x'));
      }
     else
      {
       return(window.event.x);
      }
    }
-   function get_y(a)
+   function JS_DUMP_get_y(a)
    {
-    if(begin_flag > 0) {begin_flag --;a=1;}
+    if(JS_DUMP_begin_flag > 0) {JS_DUMP_begin_flag --;a=1;}
     if(a == 1)
      {
-      pos_y_1 = 0
-      pos_y_2 = 19;
-      return(read_cookie('sys_debug_cookie_y'));
+      JS_DUMP_pos_y_1 = 0
+      JS_DUMP_pos_y_2 = 19;
+      return(JS_DUMP_read_cookie('sys_debug_cookie_y'));
      }
     else
      {
       return(window.event.y);
      }
    }
-   function moveit(debuglaycapt,debuglaybody)
+   function JS_DUMP_moveit(debuglaycapt,debuglaybody)
    {
     var tx,ty;
     var a,i;
     if(document.all){
-    if(flager == 1)
+    if(JS_DUMP_flager == 1)
      {
-      g_x = get_x(0);
-      g_y = get_y(0);
+      var g_x = JS_DUMP_get_x(0);
+      var g_y = JS_DUMP_get_y(0);
       
-      tx = g_x - center_w;
-      ty = g_y - center_w;
-      pos_x_1 = pos_x_1 + tx;
-      pos_y_1 = pos_y_1 + ty;
-      pos_y_2 = pos_y_2 + ty;
+      tx = g_x - JS_DUMP_center_w;
+      ty = g_y - JS_DUMP_center_w;
+      JS_DUMP_pos_x_1 = JS_DUMP_pos_x_1 + tx;
+      JS_DUMP_pos_y_1 = JS_DUMP_pos_y_1 + ty;
+      JS_DUMP_pos_y_2 = JS_DUMP_pos_y_2 + ty;
       
-      var my_x = pos_x_1+center_w;
-      var my_y = pos_y_1+center_w;
+      var my_x = JS_DUMP_pos_x_1+JS_DUMP_center_w;
+      var my_y = JS_DUMP_pos_y_1+JS_DUMP_center_w;
 
       if(parseInt(my_x) > 1024) {my_x=5; my_y=5;}
       if(parseInt(my_x) < 0) {my_x=5; my_y=5;}
       if(parseInt(my_y) > 1280) {my_x=5; my_y=5;}
       if(parseInt(my_y) < 0) {my_x=5; my_y=5;}
 
-      write_cookie('sys_debug_cookie_x',my_x);
-      write_cookie('sys_debug_cookie_y',my_y);
+      JS_DUMP_write_cookie('sys_debug_cookie_x',my_x);
+      JS_DUMP_write_cookie('sys_debug_cookie_y',my_y);
       
-      if(pos_x_1 < 0) pos_x_1 = 0;
-      if(pos_y_1 < 0) {pos_y_1 = 0; pos_y_2 = 24;}
+      if(JS_DUMP_pos_x_1 < 0) JS_DUMP_pos_x_1 = 0;
+      if(JS_DUMP_pos_y_1 < 0) {JS_DUMP_pos_y_1 = 0; JS_DUMP_pos_y_2 = 24;}
       
-      debuglaycapt.style.top = pos_y_1;
-      debuglaycapt.style.left= pos_x_1;
-      debuglaybody.style.top = pos_y_2;
-      debuglaybody.style.left= pos_x_1;
+      debuglaycapt.style.top = JS_DUMP_pos_y_1;
+      debuglaycapt.style.left= JS_DUMP_pos_x_1;
+      debuglaybody.style.top = JS_DUMP_pos_y_2;
+      debuglaybody.style.left= JS_DUMP_pos_x_1;
       
-      flager=0;
-      outer=0;
+      JS_DUMP_flager=0;
+      JS_DUMP_outer=0;
      }
-     flager=0;
+     JS_DUMP_flager=0;
     }
    }
-   function check(debuglaycapt,debuglaybody)
+   function JS_DUMP_check(debuglaycapt,debuglaybody)
    {
     if(document.all){
-    if (flager == 0) outer = 0;
-    else outer = 1;
-    moveit(debuglaycapt,debuglaybody);
+    if (JS_DUMP_flager == 0) JS_DUMP_outer = 0;
+    else JS_DUMP_outer = 1;
+    JS_DUMP_moveit(debuglaycapt,debuglaybody);
     }
    }
-   function Min_Max_Layer()
+   function JS_DUMP_Min_Max_Layer()
     {
      if(document.all)
       {
        if(document.all.debuglaybody.style.visibility == 'visible')
         {
          document.all.debuglaybody.style.visibility = 'hidden';
-         write_cookie('sys_debug_cookie_min_max','H');
+         JS_DUMP_write_cookie('sys_debug_cookie_min_max','H');
         }
        else
         {
          document.all.debuglaybody.style.visibility = 'visible';
-         write_cookie('sys_debug_cookie_min_max','V');
+         JS_DUMP_write_cookie('sys_debug_cookie_min_max','V');
         }
       }
      else
@@ -264,19 +262,19 @@ sub make_dump_html
        if(document.debuglaybody.visibility != 'hide')
         {
          document.debuglaybody.visibility = 'hide';
-         write_cookie('sys_debug_cookie_min_max','H');
+         JS_DUMP_write_cookie('sys_debug_cookie_min_max','H');
         }
        else
         {
          document.debuglaybody.visibility = 'visible';
-         write_cookie('sys_debug_cookie_min_max','V');
+         JS_DUMP_write_cookie('sys_debug_cookie_min_max','V');
         }
       }
     }
-   function Close_Layer()
+   function JS_DUMP_Close_Layer()
     {
-     vis = 0;
-     write_cookie('sys_debug_cookie_visible','H');
+     JS_DUMP_vis = 0;
+     JS_DUMP_write_cookie('sys_debug_cookie_visible','H');
      if(document.all)
       {
        document.all.debuglaycapt.style.visibility = 'hidden';
@@ -289,10 +287,10 @@ sub make_dump_html
        document.debuglaybody.visibility = 'hide';
       }
     }
-   function Open_Layer()
+   function JS_DUMP_Open_Layer()
     {
-     vis = 1;
-     write_cookie('sys_debug_cookie_visible','V');
+     JS_DUMP_vis = 1;
+     JS_DUMP_write_cookie('sys_debug_cookie_visible','V');
      if(document.all)
       {
        document.all.debuglaycapt.style.visibility = 'visible';
@@ -314,7 +312,7 @@ sub make_dump_html
       if(document.all)
        {
          document.writeln('<td width="10" bgcolor="#0060A0">');
-         document.writeln('<DIV id="movein" style="position:relative; z-index:1; visibility: visible; top: 0px; left: 0px; width: 20px; overflow: none;" align="left" onmousedown="flag(1),outit(1);" onmouseout="check(debuglaycapt,debuglaybody);" onmouseup="javascript:flag(0);"><IMG ALT="To move window please drag this image!" SRC="about:blank" width="20" HEIGHT="20"></DIV>');
+         document.writeln('<DIV id="movein" style="position:relative; z-index:1; visibility: visible; top: 0px; left: 0px; width: 20px; overflow: none;" align="left" onmousedown="JS_DUMP_flag(1),JS_DUMP_outit(1);" onmouseout="JS_DUMP_check(debuglaycapt,debuglaybody);" onmouseup="javascript:JS_DUMP_flag(0);"><IMG ALT="To move window please drag this image!" SRC="about:blank" width="20" HEIGHT="20"></DIV>');
          document.writeln('</td>');
        }
       </script>
@@ -323,10 +321,10 @@ sub make_dump_html
           Window <font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#004FB0">- Press CTRL+K to hide/show window</font></b></font></div>
       </td>
       <td width="1" bgcolor="#0099FF"> 
-        <div align="center"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#FFFF00"><b><font size="3"><font size="2">&nbsp;<a href="javascript: Min_Max_Layer();">M</a>&nbsp;</font></font></b></font></div>
+        <div align="center"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#FFFF00"><b><font size="3"><font size="2">&nbsp;<a href="javascript: JS_DUMP_Min_Max_Layer();">M</a>&nbsp;</font></font></b></font></div>
       </td>
       <td width="1" bgcolor="#0099FF"> 
-        <div align="center"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#FFFF00"><b><font size="3"><font size="2">&nbsp;<a href="javascript: Close_Layer();">X</a>&nbsp;</font></font></b></font></div>
+        <div align="center"><font face="Verdana, Arial, Helvetica, sans-serif" size="2" color="#FFFF00"><b><font size="3"><font size="2">&nbsp;<a href="javascript: JS_DUMP_Close_Layer();">X</a>&nbsp;</font></font></b></font></div>
       </td>
     </tr>
    </table>
@@ -342,30 +340,30 @@ sub make_dump_html
    </div>
    <script language="JavaScript">
    if(document.all){
-     pos_x_1 = parseInt(debuglaycapt.style.left);
-     pos_x_2 = parseInt(debuglaybody.style.left);
-     pos_y_1 = parseInt(debuglaycapt.style.top);
-     pos_y_2 = parseInt(debuglaybody.style.top);
-     offset_x = pos_x_2 - pos_x_1;
-     offset_y = pos_y_2 - pos_y_1;
-     center_w = parseInt(movein.style.width) / 2;
-     begin_flag = 2;
-     flag(1);outit(1);
-     check(debuglaycapt,debuglaybody);
-     flag(0);
+     JS_DUMP_pos_x_1 = parseInt(debuglaycapt.style.left);
+     JS_DUMP_pos_x_2 = parseInt(debuglaybody.style.left);
+     JS_DUMP_pos_y_1 = parseInt(debuglaycapt.style.top);
+     JS_DUMP_pos_y_2 = parseInt(debuglaybody.style.top);
+     JS_DUMP_offset_x = JS_DUMP_pos_x_2 - JS_DUMP_pos_x_1;
+     JS_DUMP_offset_y = JS_DUMP_pos_y_2 - JS_DUMP_pos_y_1;
+     JS_DUMP_center_w = parseInt(movein.style.width) / 2;
+     JS_DUMP_begin_flag = 2;
+     JS_DUMP_flag(1);JS_DUMP_outit(1);
+     JS_DUMP_check(debuglaycapt,debuglaybody);
+     JS_DUMP_flag(0);
    }
-   var rc_state_v = read_cookie('sys_debug_cookie_visible');
-   var rc_state_m = read_cookie('sys_debug_cookie_min_max');
+   var rc_state_v = JS_DUMP_read_cookie('sys_debug_cookie_visible');
+   var rc_state_m = JS_DUMP_read_cookie('sys_debug_cookie_min_max');
    rc_state_v
    if(rc_state_v == 'V' || rc_state_v == 0)
     {
-     Open_Layer(); vis=1;
+     JS_DUMP_Open_Layer(); JS_DUMP_vis=1;
      if(rc_state_m == 'H')
       {
-       Min_Max_Layer();
+       JS_DUMP_Min_Max_Layer();
       }
     }
-   else {Close_Layer(); vis=0;}
+   else {JS_DUMP_Close_Layer(); JS_DUMP_vis=0;}
    </script>
    ~;
    return $js;

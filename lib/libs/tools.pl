@@ -103,7 +103,7 @@ sub CheckData
    }
  if($type eq 'email')
    {
-    if(($var =~ m/^([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z0-9\_\-\.]+)$/is)) { return(1); }
+    if(($var =~ m/^([A-Za-z0-9\_\-\.]+)\@([A-Za-z0-9\_\-\.]+)\.([A-Za-z]{2,})$/is)) { return(1); }
     return(0);
    }  
  if($type eq 'phone')
@@ -257,11 +257,8 @@ sub PrintHtml
      return('<br><FONT COLOR="#ff0000" SIZE=+1> Web Page not found! </FONT><br>');
     };
  binmode(HFILE);
- my $old_new_line = $/;
- undef $/;
- my $page = <HFILE>;
+ read(HFILE,$page,(-s $path.$file));
  close (HFILE);
- $/ = $old_new_line;
  $base = '<BASE HREF="'.$base.'">';
  $page =~ s~<HEAD>~<HEAD>\n$base\n~si;
  return ($page);
@@ -271,6 +268,8 @@ sub PrintHtml
 # You must supplay: User,Password,Empty,Old_SID and DB Handler,
 # where: Empty is 1, if User and Password vars are not defined;
 #     Old_SID is Session ID found from GetCurrentSID($dbh);
+# If you want you can suply pointer to custom SignInUser at
+# the end of paramerters line!
 # Function return action depened of these data.
 # Syntax: ($action,$user,$pass,$ID,$DATA) = UserPassword(....);
 # Where $action can be: 
@@ -288,7 +287,7 @@ sub PrintHtml
 ##################################################################
 sub UserPassword
 {
- my ($user,$pass,$empty,$old_sid,$dbh) = @_;
+ my ($user,$pass,$empty,$old_sid,$dbh,$signinuser_sub_ref) = @_;
  my $result = undef;
  my ($id,$data,$sid,$user_loged) = ();
  my ($back_up_header,$back_up_buffer,$back_up_flsh)= ();
@@ -301,7 +300,14 @@ sub UserPassword
      }
     else
      {
-       ($id,$data) = SignInUser($user,$pass,$dbh);
+       if(!ref($signinuser_sub_ref))
+        {
+         ($id,$data) = SignInUser($user,$pass,$dbh);
+        }
+       else
+        {
+         ($id,$data) = &$signinuser_sub_ref($user,$pass,$dbh);
+        }
  # Check INPUT User and Pass.
        if ($id eq undef)
          {
@@ -347,7 +353,14 @@ sub UserPassword
      }
     else
      {
-       ($id,$data) = SignInUser($user,$pass,$dbh);
+       if(!ref($signinuser_sub_ref))
+        {
+         ($id,$data) = SignInUser($user,$pass,$dbh);
+        }
+       else
+        {
+         ($id,$data) = &$signinuser_sub_ref($user,$pass,$dbh);
+        }
        # Check INPUT User and Pass.
        if ($id eq undef)
          {

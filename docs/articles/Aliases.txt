@@ -34,7 +34,7 @@ this is eqivalent to:
  # print "<BR>".$sys__scriptname_fly[0]."<BR>";
 ?>
 
-NOTE: Recurse is not available for sub classes! (can't use main.var.var2...)
+NOTE: Recurse is not available for sub classes! (you can't use main.var.var2...)
 
  Please use this aliases very carefully! Sometimes they can be useful but
 sometimes you can get strange errors! Use it at your own risk!

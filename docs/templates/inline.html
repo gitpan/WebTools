@@ -43,7 +43,8 @@ Templates:<font color="#0000CC"> Page 2</font></font></b></font> </p>
         inline functions &lt;/<font color="#006633">&copy;</font>INPERL<font color="#006633">&copy;</font>--&gt; 
         <br>
         </font><br>
-        &nbsp; &lt;!--&copy;INLINE&copy;&gt;&lt;/&copy;INLINE&copy;--&gt; is used 
+        <br>
+        &nbsp;&lt;!--&copy;INLINE&copy;&gt;&lt;/&copy;INLINE&copy;--&gt; is used 
         to excape HTML (and repectively PERL code), so code between these &quot;tags&quot; 
         will be parsed from WebTools engine.<br>
         <br>
@@ -63,6 +64,24 @@ Templates:<font color="#0000CC"> Page 2</font></font></b></font> </p>
         query&quot;<font color="#FF0000">:</font>$ref_DB<font color="#FF0000">:</font>$ref_TEMPLATE<font color="#FF0000">:</font>$ref_HTML<font color="#FF0000">:</font>$dbh<font color="#FF0000">:</font>&gt; 
         <br>
         </font><br>
+        <font color="#0000CC"><font color="#FF0066">&nbsp;If prefer you can use 
+        alternative syntax for all templates!</font></font><br>
+        <br>
+        &nbsp;&nbsp;Supported inline functions with alternative syntax (in any 
+        other aspect they are same):<br>
+        <br>
+        <font color="#0000CC">%%TEMPLATE<font color="#FF0000">:</font>number_of_templates_variable<font color="#FF0000">:</font>$variable<font color="#FF0000">:</font>%%<br>
+        <br>
+        %%XREADER<font color="#FF0000">:</font>number_of_template_in_file<font color="#FF0000">:</font>template_file.jhtml<font color="#FF0000">:</font>$first_param,$second_param,...%%<br>
+        <br>
+        %%SQL<font color="#FF0000">:</font>number_of_SQL_query<font color="#FF0000">:</font>&quot;SQL 
+        query;&quot;<font color="#FF0000">:</font>used_query<font color="#FF0000">:</font>row_number<font color="#FF0000">:</font>col_number<font color="#FF0000">:</font>should_be_printed?<font color="#FF0000">:</font>SQL%%<br>
+        <br>
+        %%SQLVAR<font color="#FF0000">:</font>number_of_template_variable%%<br>
+        <br>
+        %%MENUSELECT<font color="#FF0000">:</font>$html_source<font color="#FF0000">:</font>&quot;SQL 
+        query&quot;<font color="#FF0000">:</font>$ref_DB<font color="#FF0000">:</font>$ref_TEMPLATE<font color="#FF0000">:</font>$ref_HTML<font color="#FF0000">:</font>$dbh<font color="#FF0000">:</font>%%<br>
+        </font><br>
         I don't like to make analogy between &quot;normal&quot; templates described 
         in previuos page because thay practicaly is absolutely equal. I just think 
         to show you an example that will help you to understand difference.<br>
@@ -72,7 +91,11 @@ Templates:<font color="#0000CC"> Page 2</font></font></b></font> </p>
         perl code or html... no matter!)<br>
         INCLUDE syntax:<br>
         <br>
-        <font color="#993366"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;&nbsp;&lt;!--&copy;INCLUDE&copy;file.ext&copy;--&gt;</font></b></font><br>
+        <font color="#993366"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;&nbsp;&lt;!--<font color="#0000FF">&copy;</font>INCLUDE<font color="#0000FF">&copy;</font>file.ext<font color="#0000FF">&copy;</font>--&gt;</font></b></font><br>
+        <br>
+        or alternative syntax:<br>
+        <br>
+        <font color="#993366"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif">&nbsp;&nbsp;&lt;!--<font color="#0000FF">%</font>INCLUDE<font color="#0000FF">%</font>file.ext<font color="#0000FF">%</font>--&gt;</font></b></font><br>
         <br>
         Note that you should not use INLINE/INPERL tag for that function!!! (For 
         more info see example below)<br>

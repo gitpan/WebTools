@@ -29,7 +29,6 @@ $cgi_lib_bufsize  =  8192;    # default buffer size when reading multipart
 $cgi_lib_maxbound =   100;    # maximum boundary length to be encounterd
 $cgi_lib_headerout =    0;    # indicates whether the header has been printed
 
-
 # ReadParse
 # Reads in GET or POST data, converts it to unescaped text, and puts
 # key/value pairs in %in, using "\0" to separate multiple selections

@@ -71,6 +71,24 @@ Templates:<font color="#0000CC"> Page 2.1</font></font></b></font></p>
         value in place where it's being, BUT evaluated value will appear in default 
         variable $_ Please remember this fact!</FONT><BR>
         <BR>
+        <font color="#0000CC"><font color="#FF0066"><br>
+        &nbsp;&nbsp;<font color="#006600">If prefer you can use alternative syntax 
+        for all templates!</font></font></font><br>
+        <br>
+        &nbsp;&nbsp;Supported inline functions with alternative syntax (in any 
+        other aspect they are same):<br>
+        <br>
+        <font color="#0000CC">%%TEMPLATE<font color="#FF0000">:</font>number_of_templates_variable<font color="#FF0000">:</font>$variable<font color="#FF0000">:</font>%%<br>
+        <br>
+        %%XREADER<font color="#FF0000">:</font>number_of_template_in_file<font color="#FF0000">:</font>template_file.jhtml<font color="#FF0000">:</font>$first_param,$second_param,...%%<br>
+        <br>
+        %%SQL<font color="#FF0000">:</font>number_of_SQL_query<font color="#FF0000">:</font>&quot;SQL 
+        query;&quot;<font color="#FF0000">:</font>used_query<font color="#FF0000">:</font>row_number<font color="#FF0000">:</font>col_number<font color="#FF0000">:</font>should_be_printed?<font color="#FF0000">:</font>SQL%%<br>
+        <br>
+        %%SQLVAR<font color="#FF0000">:</font>number_of_template_variable%%<br>
+        <br>
+        %%MENUSELECT<font color="#FF0000">:</font>$html_source<font color="#FF0000">:</font>&quot;SQL 
+        query&quot;<font color="#FF0000">:</font>$ref_DB<font color="#FF0000">:</font>$ref_TEMPLATE<font color="#FF0000">:</font>$ref_HTML<font color="#FF0000">:</font>$dbh<font color="#FF0000">:</font>%%</font><br>
         <br>
         <BR>
         <FONT SIZE="3">&nbsp;*</FONT>&nbsp;&nbsp;Now we look at INLINE templates 
@@ -251,6 +269,11 @@ Templates:<font color="#0000CC"> Page 2.1</font></font></b></font></p>
         Inlude syntax:<BR>
         <BR>
         </font><FONT COLOR="#993366"><B><FONT SIZE="2" FACE="Verdana, Arial, Helvetica, sans-serif" COLOR="#0000CC">&lt;!--<FONT COLOR="#006633">&copy;</FONT>INCLUDE<FONT COLOR="#006633">&copy;</FONT>file_to_be_included.ext<FONT COLOR="#006633">&copy;</FONT>--&gt;</FONT></B></FONT><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><BR>
+        <br>
+        and alternative syntax:<br>
+        <br>
+        <b><font color="#993366"><b><font size="2" face="Verdana, Arial, Helvetica, sans-serif" color="#0000CC">&lt;!--</font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><font color="#006633">%</font><font color="#0000CC">INCLUDE</font><font color="#006633">%</font><font color="#0000CC">file.ext</font><font color="#006633">%</font><font color="#0000CC">--&gt;</font></font></b></font></b> 
+        <br>
         <BR>
         This tag you can place wherever you want (no matter whether you are in 
         perl code (&lt;?perl ?&gt;) or you are in HTML). However if you want to 

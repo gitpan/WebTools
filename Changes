@@ -99,3 +99,11 @@ Revision history for Perl sub system "WebTools"
         - Dynamicly fillout html forms using hash.
         - Script "firewall". Set allowed IPs and restrict/redirect
           other.
+
+1.25   01 May 2002
+        - New 'mysql' driver (mysql_dbi) using DBI interface
+        - Improved 'xreader' with simplificated templates
+        - Improved 'webtools' module with simple template support
+        - Removed READLINE operator in place where is needful to
+          speed up execution of scripts
+        - Removed bugs found at: htmlparser.pl and dump.pl

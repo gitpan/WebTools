@@ -1,6 +1,5 @@
 #########################################################################
 # Xreader HTML Parser
-# All rigths reserved by Julian Lishev
 #########################################################################
 
 ####################################################
@@ -10,6 +9,7 @@
 sub html_parse
 {
  my ($html) = shift;
+ $html =~ s/\r\n/\n/sgi;
  my %inp = @_;
  my @forms = ();
  my $result = '';
@@ -26,6 +26,9 @@ sub html_parse
      $html = html_parse_input($k,$inp{$k},$html);
      $html = html_parse_select($k,$inp{$k},$html);
      $html = html_parse_textarea($k,$inp{$k},$html);
+     $html = html_parse_frame($k,$inp{$k},$html);
+     $html = html_parse_link($k,$inp{$k},$html);
+     $html = html_parse_meta($k,$inp{$k},$html);
     }
    $result .= $html;
   }
@@ -39,6 +42,7 @@ sub html_parse_form
 {
  my ($name) = shift;
  my ($html) = shift;
+ $html =~ s/\r\n/\n/sgi;
  my %inp = @_;
  my ($uniq) = generate_unique_string($html);
  my $data = $html;
@@ -57,9 +61,12 @@ sub html_parse_form
        $v = html_parse_input($key,$inp{$key},$v);
        $v = html_parse_select($key,$inp{$key},$v);
        $v = html_parse_textarea($key,$inp{$key},$v);
+       $v = html_parse_frame($key,$inp{$key},$v);
+       $v = html_parse_link($key,$inp{$key},$v);
+       $v = html_parse_meta($key,$inp{$key},$v);
       }
      substr($data,index($data,$k),length($k),$v);
- };#sieo;
+ };#sie;
 
  return($data);
 }
@@ -88,7 +95,7 @@ sub html_parse_select
      $k = $temp;
      $v = html_parse_select_options($value,$v);
      substr($data,index($data,$k),length($k),$v);
- };#sieo;
+ };#sie;
 
  return($data);
 }
@@ -109,7 +116,7 @@ sub html_parse_textarea
      my $begin = $1.$2.$3.$4.$5.$6.'>';
      my $end = $8;
      $data =~ s/(\<TEXTAREA[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)($name)(\ |\"|\')(.*?)\>(.*?)\<\/TEXTAREA\>/$begin$value$end/si;
- };#sieo;
+ };#sie;
 
  return($data);
 }
@@ -170,7 +177,211 @@ sub html_parse_input
        }
       }
      $html_parser_counter++;
- };#siego;
+ };#sieg;
+        my $i;
+        for ($i=0;$i<scalar(@k_t);$i++)
+         {
+          substr($data,index($data,$k_t[$i]),length($k_t[$i]),$v_t[$i]);
+         }
+
+ return($data);
+}
+
+###############################################
+# Parse one <frame> tag
+# PROTO: 
+# $html = html_parse_frame($name,$val,$html);
+###############################################
+sub html_parse_frame
+{
+ my ($name) = shift;
+ my ($value) = shift;
+ my ($html) = shift;
+ my ($uniq) = generate_unique_string($html);
+ my $html_parser_counter = '0';
+ my $data = $html;
+ my $temp;
+ my $k;
+ my $v;
+ my @k_t = ();
+ my @v_t = ();
+
+ $html =~ s#(\<FRAME[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)($name)(\ |\"|\')(.*?)\>#do{
+     $temp = $uniq.":".$html_parser_counter.":";
+     $v = $1.$2.$3.$4.$5.$6;
+     $data =~ s/(\<FRAME[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)$name(\ |\"|\')(.*?)\>/$temp/si;
+     $k = $temp;
+      if($v =~ m/^(.*?)( SRC\ {0,}\=)(.*)?$/si)
+       {
+        my $prev = $1.$2;
+        my $l = $3;
+        $l =~ s/^\ {0,}(\"|\'|)([^\'\"]+)?(\"|\'|)(.*)$/\"$value\"$4\>/si;
+        $v = $prev.$l;
+        if(!($v =~ m/\>\ {0,}$/)){$v .= '>';}
+        substr($data,index($data,$k),length($k),$v);
+        return($data);
+       }
+      else
+       {
+       	$v .= ' SRC="'.$value.'">';
+        substr($data,index($data,$k),length($k),$v);
+        return($data);
+       }
+     $html_parser_counter++;
+ };#sieg;
+        my $i;
+        for ($i=0;$i<scalar(@k_t);$i++)
+         {
+          substr($data,index($data,$k_t[$i]),length($k_t[$i]),$v_t[$i]);
+         }
+
+ return($data);
+}
+
+###############################################
+# Parse one <img> tag
+# PROTO: 
+# $html = html_parse_img($name,$val,$html);
+###############################################
+sub html_parse_img
+{
+ my ($name) = shift;
+ my ($value) = shift;
+ my ($html) = shift;
+ my ($uniq) = generate_unique_string($html);
+ my $html_parser_counter = '0';
+ my $data = $html;
+ my $temp;
+ my $k;
+ my $v;
+ my @k_t = ();
+ my @v_t = ();
+
+ $html =~ s#(\<IMG[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)($name)(\ |\"|\')(.*?)\>#do{
+     $temp = $uniq.":".$html_parser_counter.":";
+     $v = $1.$2.$3.$4.$5.$6;
+     $data =~ s/(\<IMG[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)$name(\ |\"|\')(.*?)\>/$temp/si;
+     $k = $temp;
+      if($v =~ m/^(.*?)( SRC\ {0,}\=)(.*)?$/si)
+       {
+        my $prev = $1.$2;
+        my $l = $3;
+        $l =~ s/^\ {0,}(\"|\'|)([^\'\"]+)?(\"|\'|)(.*)$/\"$value\"$4\>/si;
+        $v = $prev.$l;
+        if(!($v =~ m/\>\ {0,}$/)){$v .= '>';}
+        substr($data,index($data,$k),length($k),$v);
+        return($data);
+       }
+      else
+       {
+       	$v .= ' SRC="'.$value.'">';
+        substr($data,index($data,$k),length($k),$v);
+        return($data);
+       }
+     $html_parser_counter++;
+ };#sieg;
+        my $i;
+        for ($i=0;$i<scalar(@k_t);$i++)
+         {
+          substr($data,index($data,$k_t[$i]),length($k_t[$i]),$v_t[$i]);
+         }
+
+ return($data);
+}
+
+###############################################
+# Parse one <A NAME=... HREF=...> tag
+# PROTO: 
+# $html = html_parse_link($name,$val,$html);
+###############################################
+sub html_parse_link
+{
+ my ($name) = shift;
+ my ($value) = shift;
+ my ($html) = shift;
+ my ($uniq) = generate_unique_string($html);
+ my $html_parser_counter = '0';
+ my $data = $html;
+ my $temp;
+ my $k;
+ my $v;
+ my @k_t = ();
+ my @v_t = ();
+
+ $html =~ s#(\<A[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)($name)(\ |\"|\')(.*?)\>#do{
+     $temp = $uniq.":".$html_parser_counter.":";
+     $v = $1.$2.$3.$4.$5.$6;
+     $data =~ s/(\<A[^\<\>]*?)( NAME\ {0,})([\=\ \"\']+)$name(\ |\"|\')(.*?)\>/$temp/si;
+     $k = $temp;
+      if($v =~ m/^(.*?)( HREF\ {0,}\=)(.*)?$/si)
+       {
+        my $prev = $1.$2;
+        my $l = $3;
+        $l =~ s/^\ {0,}(\"|\'|)([^\'\"]+)?(\"|\'|)(.*)$/\"$value\"$4\>/si;
+        $v = $prev.$l;
+        if(!($v =~ m/\>\ {0,}$/)){$v .= '>';}
+        substr($data,index($data,$k),length($k),$v);
+        return($data);
+       }
+      else
+       {
+       	$v .= ' HREF="'.$value.'">';
+        substr($data,index($data,$k),length($k),$v);
+        return($data);
+       }
+     $html_parser_counter++;
+ };#sieg;
+        my $i;
+        for ($i=0;$i<scalar(@k_t);$i++)
+         {
+          substr($data,index($data,$k_t[$i]),length($k_t[$i]),$v_t[$i]);
+         }
+
+ return($data);
+}
+
+###############################################
+# Parse one <META HTTP-EQUIV.. CONTENT..> tag
+# PROTO: 
+# $html = html_parse_meta($name,$val,$html);
+###############################################
+sub html_parse_meta
+{
+ my ($name) = shift;
+ my ($value) = shift;
+ my ($html) = shift;
+ my ($uniq) = generate_unique_string($html);
+ my $html_parser_counter = '0';
+ my $data = $html;
+ my $temp;
+ my $k;
+ my $v;
+ my @k_t = ();
+ my @v_t = ();
+
+ $html =~ s#(\<A[^\<\>]*?)( HTTP\-EQUIV\ {0,})([\=\ \"\']+)($name)(\ |\"|\')(.*?)\>#do{
+     $temp = $uniq.":".$html_parser_counter.":";
+     $v = $1.$2.$3.$4.$5.$6;
+     $data =~ s/(\<A[^\<\>]*?)( HTTP\-EQUIV\ {0,})([\=\ \"\']+)$name(\ |\"|\')(.*?)\>/$temp/si;
+     $k = $temp;
+      if($v =~ m/^(.*?)( CONTENT\ {0,}\=)(.*)?$/si)
+       {
+        my $prev = $1.$2;
+        my $l = $3;
+        $l =~ s/^\ {0,}(\"|\'|)([^\'\"]+)?(\"|\'|)(.*)$/\"$value\"$4\>/si;
+        $v = $prev.$l;
+        if(!($v =~ m/\>\ {0,}$/)){$v .= '>';}
+        substr($data,index($data,$k),length($k),$v);
+        return($data);
+       }
+      else
+       {
+       	$v .= ' CONTENT="'.$value.'">';
+        substr($data,index($data,$k),length($k),$v);
+        return($data);
+       }
+     $html_parser_counter++;
+ };#sieg;
         my $i;
         for ($i=0;$i<scalar(@k_t);$i++)
          {
@@ -205,7 +416,7 @@ sub html_parse_remove_attribute
  push(@backup,$1);
  push(@templ,$uniq);
  $copy =~ s!([\"\'][^\"]*?[\"\'])!$uniq!s;
- };/gose;
+ };/gse;
  $copy =~ s/\ $tag(\ |\>|)/$1/sgi;
  my $i;
  for($i=0;$i<scalar(@templ);$i++)

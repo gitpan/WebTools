@@ -19,7 +19,7 @@ use vars qw($VERSION @ISA @EXPORT);
 @ISA = qw(Exporter);
 @EXPORT = qw(reset clear $sys_stdouthandle_print_text $sys_stdouthandle_content_ok 
              $sys_stdouthandle_header $sys_stdouthandle_header_up_to_now);
-$VERSION = "1.24";
+$VERSION = "1.25";
 
 $sys_stdouthandle_print_text = 0;
 $sys_stdouthandle_header = 0;
@@ -58,7 +58,7 @@ sub WRITE
        {
        	CORE::print "Content-type: text/html\n";
        }
-      CORE::print "X-Powered-By: WebTools/1.24\n\n";
+      CORE::print "X-Powered-By: WebTools/1.25\n\n";
       $sys_stdouthandle_content_ok = 1;
       $sys_stdouthandle_header = 1;
      }
@@ -90,7 +90,7 @@ sub PRINT
        {
        	CORE::print "Content-type: text/html\n";
        }
-      CORE::print "X-Powered-By: WebTools/1.24\n\n";
+      CORE::print "X-Powered-By: WebTools/1.25\n\n";
       $sys_stdouthandle_content_ok = 1;
       $sys_stdouthandle_header = 1;
      }
@@ -122,7 +122,7 @@ sub PRINTF
        {
        	CORE::print "Content-type: text/html\n";
        }
-      CORE::print "X-Powered-By: WebTools/1.24\n\n";
+      CORE::print "X-Powered-By: WebTools/1.25\n\n";
       $sys_stdouthandle_content_ok = 1;
       $sys_stdouthandle_header = 1;
      }

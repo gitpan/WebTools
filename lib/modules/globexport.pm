@@ -33,7 +33,7 @@ require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.24";
+    $VERSION = "1.25";
     @ISA = qw(Exporter);
     $sys_askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa '.
                          '%global_hashes @multipart_headers $parsedform $sys_globvars $contenttype $query '.
@@ -99,7 +99,7 @@ use vars qw($VERSION @ISA @EXPORT);
  #####################################################################
  # PreLoad GET input
  #####################################################################
- my $sys_get = $ENV{'REQUEST_URI'};
+ my $sys_get = $ENV{'QUERY_STRING'} || $ENV{'REQUEST_URI'};
  $sys_get =~ s/^(.*?)\?(.*)$/$2/si;
  my @sys_in = split(/[&;]/,$sys_get);
  my %out = ();
@@ -176,9 +176,8 @@ use vars qw($VERSION @ISA @EXPORT);
         }
        else
         {
-         local $/ = undef;
          binmode(FILE_H_OPEN_N001);
-         $globexport::sys_script_cached_source = <FILE_H_OPEN_N001>;
+         read(FILE_H_OPEN_N001,$globexport::sys_script_cached_source,(-s $webtools::perl_html_dir.$p_file_name_N001));
          close (FILE_H_OPEN_N001);
          $sys_parsed = 1;
         }

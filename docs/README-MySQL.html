@@ -16,8 +16,14 @@
           Installation:<br>
           &nbsp;&nbsp;&nbsp;Before you can use MySQL server you may need to install 
           some standart modules:<br>
-          First of all you need: </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/TIMB/DBI-1.21.tar.gz">DBI</a></font><font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
-          and also you need MySQL DBD module: </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/JWIED/Msql-Mysql-modules-1.2219.tar.gz">MySQL</a></font><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br>
+          First of all you need: </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/TIMB/DBI-1.21.tar.gz"><font face="Verdana, Arial, Helvetica, sans-serif" size="2">DBI</font></a></font><font face="Verdana, Arial, Helvetica, sans-serif" size="2"> 
+          and also you need MySQL DBD module: </font><font color="#000000"><a href="http://cpan.valueclick.com/authors/id/JWIED/Msql-Mysql-modules-1.2219.tar.gz"><font face="Verdana, Arial, Helvetica, sans-serif" size="2">MySQL</font></a></font><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br>
+          <br>
+          <font color="#000099">Note:</font> You can also use <a href="http://www.cpan.org/authors/id/JWIED/DBD-mysql-2.1011.tar.gz">DBD::Mysql</a> 
+          module (DBI interface) but you need to rename current mysql driver <font color="#006600">./drivers/db_mysql.pl</font> 
+          to <font color="#006600">db_mysql_old.pl</font> and vice versa rename 
+          <font color="#006600">db_mysql_dbi.pl</font> to <font color="#006600">db_mysql.pl</font><BR>
+          <br>
           After successful installation please run 'mysql' client with your adminstrator 
           user and make new user for your webtools project (or use some other 
           older user):<br>

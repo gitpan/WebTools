@@ -14,7 +14,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.24";
+    $VERSION = "1.25";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -257,6 +257,7 @@ sub session_register
 sub session_destroy
 {
   my ($dbh) = @_;
+  if($sys_local_sess_id eq '') {$sys_local_sess_id = Get_Old_SID($dbh);}
   if($sys_cookie_accepted) # If browser accepts cookies...
    {
     delete_cookie($l_sid);   # That send empty cookie to broser...and browser delete it!
@@ -348,7 +349,7 @@ sub register_var
     {
      $sp = $uni_sep.'<scalar>:'.$name.':';
      ($val) = @val;
-     $reg_buffer = $sp.encode_separator($val,$uni_sep,$uni_gr_sep,$uni_esc);
+     $reg_buffer = $sp.encode_separator($val,$uni_esc,$uni_gr_sep,$uni_sep);
     }
   if ($type eq 'array')
     {
@@ -358,7 +359,7 @@ sub register_var
      $reg_buffer .= "$size".":";
      foreach $scl (@val)
         { 
-         $reg_buffer .= $uni_sep."<scalar_a>:".encode_separator($scl,$uni_sep,$uni_gr_sep,$uni_esc);
+         $reg_buffer .= $uni_sep."<scalar_a>:".encode_separator($scl,$uni_esc,$uni_gr_sep,$uni_sep);
         }
     }
   if ($type eq 'hash')
@@ -375,7 +376,7 @@ sub register_var
      my $key;
      foreach $key (keys %val)
        { 
-        $reg_buffer .= $uni_sep."<scalar_h>:".encode_separator($key,$uni_sep,$uni_gr_sep,$uni_esc).":".encode_separator($val{$key},$uni_sep,$uni_gr_sep,$uni_esc);
+        $reg_buffer .= $uni_sep."<scalar_h>:".encode_separator($key,$uni_esc,$uni_gr_sep,$uni_sep).":".encode_separator($val{$key},$uni_esc,$uni_gr_sep,$uni_sep);
        }
     }    	
   return($reg_buffer);
@@ -554,7 +555,7 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
   $| = 1;
   if(!$is and !($sys_stdouthandle_header and $sys_stdouthandle_content_ok))
    {
-    $print_header_buffer = "X-Powered-By: WebTools/1.24\n".$print_header_buffer; # Print version of this tool.
+    $print_header_buffer = "X-Powered-By: WebTools/1.25\n".$print_header_buffer; # Print version of this tool.
    }
   if ((!$sys_cookie_accepted) and ($sys_local_sess_id ne ''))
    {
@@ -591,7 +592,6 @@ sub flush_print     # Flush all data (header and body), coz they are never had b
       Header(type=>'content');  # Well we forgot to send content-type
      }
    }
-  #print "$print_header_buffer\n";
   my $sys_print_res;
   my $sys_data;
   while($sys_data = substr($print_header_buffer,0,4096))
@@ -1147,14 +1147,14 @@ sub load_registred_vars
         {
          $s_name = $1;
          $val = $2;
-         make_scalar_from($s_name,decode_separator($val,$uni_sep,$uni_gr_sep,$uni_esc));
+         make_scalar_from($s_name,decode_separator($val,$uni_esc,$uni_gr_sep,$uni_sep));
         }
      }
     else
      {
        if ($line =~ m/\<scalar_a\>\:(.*)/s)
          {
-          my $scl = decode_separator($1,$uni_sep,$uni_gr_sep,$uni_esc);
+          my $scl = decode_separator($1,$uni_esc,$uni_gr_sep,$uni_sep);
           push (@a_data,$scl);
           $c --;
           if (!$c) { make_array_from($a_name,@a_data); }
@@ -1163,8 +1163,8 @@ sub load_registred_vars
          {
           my $n = $1;
           my $v = $2;
-          my $n = decode_separator($n,$uni_sep,$uni_gr_sep,$uni_esc);
-          my $v = decode_separator($v,$uni_sep,$uni_gr_sep,$uni_esc);
+          my $n = decode_separator($n,$uni_esc,$uni_gr_sep,$uni_sep);
+          my $v = decode_separator($v,$uni_esc,$uni_gr_sep,$uni_sep);
           push (@h_data,$n);push (@h_data,$v);
           $c --;
           if (!$c) { make_hash_from($h_name,@h_data); }
@@ -1295,11 +1295,9 @@ sub RunScript
        onExit('withOutDB');
        exit;
       }
-    local $/ = undef;
     binmode(FILE_H_OPEN_N001);
-    $p_file_buf_N001 = <FILE_H_OPEN_N001>;
+    read(FILE_H_OPEN_N001,$p_file_buf_N001,(-s $perl_html_dir.$p_file_name_N001));
     close (FILE_H_OPEN_N001);
-    $/ = "\n";
     $sys_loaded_src = 1;
    }
   }
@@ -1402,6 +1400,10 @@ sub ExecuteHTMLfile
     if($sys_l_N001 ne '')
       {
        $sys_l_N001 =~ s/\|/\\\|/sgo;
+       my $sys_cpy_l_N001 = $sys_l_N001;
+       $sys_cpy_l_N001 =~ s!\\\\\|!do{
+           $sys_l_N001 =~ s%\\\\\|%\\\\\\\\\\\|%so;
+         };!sgeo;
        $sys_all_code_in_one .= 'if ($var_printing_mode eq "buffered"){$print_flush_buffer .= q|'.$sys_l_N001.'|;} else {print q|'.$sys_l_N001.'|;}'."\n";
       }
     my $cd_N001 = $code_N001[$i_N001]; $i_N001++;
@@ -1845,6 +1847,7 @@ sub pre_process_templates ($)
  my $sys_binlinep = '\<\!\-\-\©INPERL\©\>';   # <!--©INPERL©>
  my $sys_einlinep = '\<\/\©INPERL\©\-\-\>';   # </©INPERL©-->
  my $sys_include_file = '\<\!\-\-\©INCLUDE\©(.*?)\©\-\-\>';   # <!--©INCLUDE©file.ext©-->
+ my $sys_include_file_new = '\<\!\-\-\%INCLUDE\%(.*?)\%\-\-\>';   # <!--%INCLUDE%file.ext%-->
  
  my $work_buffer = $sys_temp_buffer;
  
@@ -1871,6 +1874,31 @@ sub pre_process_templates ($)
    };#sgie;
  
  $sys_temp_buffer = $work_buffer;
+ 
+ $sys_temp_buffer =~ s#$sys_include_file_new#do{
+    my $sys_prd_template;
+    if(open(SYS_PRE_PROCESS_TEMPLATES_FILE,$1))
+     {
+      binmode(SYS_PRE_PROCESS_TEMPLATES_FILE);
+      local $/ = undef;
+      $sys_prd_template = <SYS_PRE_PROCESS_TEMPLATES_FILE>;
+      $sys_prd_template =~ s/\r\n/\n/gs;
+      $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>\n?/$2/gsi;
+      $sys_prd_template =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>\n?//gsi;
+      $sys_prd_template =~ s/\bmain[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$webtools\:\:$1$2/sgi;
+      $sys_prd_template =~ s/\bscript[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\$sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
+      $sys_prd_template =~ s/\b\@main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@webtools\:\:$1$2/sgi;
+      $sys_prd_template =~ s/\b\@script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\@sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
+      $sys_prd_template =~ s/\b\%main[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%webtools\:\:$1$2/sgi;
+      $sys_prd_template =~ s/\b\%script[\ \t]{0,}\.([\ \t]{0,}[^\$\=\:\@\;\{]{0,}\b)(\=)?/\%sys\_\_$sys_RS_p_file_name\_$1$2/sgi;
+      close(SYS_PRE_PROCESS_TEMPLATES_FILE);
+     }
+    else {$sys_prd_template = '';}
+    $work_buffer =~ s/$sys_include_file_new/$sys_prd_template/si;
+   };#sgie;
+ 
+ $sys_temp_buffer = $work_buffer;
+ 
  
  $sys_temp_buffer =~ s#$sys_binlinet(.*?)$sys_einlinet#do{
     my $sys_prd_template = sys_make_template_code($1,'h');
@@ -1918,9 +1946,60 @@ sub sys_make_template_code
      }
    return($sys_my_pre_process_sys_code);
   }
-  
+ 
+ # ----- Make code for simple TEMPLATES -----
+ # example: %%TEMPLATE:7:$val:%%
+ if($sys_my_pre_process_tempf =~ m/\%\%TEMPLATE\:(\d{1,})\:(.*?)\:\%\%/si)
+  {
+   my $sys_my_pre_process_num = $1;
+   my $sys_my_pre_process_val = $2;
+   if($sys_my_pre_process_val =~ m/^(\$|\@|\%)/s)
+     {
+      $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.$sys_my_pre_process_print.'('.$sys_my_pre_process_val.');'.$sys_my_pre_process_ph_e;
+     }
+   else
+     {
+      $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.$sys_my_pre_process_print."('".$sys_my_pre_process_val."');".$sys_my_pre_process_ph_e;
+     }
+   return($sys_my_pre_process_sys_code);
+  }
+ 
+ # ----- Make code for simple TEMPLATES -----
+ # example: ??TEMPLATE:7:$val:??
+ if($sys_my_pre_process_tempf =~ m/\?\?TEMPLATE\:(\d{1,})\:(.*?)\:\?\?/si)
+  {
+   my $sys_my_pre_process_num = $1;
+   my $sys_my_pre_process_val = $2;
+   if($sys_my_pre_process_val =~ m/^(\$|\@|\%)/s)
+     {
+      $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.$sys_my_pre_process_print.'('.$sys_my_pre_process_val.');'.$sys_my_pre_process_ph_e;
+     }
+   else
+     {
+      $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.$sys_my_pre_process_print."('".$sys_my_pre_process_val."');".$sys_my_pre_process_ph_e;
+     }
+   return($sys_my_pre_process_sys_code);
+  }
+ 
  # ----- Make code for XREADER -----
  if($sys_my_pre_process_tempf =~ m/\<XREADER:.+?\:(.*?)\:(.*?)\>/si)
+  {
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
+     if($webtools::system_database_handle eq undef)
+        {
+          $rztl_sconn = sql_connect(); 
+        }
+     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     xreader_dbh($rztl_sconn);#;
+     
+   $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
+   eval $sys_my_pre_process_tmp_eval;
+   
+   $sys_my_pre_process_sys_code .= "\n".$sys_my_pre_process_print.'sys_run_time_process_xread('.'$sys_my_pre_process_val_N_'.$syspre_process_counter.');'.$sys_my_pre_process_ph_e;
+   return($sys_my_pre_process_sys_code);
+  }
+ # ----- Make code for XREADER -----
+ if($sys_my_pre_process_tempf =~ m/\%\%XREADER:.+?\:(.*?)\:(.*?)\%\%/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
      if($webtools::system_database_handle eq undef)
@@ -1939,6 +2018,24 @@ sub sys_make_template_code
   
  # ----- Make code for SQL Templates -----
  if($sys_my_pre_process_tempf =~ m/\<S\©L\:\d{1,}\:(.*?)\:.+?\:.+?\:.+?\:.+?\:S\©L\>/si)
+  {
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
+     if($webtools::system_database_handle eq undef)
+        {
+          $rztl_sconn = sql_connect(); 
+          if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
+        }
+     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     xreader_dbh($rztl_sconn);#;
+
+   $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
+   eval $sys_my_pre_process_tmp_eval;
+   
+   $sys_my_pre_process_sys_code .= "\n".$sys_my_pre_process_print.'sys_run_time_process_sql('.'$sys_my_pre_process_val_N_'.$syspre_process_counter.');'.$sys_my_pre_process_ph_e;
+   return($sys_my_pre_process_sys_code);
+  }
+ # ----- Make code for SQL Templates -----
+ if($sys_my_pre_process_tempf =~ m/\%\%SQL\:\d{1,}\:(.*?)\:.+?\:.+?\:.+?\:.+?\:SQL\%\%/si)
   {
     my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
      if($webtools::system_database_handle eq undef)
@@ -1974,6 +2071,24 @@ sub sys_make_template_code
    $sys_my_pre_process_sys_code .= "\n".$sys_my_pre_process_print.'sys_run_time_process_sqlvar('.'$sys_my_pre_process_val_N_'.$syspre_process_counter.');'.$sys_my_pre_process_ph_e;
    return($sys_my_pre_process_sys_code);
   }
+ # ----- Make code for SQLVAR Templates -----
+ if($sys_my_pre_process_tempf =~ m/\%\%SQLVAR\:(.+?)\%\%/si)
+  {
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
+     if($webtools::system_database_handle eq undef)
+        {
+          $rztl_sconn = sql_connect(); 
+          if($rztl_sconn eq undef) { print '?C?'; exit(-1);}
+        }
+     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     xreader_dbh($rztl_sconn);#;
+
+   $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
+   eval $sys_my_pre_process_tmp_eval;
+   
+   $sys_my_pre_process_sys_code .= "\n".$sys_my_pre_process_print.'sys_run_time_process_sqlvar('.'$sys_my_pre_process_val_N_'.$syspre_process_counter.');'.$sys_my_pre_process_ph_e;
+   return($sys_my_pre_process_sys_code);
+  }
   
  # ----- Make code for MENUSELECT -----
  if($sys_my_pre_process_tempf =~ m/\<MENUSELECT\:\$(.*?)\:(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\>/si)
@@ -1992,9 +2107,28 @@ sub sys_make_template_code
    $sys_my_pre_process_sys_code .= "\n".$sys_my_pre_process_print.'sys_run_time_process_menuselect('.'$sys_my_pre_process_val_N_'.$syspre_process_counter.');'.$sys_my_pre_process_ph_e;
    return($sys_my_pre_process_sys_code);
   }
-  
+ 
+ # ----- Make code for MENUSELECT -----
+ if($sys_my_pre_process_tempf =~ m/\%\%MENUSELECT\:\$(.*?)\:(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\%\%/si)
+  {
+    my $sys_my_pre_process_sys_code = $sys_my_pre_process_ph_b.q# my $rztl_sconn;
+     if($webtools::system_database_handle eq undef)
+        {
+          $rztl_sconn = sql_connect();
+        }
+     if(!($webtools::loaded_functions & 8)) {eval "require '$library_path"."xreader.pl'";}
+     xreader_dbh($rztl_sconn);#;
+
+   $sys_my_pre_process_tmp_eval = '$sys_my_pre_process_val_N_'.$syspre_process_counter.' = $sys_my_pre_process_tempf;';
+   eval $sys_my_pre_process_tmp_eval;
+   
+   $sys_my_pre_process_sys_code .= "\n".$sys_my_pre_process_print.'sys_run_time_process_menuselect('.'$sys_my_pre_process_val_N_'.$syspre_process_counter.');'.$sys_my_pre_process_ph_e;
+   return($sys_my_pre_process_sys_code);
+  }
+ 
  return('<?perl print "?Err?"; ?>');
 }
+
 
 # That sub process XREAD template in run-time and it is a part of INLINE feature.
 # example: <XREADER:1:bestbuy.jhtml:$first_param,$second_param>
@@ -2002,6 +2136,39 @@ sub sys_run_time_process_xread
 {
  my $sys_my_pre_process_tempf = shift(@_);
  if($sys_my_pre_process_tempf =~ m/\<XREADER:(.+?)\:(.*?)\:(.*?)\>/si)
+  {
+   my $sys_my_pre_process_numb = $1;
+   my $sys_my_pre_process_file = $2;
+   my $sys_my_pre_process_vals = $3;
+   if($sys_my_pre_process_numb =~ m/^\$(.*)$/s)
+    {
+     my $sys_temp_ev1 = '$sys_my_pre_process_numb = $'.$1.';';
+     eval $sys_temp_ev1;
+    }
+   if($sys_my_pre_process_file =~ m/^\$(.*)$/s)
+    {
+     my $sys_temp_ev1 = '$sys_my_pre_process_file = $'.$1.';';
+     eval $sys_temp_ev1;
+    }
+   my @sys_my_pre_process_aval = split('\,',$sys_my_pre_process_vals);
+   my @sys_my_pre_process_all = ();
+   foreach $sys_my_pre_process_aself (@sys_my_pre_process_aval)
+    {
+     if($sys_my_pre_process_aself =~ m/^(\$|\@|\%)/s)
+      {
+       my $sys_my_pre_process_eval = 'push (@sys_my_pre_process_all,'.$sys_my_pre_process_aself.');';
+       eval $sys_my_pre_process_eval;
+      }
+     else
+      {
+       my $sys_my_pre_process_eval = 'push (@sys_my_pre_process_all,'."'".$sys_my_pre_process_aself."'".');';
+       eval $sys_my_pre_process_eval;
+      }
+    }
+   $sys_my_pre_process_sys_code = xreader($sys_my_pre_process_numb,$sys_my_pre_process_file,@sys_my_pre_process_all);
+   return($sys_my_pre_process_sys_code);
+  }
+ if($sys_my_pre_process_tempf =~ m/\%\%XREADER:(.+?)\:(.*?)\:(.*?)\%\%/si)
   {
    my $sys_my_pre_process_numb = $1;
    my $sys_my_pre_process_file = $2;
@@ -2079,6 +2246,44 @@ sub sys_run_time_process_sql
    print $sys_my_pre_process_tempf;
    return(_mem_xreader($sys_my_pre_process_tempf));
   }
+ if($sys_my_pre_process_tempf =~ m/(\%\%SQL\:\d{1,}\:)(.*?)(\:.+?\:.+?\:.+?\:.+?\:)SQL\%\%/si)
+  {
+   my $sys_my_pre_process_beg  = $1;
+   my $sys_my_pre_process_data = $2;
+   my $sys_my_pre_process_end  = $3;
+   my @sys_my_pre_a = split(/\:/,$sys_my_pre_process_end);
+   my $sys_line;
+   $sys_my_pre_process_end = ':';
+   foreach $sys_line (@sys_my_pre_a)
+    {
+     if($sys_line ne '')
+      {
+       if($sys_line =~ m/^\$(.*)$/s)
+        {
+         my $sys_temp_ev1 = '$sys_my_pre_process_end .= $'.$1.".':'".';';
+         eval $sys_temp_ev1;
+        }
+       else {$sys_my_pre_process_end .= $sys_line.":";}
+      }
+    }
+   $sys_my_pre_process_end .= 'SQL%%';
+   my $sys_my_pre_process_tmp  = 0;
+   my $sys_pre_process_replce = '';
+  
+   if($sys_my_pre_process_data =~ m/([\ \']{0,})\$(.*?)([\'\ \;\"])/si)
+     {
+      my $sys_pre_process_tmp_1 = $1;
+      my $sys_pre_process_tmp_2 = $2;
+      my $sys_pre_process_tmp_3 = $3;
+      my $sys_pre_process_tmp_4 = '$sys_pre_process_replce = $'.$sys_pre_process_tmp_2.';';
+      eval $sys_pre_process_tmp_4;
+      $sys_pre_process_replce = $sys_pre_process_tmp_1.$sys_pre_process_replce.$sys_pre_process_tmp_3;
+      $sys_my_pre_process_data =~ s/([\ \']{0,})\$(.*?)([\'\ \;\"])/$sys_pre_process_replce/si;
+     }
+   $sys_my_pre_process_tempf = $sys_my_pre_process_beg.$sys_my_pre_process_data.$sys_my_pre_process_end;
+   print $sys_my_pre_process_tempf;
+   return(_mem_xreader($sys_my_pre_process_tempf));
+  }
 }
 
 # That sub process SQLVAR template's variables in run-time and it is a part of INLINE feature.
@@ -2107,6 +2312,26 @@ sub sys_run_time_process_sqlvar
    $sys_my_pre_process_tempf = $sys_my_pre_process_beg.$sys_my_pre_process_data.$sys_my_pre_process_end;
    return(_mem_xreader($sys_my_pre_process_tempf));
   }
+ if($sys_my_pre_process_tempf =~ m/(\%\%SQLVAR)(\:.*?)(\%\%)/si)
+  {
+   my $sys_my_pre_process_beg  = $1;
+   my $sys_my_pre_process_data = $2;
+   my $sys_my_pre_process_end  = $3;
+   my $sys_my_pre_process_tmp  = 0;
+   my $sys_pre_process_replce = '';
+  
+   if($sys_my_pre_process_data =~ m/(\:)\$(.*?)$/si)
+     {
+      my $sys_pre_process_tmp_1 = $1;
+      my $sys_pre_process_tmp_2 = $2;
+      my $sys_pre_process_tmp_4 = '$sys_pre_process_replce = $'.$sys_pre_process_tmp_2.';';
+      eval $sys_pre_process_tmp_4;
+      $sys_pre_process_replce = $sys_pre_process_tmp_1.$sys_pre_process_replce;
+      $sys_my_pre_process_data =~ s/(\:)\$(.*?)$/$sys_pre_process_replce/si;
+     }
+   $sys_my_pre_process_tempf = $sys_my_pre_process_beg.$sys_my_pre_process_data.$sys_my_pre_process_end;
+   return(_mem_xreader($sys_my_pre_process_tempf));
+  }
 }
 
 # That sub process MENUSELECT template in run-time and it is a part of INLINE feature.
@@ -2115,6 +2340,40 @@ sub sys_run_time_process_menuselect
 {
  my $sys_my_pre_process_tempf = shift(@_);
  if($sys_my_pre_process_tempf =~ m/\<MENUSELECT\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\>/si)
+  {
+   my $sys_my_pre_process_src  = $1;
+   my $sys_my_pre_process_sql  = $2;
+   my $sys_my_pre_process_dbv  = $3;
+   my $sys_my_pre_process_tem  = $4;
+   my $sys_my_pre_process_htm  = $5;
+   my $sys_my_pre_process_dbh  = $6;
+   my $sys_pre_process_replce = '';
+
+   my $sys_my_pre_process_tmp = '$sys_my_pre_process_src = $'.$sys_my_pre_process_src.';';
+   eval $sys_my_pre_process_tmp;
+   $sys_my_pre_process_tmp = '$sys_my_pre_process_dbv = $'.$sys_my_pre_process_dbv.';';
+   eval $sys_my_pre_process_tmp;
+   $sys_my_pre_process_tmp = '$sys_my_pre_process_tem = $'.$sys_my_pre_process_tem.';';
+   eval $sys_my_pre_process_tmp;
+   $sys_my_pre_process_tmp = '$sys_my_pre_process_htm = $'.$sys_my_pre_process_htm.';';
+   eval $sys_my_pre_process_tmp;
+   $sys_my_pre_process_tmp = '$sys_my_pre_process_sql = $'.$sys_my_pre_process_sql.';';
+   eval $sys_my_pre_process_tmp;
+   $sys_my_pre_process_tmp = '$sys_my_pre_process_dbh = $'.$sys_my_pre_process_dbh.';';
+   eval $sys_my_pre_process_tmp;
+
+   if(($sys_my_pre_process_dbh eq '') or ($sys_my_pre_process_dbh eq undef))
+      {$sys_my_pre_process_dbh = $webtools::system_database_handle;}
+   
+   my @sys_my_pre_process_dbv_a  = @$sys_my_pre_process_dbv;
+   my @sys_my_pre_process_tem_a  = @$sys_my_pre_process_tem;
+   my @sys_my_pre_process_htm_a  = @$sys_my_pre_process_htm;
+
+   $sys_my_pre_process_src = MenuSelect($sys_my_pre_process_src,$sys_my_pre_process_sql,$sys_my_pre_process_dbv,
+                                        $sys_my_pre_process_tem,$sys_my_pre_process_htm,$sys_my_pre_process_dbh);
+   return($sys_my_pre_process_src);
+  }
+ if($sys_my_pre_process_tempf =~ m/\%\%MENUSELECT\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\$(.*?)\:\%\%/si)
   {
    my $sys_my_pre_process_src  = $1;
    my $sys_my_pre_process_sql  = $2;

@@ -178,7 +178,7 @@ if(($install_only_user =~ m/^admin$/si) and ($install_only_pass eq ''))
   </TD></TR></TABLE><BR>
   $f_e
 END_OF_HTML
-print $f_b."<B>Everything looks good, but I have to deny your access till security problem occured!<BR><BR>";
+  print $f_b."<B>Everything looks good, but I have to deny your access till security problem occured!<BR><BR>";
   print "<font color='red'>Reason: Your user name and password are set to default!</font><BR><BR>";
   print "Hint: Edit file 'install.cgi' and change deafault user name and/or password!</B>";
   print $f_e;
@@ -301,8 +301,8 @@ sub load_file
   {
    open(FILE,$file) or return(-1);
    binmode(FILE);
-   local $/ = undef;
-   my $load = <FILE>;
+   my $load;
+   read(FILE,$load,(-s $file));
    close FILE;
    return($load);
   }
@@ -558,7 +558,7 @@ sub LogInPage
  <tr><td width='100'></td><td><input value='Enter' type='submit'></td></tr>
  </table>
  </form>
- Note: Install.cgi use 'session' cookies to simulate simple session needed to insecure this Web based script!
+ Note: Install.cgi use 'session' cookies to simulate simple session needed to secure this Web based script!
  <BR><BR>
  <table width="100%"><TR><TD width="100%" bgcolor="#D0D080">$f_b
  <B><center>All rights reserved by <A href="http://www.proscriptum.com/">Julian Lishev</A> , Sofia 2002</center></B>$f_e

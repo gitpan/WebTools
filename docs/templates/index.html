@@ -13,79 +13,208 @@ has unique capability to manage templates with build-in functions (INLINE/INPERL
 also it has &quot;xreader&quot; module that can be used directly in your WebTools 
 scripts. With out any doubts, &quot;templates&quot; are realy important part of 
 WebTools so this doucument intend to be comprehensive source to learn how to work 
-with it!</b></font></p><p align="left"><img src="templ1.gif" width="674" height="280"><br> 
-<br> <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">&nbsp;&nbsp;Above 
-code show how looks like one example template file (.jhtml)<br> It has two templates 
-in. Any template has &quot;begin&quot; and &quot;end&quot; part. Begin part has 
-follow syntax:<br> <br> <font color="#0000CC">&nbsp;&nbsp;&nbsp;&lt;<font color="#006633">&copy;</font>N<font color="#006633">&reg;</font>number_of_template<font color="#006633">&reg;</font>template_contain_it_self<font color="#006633">&reg;</font>file_name_if_external_template<font color="#006633">&reg;&copy;</font>&gt; 
-</font><br> <br> Where:&nbsp; <font color="#0000CC"><br> number_of_template </font>define 
-current template number (reference for scripts),<br> <font color="#0000CC">template_contain_it_self</font> 
-- That is a boolean value and can get &quot;1&quot; or &quot;0&quot;. It show 
-whether &quot;this&quot; template contain some information between &quot;begin&quot; 
-and &quot;end&quot; parts, or template is saved in external file. In our case 
-template information is found between &quot;begin&quot; and &quot;end&quot; (i.e. 
-&lt;TABLE&gt; tag),<br> <font color="#0000CC">file_name_if_external_template</font> 
-- If previous field has &quot;0&quot; value (i.e. template is saved in external 
-file), this field should contain file name of file.<br> <br> End part is realy 
-simple:<br> <br> &nbsp;&nbsp;&nbsp;<font color="#0000cc">&lt;&#152;<font color="#006633">&copy;</font>&#152;&gt;</font><br> 
-<br> <font color="#0000CC">&nbsp;&nbsp;</font>that will set end of current template. 
-But in file you can have as much as you want templates using described syntax. 
-In our example we have one additional template.<br> <br> Summary syntax:<br> <br> 
-<font color="#333333">&nbsp;&nbsp;&quot;begin part1&quot;<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;template 
-core<br> &nbsp;&nbsp;&quot;end part&quot; </font></font></b><font color="#333333"><br> 
-<br> <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">&nbsp;&nbsp;&quot;begin 
-part2&quot;<br> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;template<br> &nbsp;&nbsp;&quot;end 
-part&quot;<br> &nbsp;&nbsp;... and so on...</font></b></font><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br> 
-<br> </font></b><br> <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#0000CC">&nbsp;&nbsp;&lt;<font color="#006633">&copy;</font>N<font color="#006633">&reg;</font>number_of_template<font color="#006633">&reg;</font>template_contain_it_self<font color="#006633">&reg;</font>file_name_if_external_template<font color="#006633">&reg;&copy;</font>&gt;<br> 
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;template core</font></font></b><br> <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#0000CC">&nbsp;&nbsp;</font><font color="#0000cc">&lt;&#152;<font color="#006633">&copy;</font>&#152;&gt;</font></font></b> 
-<br> <br> <br> <font size="2" face="Verdana, Arial, Helvetica, sans-serif"><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#0000CC">&nbsp;&nbsp;</font></font>&nbsp;&nbsp;Any 
-template can contain what ever information you want, but it should be used properly. 
-If template has not contain <font face="Verdana, Arial, Helvetica, sans-serif" size="2"></font>any 
-dynamic data it will be useless, so WebTools can process specific template's types. 
-<br> Basicly they are: &quot;<font color="#CC0000">Template variables</font>&quot;, 
-&quot;<font color="#CC0000">SQL qeries</font>&quot;, &quot;<font color="#CC0000">SQL 
-variables</font>&quot;. All these types will be separately skimed.<br> <br> <br> 
-<br> <font size="3" color="#CC0000">*</font><font color="#CC0000">&nbsp;&nbsp;<font size="3">&quot;Template 
-variables&quot;</font></font><br> This variable can contain any dynamic data and 
-when WebTools process that template it will substitute that variable with respective 
-value. For example:<br> <br> <font color="#333333">&quot;Hello dear &lt;&sect;VAR&sect;&gt;&quot;</font><br> 
-<br> where <font color="#0000CC">&lt;&sect;VAR&sect;&gt;</font> can be &quot;Julian&quot;, 
-&quot;Svetlio&quot;, &quot;Maria&quot; and so on...i.e. can be dynamic.<br> In 
-WebTools we assume that variable has follow syntax:<br> <br> <font color="#0000CC">&lt;&sect;VAR&sect;&gt;</font><br> 
-<br> where any found <font color="#0000CC">&lt;&sect;VAR&sect;&gt;</font> will 
-be substituted with respective value.<br> How you can use and substitute these 
-variable you can see after few seconds.<br> <br> <br> <br> <font size="3" color="#CC0000">*&nbsp;&nbsp;&quot;SQL 
-queries&quot;</font><br> SQL queries has similar function as Template variables, 
-but it &quot;respective value&quot; should be fetch from database. It has follow 
-syntax:<br> <br> <font color="#0000CC">&lt;S<font color="#006633">&copy;</font>L<font color="#FF0000">:</font>number_of_sql_query<font color="#FF0000">:</font>&quot;select_SQL_query&quot;<font color="#FF0000">:</font>used_sql_query:number_of_row<font color="#FF0000">:</font>number_of_column<font color="#FF0000">:</font>should_print?<font color="#FF0000">:</font>S<font color="#006633">&copy;</font>L&gt; 
-</font><br> <br> SQL template has more complex syntax and should be explained(please 
-see template 2 in our example):<br> <br> <font color="#0000CC">number_of_sql_query</font> 
-- This is number of current SQL template<br> <font color="#0000CC">select_SQL_query 
-</font>- SQL query that will be executed, using default database handler! This 
-query should select data that you want to be substituted with this SQL template!<br> 
-<font color="#0000CC">used_sql_query</font> - If you have other SQL templates 
-and if they are already executed you can use their extracted data from db, instead 
-of making a new SQL query. That can be useful if you don't want to query same 
-information twice! This field should contain number of SQL template.<br> <font color="#0000CC">number_of_row</font> 
-- Some times your SQL query can fetch number of rows, so you can specify what 
-exacly row you want to use.<br> <font color="#0000CC">number_of_column</font> 
-- That field will select what exacly column you want to use!<br> <font color="#0000CC">should_print?</font> 
-- This field contain boolean value, it can accept &quot;1&quot; or &quot;0&quot;. 
-If you want selected information from db to be substituted with this SQL template 
-you should set this field to &quot;1&quot;. If you want just to execute SQL query 
-without printing please set filed to &quot;0&quot;. That feature can be useful 
-if you want just to execute some SQL query , for example to delete some row from 
-database!<br> <br> <br> <br> <font size="3" color="#CC0000">* &quot;SQL variables&quot;</font><br> 
-SQL variables are simpler than &quot;SQL queries&quot; but thay can save up processor 
-time and your script can get run faster.&nbsp;But what thay actualy they are?<br> 
-Any SQL template that you run infact make query to database and fetch some information. 
-WebTools cache that information (only while script running) and make one SQL variable 
-i.e. first &quot;SQL variable&quot; correspond to first &quot;SQL query&quot; 
-you have. Syntax of SQL variables is realy simpler:<br> <br> Example: &nbsp;<font color="#333333">&lt;S&copy;LVAR:1:S&copy;L&gt;</font></b></font></p>
+with it!</b></font></p>
+      <p align="left"><img src="templ1.gif" width="674" height="280"><br>
+        <br>
+        <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">&nbsp;&nbsp;Above 
+        code show how looks like one example template file (.jhtml)<br>
+        It has two templates in. Any template has &quot;begin&quot; and &quot;end&quot; 
+        part. Begin part has follow syntax:<br>
+        <br>
+        <font color="#0000CC">&nbsp;&nbsp;&nbsp;&lt;<font color="#006633">&copy;</font>N<font color="#006633">&reg;</font>number_of_template<font color="#006633">&reg;</font>template_contain_it_self<font color="#006633">&reg;</font>file_name_if_external_template<font color="#006633">&reg;&copy;</font>&gt; 
+        </font><br>
+        <br>
+        or use alternative style<br>
+        <br>
+        &nbsp;&nbsp; <font color="#0000CC">&lt;<font color="#006633">%</font>N<font color="#006633">%</font>number_of_template<font color="#006633">%</font>template_contain_it_self<font color="#006633">%</font>file_name_if_external_template<font color="#006633">%</font>&gt; 
+        </font><br>
+        <br>
+        NOTE: If you start using &quot;alternative&quot; style please <font color="#FF0000">don't 
+        mix</font> older and newer styles!!!<br>
+        <br>
+        Where:&nbsp; <font color="#0000CC"><br>
+        number_of_template </font>define current template number (reference for 
+        scripts),<br>
+        <font color="#0000CC">template_contain_it_self</font> - That is a boolean 
+        value and can get &quot;1&quot; or &quot;0&quot;. It show whether &quot;this&quot; 
+        template contain some information between &quot;begin&quot; and &quot;end&quot; 
+        parts, or template is saved in external file. In our case template information 
+        is found between &quot;begin&quot; and &quot;end&quot; (i.e. &lt;TABLE&gt; 
+        tag),<br>
+        <font color="#0000CC">file_name_if_external_template</font> - If previous 
+        field has &quot;0&quot; value (i.e. template is saved in external file), 
+        this field should contain file name of file.<br>
+        <br>
+        End part is realy simple:<br>
+        <br>
+        &nbsp;&nbsp;&nbsp;<font color="#0000cc">&lt;&#152;<font color="#006633">&copy;</font>&#152;&gt;</font> 
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;- Please note that '<font color="#0000cc">&#152;</font>' 
+        is not '~'<br>
+        <br>
+        or alternative:<br>
+        <br>
+        <font color="#0000cc">&nbsp;&nbsp;&nbsp;&lt;~<font color="#006633">%</font>~&gt;</font><br>
+        <br>
+        <font color="#0000CC">&nbsp;&nbsp;</font>that will set end of current 
+        template. But in file you can have as much as you want templates using 
+        described syntax. In our example we have one additional template.<br>
+        <br>
+        Summary syntax:<br>
+        <br>
+        <font color="#333333">&nbsp;&nbsp;&quot;begin part1&quot;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;template core<br>
+        &nbsp;&nbsp;&quot;end part&quot; </font></font></b><font color="#333333"><br>
+        <br>
+        <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">&nbsp;&nbsp;&quot;begin 
+        part2&quot;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;template<br>
+        &nbsp;&nbsp;&quot;end part&quot;<br>
+        &nbsp;&nbsp;... and so on...</font></b></font><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><br>
+        <br>
+        </font></b><br>
+        <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#0000CC">&nbsp;&nbsp;&lt;<font color="#006633">&copy;</font>N<font color="#006633">&reg;</font>number_of_template<font color="#006633">&reg;</font>template_contain_it_self<font color="#006633">&reg;</font>file_name_if_external_template<font color="#006633">&reg;&copy;</font>&gt;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;template core</font></font></b><br>
+        <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#0000CC">&nbsp;&nbsp;</font><font color="#0000cc">&lt;&#152;<font color="#006633">&copy;</font>&#152;&gt;</font></font></b> 
+        <br>
+        <br>
+        <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">or alternative:</font></b><br>
+        <br>
+        <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#0000CC">&nbsp;&nbsp;&lt;<font color="#006633">%</font>N<font color="#006633">%</font>number_of_template<font color="#006633">%</font>template_contain_it_self<font color="#006633">%</font>file_name_if_external_template<font color="#006633">%</font>&gt;<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;template core</font></font></b><br>
+        <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#0000CC">&nbsp;&nbsp;</font><font color="#0000cc">&lt;~<font color="#006633">%</font>~&gt;</font></font></b> 
+        <br>
+        <br>
+        <br>
+        <br>
+        <font size="2" face="Verdana, Arial, Helvetica, sans-serif"><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#0000CC">&nbsp;&nbsp;</font></font>&nbsp;&nbsp;Any 
+        template can contain what ever information you want, but it should be 
+        used properly. If template has not contain <font face="Verdana, Arial, Helvetica, sans-serif" size="2"></font>any 
+        dynamic data it will be useless, so WebTools can process specific template's 
+        types. <br>
+        Basicly they are: &quot;<font color="#CC0000">Template variables</font>&quot;, 
+        &quot;<font color="#CC0000">SQL qeries</font>&quot;, &quot;<font color="#CC0000">SQL 
+        variables</font>&quot;. All these types will be separately skimed.<br>
+        <br>
+        <br>
+        <br>
+        <font size="3" color="#CC0000">*</font><font color="#CC0000">&nbsp;&nbsp;<font size="3">&quot;Template 
+        variables&quot;</font></font><br>
+        This variable can contain any dynamic data and when WebTools process that 
+        template it will substitute that variable with respective value. For example:<br>
+        <br>
+        <font color="#333333">&quot;Hello dear &lt;&sect;VAR&sect;&gt;&quot;</font><br>
+        <br>
+        where <font color="#0000CC">&lt;&sect;VAR&sect;&gt;</font> can be &quot;Julian&quot;, 
+        &quot;Svetlio&quot;, &quot;Maria&quot; and so on...i.e. can be dynamic.<br>
+        In WebTools we assume that variable has follow syntax:<br>
+        <br>
+        <font color="#0000CC">&lt;&sect;VAR&sect;&gt;</font><br>
+        <br>
+        or alternative:<br>
+        <br>
+        <font color="#0000CC">%%VAR%%</font><br>
+        <br>
+        where any found <font color="#0000CC">&lt;&sect;VAR&sect;&gt;</font> will 
+        be substituted with respective value.<br>
+        How you can use and substitute these variable you can see after few seconds.<br>
+        <br>
+        <br>
+        <font size="3" color="#CC0000">*</font><font color="#CC0000">&nbsp;&nbsp;<font size="3">&quot;Call 
+        of Perl subprogram&quot;</font></font><br>
+        This template may be useful, it call perl function and substitute result 
+        achieved from it. This call is made after all &quot;Template variables&quot; 
+        are substituted but before any &quot;SQL queries&quot;. So you can use 
+        this &quot;template&quot; to create or modify other templates and/or SQL 
+        queries! <br>
+        This template have follow syntax:<br>
+        <br>
+        <font color="#0000CC">%%<font color="#006633">PerlSub</font><font color="#FF0000">:</font><font color="#006633">some_sub(<font color="#990000">some_parameters</font>)</font>%%</font><br>
+        <br>
+        Example:<br>
+        <br>
+        <br>
+        <font color="#990000">This is SQL template %%SQL:1:&quot;select</font><font color="#000033"> 
+        <font color="#006633">%%perlsub:mysample()%%</font>&nbsp;<font color="#990000">from 
+        users WHERE ID=1&quot;:1:1:1:1:SQL%%</font></font><br>
+        <br>
+        <br>
+        where function 'mysample' can by defined as:<br>
+        <br>
+        <font color="#990000">sub mysample<br>
+        {<br>
+        &nbsp;&nbsp;return('USER'); <br>
+        } </font><br>
+        <br>
+        so result SQL template will be:<br>
+        <br>
+        <font color="#990000">%%SQL:1:&quot;select USER</font><font color="#000033">&nbsp;<font color="#990000">from 
+        users WHERE ID=1&quot;:1:1:1:1:SQL%%</font></font><br>
+        <br>
+        <br>
+        <font size="3" color="#CC0000">*&nbsp;&nbsp;&quot;SQL queries&quot;</font><br>
+        SQL queries has similar function as Template variables, but it &quot;respective 
+        value&quot; should be fetch from database. It has follow syntax:<br>
+        <br>
+        <font color="#0000CC">&lt;S<font color="#006633">&copy;</font>L<font color="#FF0000">:</font>number_of_sql_query<font color="#FF0000">:</font>&quot;select_SQL_query&quot;<font color="#FF0000">:</font>used_sql_query:number_of_row<font color="#FF0000">:</font>number_of_column<font color="#FF0000">:</font>should_print?<font color="#FF0000">:</font>S<font color="#006633">&copy;</font>L&gt; 
+        </font><br>
+        <br>
+        or alternative:<br>
+        <br>
+        <font color="#0000CC">%%SQL<font color="#FF0000">:</font>number_of_sql_query<font color="#FF0000">:</font>&quot;select_SQL_query&quot;<font color="#FF0000">:</font>used_sql_query:number_of_row<font color="#FF0000">:</font>number_of_column<font color="#FF0000">:</font>should_print?<font color="#FF0000">:</font>SQL%%</font><br>
+        <br>
+        SQL template has more complex syntax and should be explained(please see 
+        template 2 in our example):<br>
+        <br>
+        <font color="#0000CC">number_of_sql_query</font> - This is number of current 
+        SQL template<br>
+        <font color="#0000CC">select_SQL_query </font>- SQL query that will be 
+        executed, using default database handler! This query should select data 
+        that you want to be substituted with this SQL template!<br>
+        <font color="#0000CC">used_sql_query</font> - If you have other SQL templates 
+        and if they are already executed you can use their extracted data from 
+        db, instead of making a new SQL query. That can be useful if you don't 
+        want to query same information twice! This field should contain number 
+        of SQL template.<br>
+        <font color="#0000CC">number_of_row</font> - Some times your SQL query 
+        can fetch number of rows, so you can specify what exacly row you want 
+        to use.<br>
+        <font color="#0000CC">number_of_column</font> - That field will select 
+        what exacly column you want to use!<br>
+        <font color="#0000CC">should_print?</font> - This field contain boolean 
+        value, it can accept &quot;1&quot; or &quot;0&quot;. If you want selected 
+        information from db to be substituted with this SQL template you should 
+        set this field to &quot;1&quot;. If you want just to execute SQL query 
+        without printing please set filed to &quot;0&quot;. That feature can be 
+        useful if you want just to execute some SQL query , for example to delete 
+        some row from database!<br>
+        <br>
+        <br>
+        <br>
+        <font size="3" color="#CC0000">* &quot;SQL variables&quot;</font><br>
+        SQL variables are simpler than &quot;SQL queries&quot; but thay can save 
+        up processor time and your script can get run faster.&nbsp;But what thay 
+        actualy they are?<br>
+        Any SQL template that you run infact make query to database and fetch 
+        some information. WebTools cache that information (only while script running) 
+        and make one SQL variable i.e. first &quot;SQL variable&quot; correspond 
+        to first &quot;SQL query&quot; you have. Syntax of SQL variables is realy 
+        simpler:<br>
+        <br>
+        Example: &nbsp;<font color="#333333">&lt;S&copy;LVAR:1:S&copy;L&gt;<br>
+        <br>
+        </font><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><b>or 
+        alternative:</b></font><br>
+        <br>
+        <font color="#333333">%%SQLVAR:1%%</font> <br>
+        <font color="#333333"> </font></b></font></p>
       <p align="left"><font size="2" face="Verdana, Arial, Helvetica, sans-serif"><b>Syntax:<br>
         <br>
         <font color="#0000cc">&lt;S<font color="#006633">&copy;</font>LVAR<font color="#FF0000">:</font>respective_number_of_SQL_query<font color="#FF0000">:</font>S<font color="#006633">&copy;</font>L&gt;</font> 
         <br>
+        <br>
+        or alternative:<br>
+        <br>
+        <font color="#0000cc">%%</font><font color="#0000cc">SQLVAR<font color="#FF0000">:</font>respective_number_of_SQL_query%%</font><br>
         <br>
         where:<br>
         <font color="#0000cc">respective_number_of_SQL_query</font> - That should 
@@ -97,6 +226,11 @@ you have. Syntax of SQL variables is realy simpler:<br> <br> Example: &nbsp;<fon
         <br>
         <font color="#333333">&lt;S&copy;L:1:&quot;select USER,ID from webtools_users&quot;:1:1:1:1:S&copy;L&gt; 
         is equal to &lt;S&copy;LVAR:1:S&copy;L&gt; </font><br>
+        <br>
+        or alternative:<br>
+        <br>
+        <font color="#333333">%%</font><font color="#333333">SQL:1:&quot;select 
+        USER,ID from webtools_users&quot;:1:1:1:1:SQL%%&nbsp;is equal to %%SQLVAR:1%%</font><br>
         <br>
         left and right sides will have same values!</b> <br>
         <br>
@@ -131,6 +265,8 @@ you have. Syntax of SQL variables is realy simpler:<br> <br> Example: &nbsp;<fon
         and I'm <b>&lt;&sect;VAR&sect;&gt;</b> years old.</font></font></b><font color="#333333"><br>
         <b><font face="Verdana, Arial, Helvetica, sans-serif" size="2">&lt;&#152;<font color="#006633">&copy;</font>&#152;&gt;</font></b></font><b><font face="Verdana, Arial, Helvetica, sans-serif" size="2"><font color="#0000cc"><br>
         <font color="#000000"><br>
+        (or use respective alternative templates!)<br>
+        <br>
         So template could be parsed with follow perl code line:<br>
         </font><br>
         </font>$result_data = xreader(1, $my_example_file.jhtml , 'Julian','21');<br>
