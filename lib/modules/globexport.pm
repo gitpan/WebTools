@@ -33,7 +33,7 @@ require Exporter;
 
 BEGIN {
 use vars qw($VERSION @ISA @EXPORT);
-    $VERSION = "1.12";
+    $VERSION = "1.13";
     @ISA = qw(Exporter);
     $sys_askqwvar_locv = '%uploaded_files %uploaded_original_file_names %formdatah %Cookies @formdataa @multipart_headers $parsedform $sys_globvars $contenttype $query';
     

@@ -5,7 +5,7 @@
 What is template?
 -----------------
 
-[Definition]: Template is small or big pice of data that could be replaced with dynamic data.
+[Definition]: Template is small or big piece of data that could be replaced with dynamic data.
 
       Well is that sound familar to you? 
  In lesson 8 we pass over templates and xreader. Now I want to demonstrate build-in capability
@@ -75,7 +75,7 @@ Next example will be the top of icecreem:
 ?>
 User: "<!--©INLINE©><S©L:1:"select USER,ID from $mytable where id=0;":1:1:1:1:S©L></©INLINE©-->"<BR>
 "<!--©INLINE©><S©LVAR:1:S©L></©INLINE©-->" has ID: <!--©INLINE©><S©L:2:"":1:1:2:1:S©L></©INLINE©--><BR>
-Also see take care about follow checkboxes!<BR>
+Also see follow checkboxes!<BR>
 <!--©INLINE©><MENUSELECT:$SOURCE:$sqlq:$ref1:$ref2:$ref3:$dbh:></©INLINE©-->
 </HTML>
 

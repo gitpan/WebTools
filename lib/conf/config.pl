@@ -1,5 +1,5 @@
 ###################################################################
-# Configuration file for "Web Tools" ver 1.12
+# Configuration file for "Web Tools" ver 1.13
 # Please edit here, don’t do that in Perl scripts!
 ###################################################################
 
@@ -37,7 +37,7 @@ $rand_sid_length = '16';              # Length of random SID string!
 $sess_cookie = 'sesstime';            # 'sesstime' or other(i.e. expire when close browser)
 $tmp = '/tmp';                        # Session directory 
 $l_sid = 'sid';                       # Session ID label used by module
-$referrer = '/';                      # Referrer pages (servers)
+
 $cgi_lib_forbid_mulipart = 'off';     # If you want to protect yourself from multipart spam
                                       # turn this 'on' (you will be no longer able to use 
                                       # multipart forms)!
@@ -79,20 +79,20 @@ $uni_gr_sep = ':';                         # Row separator
 $uni_gr_sep_t = '\:';                      # Row separator (slashed)
 $uni_esc = '%';                            # Escape char
 @treat_htmls_ext = (                       # Order of html files location: Default, module first look for:
-	            'whtml',               # "html","htm","whtml" and "cgihtml". If you specify in URL
-	            'html',                 # ...?file=env.html script will ignore extension and will look for
-	            'htm',                # file with extension orderd in @treat_htmls_ext array
+	            'whtml',               # "whtml","html","htm","cgihtml" and "cgi". If you specify in URL
+	            'html',                # ...?file=env.html script will ignore extension and will look for
+	            'htm',                 # file with extension orderd in @treat_htmls_ext array
 	            'cgihtml',             # If you leave this array empty then no lookups will be made!
-	            'cgi',                 # Please read carefull documentation (Help.doc) for additional info.
+	            'cgi',                 # Please read carefull documentation (HELP.html) for additional info.
 	           );
 # Example:
-# @treat_htmls_ext = (                     # That mean that you can use in your applications
-#                     'whtml',             # html extension but for security reasons you
-#     	              'cgihtml'            # can name your real htmls files with extension not
-#                     'html',              # handled as plain text (viewable in browser) with apache!
+# @treat_htmls_ext = (                     # If Apache return as plain text your "whtml" file in cgi-bin
+#                     'whtml',             # directory, then you can rename your "whtml" file to "cgi"!
+#     	              'cgihtml'            # So process.cgi will be able to handle your query:
+#                     'html',              # ...?file=test.whtml despite that real name is test.cgi !
 #                     'htm',
-#                     'cgi',               # That line can be applied at first place when Apache return 
-#  	             );                    # as plain text all files except script (.cgi)!
+#                     'cgi',
+#  	             );
 
 #[PATHS]
 $driver_path = './drivers/';               # Driver`s path

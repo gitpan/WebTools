@@ -5,7 +5,7 @@
 What is template?
 -----------------
 
-[Definition]: Template is small or big pice of data that could be replaced with dynamic data.
+[Definition]: Template is small or big piece of data that could be replaced with dynamic data.
 
 Example of my words could be site that has in upper right corrner free space that should
 display current loged user. At first time that could be "guest" but when user fill out sigin
@@ -60,8 +60,8 @@ That wasn't fun, was it? :-)
 WebTools and Xreader!
 -----------------------
 
- Xreader is template processor that processed template(.jhtml) files. Evry pice of template file
-could contain variables and/or SQL queries. But what actualy is template? Template is pice of
+ Xreader is template processor that processed template(.jhtml) files. Evry piece of template file
+could contain variables and/or SQL queries. But what actualy is template? Template is piece of
 code (commonaly html) that contain variable information i.e. some part of this code can be replaced
 with dynamic data, so one template can be used multiple times.
 

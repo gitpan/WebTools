@@ -17,7 +17,7 @@ package webtools;
 ###########################################
 BEGIN {
 use vars qw($VERSION $INTERNALVERSION @ISA @EXPORT);
-    $VERSION = "1.12";
+    $VERSION = "1.13";
     $INTERNALVERSION = "1";
     @ISA = qw(Exporter);
     @EXPORT = 
@@ -550,7 +550,7 @@ if($clear == 1) { $sess_header_flushed = 1; return;}
  if(!$sess_header_flushed)                  # If Header was not flushed...
  {
   $| = 1;
-  $print_header_buffer = "X-Powered-By: WebTools/1.12\n".$print_header_buffer; # Print version of this tool.
+  $print_header_buffer = "X-Powered-By: WebTools/1.13\n".$print_header_buffer; # Print version of this tool.
   if(($sess_cpg eq 'cookie') and ($local_sess_id ne ''))
     {
      if($sess_cookie ne 'sesstime')
@@ -879,7 +879,7 @@ sub href_sid_adder
     $before = $`;
     $after = $';
     $this = $&;
-    if($url =~ m/.*?\.(cgi|pl).*/is)
+    if($url =~ m/.*?\.(cgi|pl|php|asp|html).*/is)
      {
       if ($url =~ s/(.*?\?.*)/$1\&$name\=$value/is)
         {
@@ -914,7 +914,7 @@ sub href_adder
     $before = $`;
     $after = $';
     $this = $&;
-    if($url =~ m/.*?\.(cgi|pl).*/is)
+    if($url =~ m/.*?\.(cgi|pl|php|asp|html).*/is)
      {
       if ($url =~ s/(.*?\?.*)/$1\&$name\=$value/is){}
       else
@@ -1266,9 +1266,8 @@ sub RunScript
    $p_file_buf_N001 = <FILE_H_OPEN_N001>;
    close (FILE_H_OPEN_N001);
    $/ = "\n";
-   $p_file_buf_N001 =~ s/\r\n/\n/gs;
-   $p_file_buf_N001 =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>\n?/$2/gsi;
-   $p_file_buf_N001 =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>\n?//gsi;
+   $p_file_buf_N001 =~ s/\<\!\-\- PERL:(.*?)(\<\?perl.*?\?\>.*?)\/\/\-\-\>(\r\n|\n)?/$2/gsio;
+   $p_file_buf_N001 =~ s/\<\!\-\- PERL:(.*?)\/\/\-\-\>(\r\n|\n)?//gsio;
    $p_file_buf_N001 = pre_process_templates($p_file_buf_N001);  # Process all build-in templates
    
    # Remove all the COMMENTS!!! That will reduce perl computing and printing!                
@@ -1294,35 +1293,35 @@ sub RunScript
 }
 sub ExecuteHTMLfile
 {
- my ($f_name,$p_buf_N001) = @_;
- my @html_N001 = split(/\n?\<\?perl/is,$p_buf_N001);
- my $a_N001;
+ my ($f_name,$sys_p_buf_N001) = @_;
+ my @html_N001 = split(/\<\?perl/is,$sys_p_buf_N001);
+ my $sys_a_N001;
  my $error_locator_N001 = 1;
- my $all_code_in_one = "\n"; #"$sys_globvars"."\n";
- foreach $l_N001 (@html_N001)
+ my $sys_all_code_in_one = "\n"; #"$sys_globvars"."\n";
+ foreach $sys_l_N001 (@html_N001)
   {
-   $l_N001 =~ s/(.*)\?\>\n?//is;
-   push(@h_N001,$l_N001);
+   $sys_l_N001 =~ s/(.*)\?\>(\r\n|\n)?//is;
+   push(@h_N001,$sys_l_N001);
   }
  my @code_N001 = ();
- $p_buf_N001 =~ s/\<\?perl *(.*?)\?\>/do{
-  $a_N001 = $1;
-  if ($a_N001 ne '') { push(@code_N001,$a_N001); }
+ $sys_p_buf_N001 =~ s/\<\?perl *(.*?)\?\>/do{
+  $sys_a_N001 = $1;
+  if ($sys_a_N001 ne '') { push(@code_N001,$sys_a_N001); }
  };/isge;
  my $i_N001 = 0;
- foreach $l_N001 (@h_N001)
+ foreach $sys_l_N001 (@h_N001)
   {
-    chomp($l_N001);
-    if($l_N001 ne '')
+    chomp($sys_l_N001);
+    if($sys_l_N001 ne '')
       {
-       $all_code_in_one .= '$print_flush_buffer_n = << \'ALL_HTML_CODE_N001\';'."\n$l_N001\nALL_HTML_CODE_N001\n".'$print_flush_buffer_n =~ s/\n$//gs;'."\n".'$print_flush_buffer .= $print_flush_buffer_n;'."\n";
+       $sys_all_code_in_one .= '$sys_l_N001 =~ s/\|/\\\|/sgo; $print_flush_buffer .= q|'.$sys_l_N001.'|;'."\n";
       }
     my $cd_N001 = $code_N001[$i_N001]; $i_N001++;
-    $all_code_in_one .= $cd_N001;
+    $sys_all_code_in_one .= $cd_N001;
   }
- $all_code_in_one .= "\n".'$error_locator_N001 = 0;';
+ $sys_all_code_in_one .= "\n".'$error_locator_N001 = 0;';
  SetCGIScript_Timeout();
- eval $all_code_in_one;
+ eval $sys_all_code_in_one;
  my $cd = $@;
  my $codeerr = $cd;
  if($error_locator_N001)

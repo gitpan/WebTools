@@ -32,3 +32,10 @@ Revision history for Perl sub system "WebTools"
           instead of 'nslookup'.
         - Problem with simultaneous work of Flat DB and flat session support
           was repaired.
+          
+1.13   06 Jan 2002
+        - HTML in Perl code (compile engine of WebTools) was weritten and
+          now it can contain whatever HTML/Perl code.
+        - Global variable parsing was speed up and all global variables
+          are able to contain in self any kind of data.
+        - Currently no bugs wait to be removed! :-)

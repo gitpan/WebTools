@@ -19,8 +19,8 @@
          WebTools was projected to reduce maximum development work in web 
       projects! It decide most of common tasks, so you can think about more 
       important things at all. Note that, this package is not 10-15 kb and you 
-      will need a time to learn everything about it. But don't afraid to 
-      start. I am sure that it will be helpful for you :-) 
+      will need a time to learn everything about it. But don't afraid to start. 
+      I am sure that it will be helpful for you :-) 
        This document is not a comprehensive help. It is reference! For more 
       information and help please see examples into docs directory!
 
@@ -490,13 +490,13 @@ yet.
       6. Config.pl 
       Typical configuration for "Web Tools" 
 
-      [Name_Of_Project] 
+      #[Name_Of_Project] 
 
       $projectname = 'webtools'; # !!! 
       # This is a name of project. Also this name is a base for other parameters 
       in this configuration file 
 
-      [SQL] 
+      #[SQL] 
 
       $db_support = 'db_flat'; # !!! 
       # Name of database driver. Can be: db_mysql, db_access, db_flat 
@@ -516,7 +516,7 @@ yet.
       $mysqlbequiet = '1'; 
       # If you use MySQL then: Must be QUIET? 
 
-      [DataBase] 
+      #[DataBase] 
 
       $sql_database_sessions = $projectname.'db'; # !!! 
       # Database name (name some like project!?!?!). If need change it! 
@@ -527,7 +527,7 @@ yet.
       $sql_user_table = $projectname.'_users'; # !!! 
       # Table that contain all users (and admin too) 
 
-      [CHECK] 
+      #[CHECK] 
 
       $check_module_functions = 'on'; # !!! 
       # SCRIPTS RUN IN CHECK MODE! After first check(test), 
@@ -535,7 +535,7 @@ yet.
       # YOU CAN ALWAYS TURN THIS ON WHEN YOU WANT TO CHECK 
       # YOUR CURRENT CONFIGURATION WITHOUT ANY OPPRESSION!!! 
 
-      [Secure] 
+      #[Secure] 
 
       $wait_attempt = '4'; 
       # Count of attempts when database is flocked 
@@ -573,9 +573,6 @@ yet.
       $l_sid = 'sid'; 
       # Session label ID used by module 
 
-      $referrer = ''; 
-      # Please look at 'allowed.pl' for more info about 'referrer' restriction 
-
       $cgi_lib_forbid_mulipart = 'off'; # !!! 
       # If you want to protect yourself from multipart spam turn this 'on' (you 
       will be no longer able to use multipart forms)! 
@@ -605,7 +602,7 @@ yet.
       # close script immediately! 
       # Allowed values are: "on" and "off". 
         
-      [Debug] 
+      #[Debug] 
 
       $debugging = 'on'; 
       # Set debugging mode 
@@ -613,12 +610,12 @@ yet.
       # Show whether real mail must by sent or must by saved into mail 
       # directory! 
         
-      [Mail] 
+      #[Mail] 
 
       $sendmail = '/usr/sbin/sendmail'; 
       # Real full path to sendmail 
         
-      [Other] 
+      #[Other] 
 
       $var_printing_mode = 'buffered'; # !!! 
       # Default output is buffered, leave this variable empty if you need output 
@@ -698,7 +695,7 @@ yet.
        'cgi', 
        ); 
         
-      [PATHS] 
+      #[PATHS] 
 
       $driver_path = './drivers/'; 
       # Path to your DB Drivers (please keep structure) 
